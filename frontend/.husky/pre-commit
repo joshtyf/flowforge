@@ -3,7 +3,6 @@
 
 if git diff --cached --quiet -- "frontend/"
 then
-    echo "Detected no change from frontend"
     exit 0
 else
     echo "Detected change from frontend Changed"
