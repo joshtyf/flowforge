@@ -1,5 +1,5 @@
 import React from "react"
-import { Button } from "../ui/button"
+import { Button } from "@/components/ui/button"
 import { ChevronDown, LucideUser, Menu } from "lucide-react"
 import {
   DropdownMenu,
@@ -7,7 +7,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@radix-ui/react-dropdown-menu"
+} from "@/components/ui/dropdown-menu"
 
 const UserActionsDropdown = () => (
   <DropdownMenu>
@@ -18,7 +18,7 @@ const UserActionsDropdown = () => (
         variant="ghost"
       >
         <LucideUser className="mr-2" />
-        User
+        <p className="text-lg">User</p>
         <ChevronDown className="ml-2" />
       </Button>
     </DropdownMenuTrigger>
@@ -30,7 +30,7 @@ const UserActionsDropdown = () => (
             className="hover:text-primary hover:bg-transparent"
             variant="ghost"
           >
-            Logout
+            <p className="text-lg">Logout</p>
           </Button>
         </DropdownMenuItem>
       </DropdownMenuGroup>
@@ -42,7 +42,7 @@ export default function Navbar() {
   return (
     <div className="flex-col border-b md:flex">
       <div className="flex h-16 items-center px-4">
-        <Button variant="outline" size="icon">
+        <Button variant="ghost" size="icon">
           <Menu />
         </Button>
         <div className="ml-auto w-1/10">

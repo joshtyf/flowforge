@@ -1,7 +1,7 @@
 "use client"
 
+import Navbar from "@/components/layouts/navbar"
 import React, { ReactNode } from "react"
-import Navbar from "@/app/components/layouts/navbar"
 
 interface AuthenticatedLayoutProps {
   children: ReactNode
