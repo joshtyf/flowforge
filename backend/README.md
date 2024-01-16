@@ -55,6 +55,13 @@ An example:
 
 We use placeholders, denoted by `${}`, to indicate parameters that will be provided by the user during the submission of the service request. The placeholders will be replaced by the actual values when the service request is being processed.
 
+#### Step types
+
+To kickstart the development, we will only support the following step types:
+
+1. Approval
+2. API call (GET, POST)
+
 ### Service request
 
 Every service request will also be stored as a JSON object in a MongoDB database. The JSON object will contain the following key information [TO BE FURTHER UPDATED]:
@@ -78,6 +85,7 @@ In addition, every action made on a server request will be appended to a SQL dat
 - Service request ID
 - Step name
 - Action (e.g., start, wait for approval, approve, reject, complete, raise error)
+- Approved by (optional field for approval steps)
 - Timestamp
 
 > To think about: compaction of the records in the SQL database
