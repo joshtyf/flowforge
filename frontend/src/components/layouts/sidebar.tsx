@@ -46,7 +46,15 @@ export default function Sidebar({ className }: { className?: string }) {
       <nav className="grid gap-2">
         <div className="flex w-full items-center justify-center h-16 border-b">
           <Link href="/">
-            <img src="../../app/icon.ico" />
+            <span className="flex items-center space-x-2">
+              <img
+                src={"/flowforge.png"}
+                width="40"
+                height="40"
+                alt="flowforge icon"
+              />
+              <p className="text-2xl font-bold">Flowforge</p>
+            </span>
           </Link>
         </div>
         {links.map((link, index) => (
