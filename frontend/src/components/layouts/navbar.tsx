@@ -18,7 +18,7 @@ const UserActionsDropdown = () => (
         variant="ghost"
       >
         <LucideUser className="mr-2" />
-        <p className="text-lg">User</p>
+        <p>User</p>
         <ChevronDown className="ml-2" />
       </Button>
     </DropdownMenuTrigger>
@@ -30,7 +30,7 @@ const UserActionsDropdown = () => (
             className="hover:text-primary hover:bg-transparent"
             variant="ghost"
           >
-            <p className="text-lg">Logout</p>
+            <p>Logout</p>
           </Button>
         </DropdownMenuItem>
       </DropdownMenuGroup>
@@ -40,8 +40,8 @@ const UserActionsDropdown = () => (
 
 export default function Navbar() {
   return (
-    <div className="flex-col border-b md:flex">
-      <div className="flex h-16 items-center px-4">
+    <div className="flex-col  md:flex">
+      <div className="flex h-16 border-b items-center px-4">
         <Button variant="ghost" size="icon">
           <Menu />
         </Button>
