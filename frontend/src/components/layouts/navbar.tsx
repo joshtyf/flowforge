@@ -38,11 +38,15 @@ const UserActionsDropdown = () => (
   </DropdownMenu>
 )
 
-export default function Navbar() {
+interface NavbarProps {
+  toggleSidebar: () => void
+}
+
+export default function Navbar({ toggleSidebar }: NavbarProps) {
   return (
     <div className="flex-col  md:flex">
       <div className="flex h-16 border-b items-center px-4">
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" onClick={toggleSidebar}>
           <Menu />
         </Button>
         <div className="ml-auto w-1/10">

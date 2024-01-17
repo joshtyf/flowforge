@@ -40,7 +40,11 @@ const links: LinkType[] = [
   },
 ]
 
-export default function Sidebar({ className }: { className?: string }) {
+interface SidebarProps {
+  className?: string
+}
+
+export default function Sidebar({ className }: SidebarProps) {
   return (
     <div className={cn("group flex flex-col gap-4 border-r", className)}>
       <nav className="grid gap-2">
