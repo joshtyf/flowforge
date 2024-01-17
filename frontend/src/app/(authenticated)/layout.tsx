@@ -21,7 +21,7 @@ export default function AuthenticatedLayout({
     <>
       <div className="flex flex-row w-full min-h-[100vh]">
         <Sidebar
-          className={` ${isSidebarOpen ? "w-96" : "w-0"} overflow-x-hidden transition-width duration-300 ease-in-out`}
+          className={` ${isSidebarOpen ? "w-80" : "w-0"} overflow-x-hidden transition-width duration-300 ease-in-out`}
         />
         <div className="w-full">
           <Navbar toggleSidebar={toggleSidebar} />

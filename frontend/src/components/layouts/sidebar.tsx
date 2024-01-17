@@ -47,14 +47,14 @@ interface SidebarProps {
 export default function Sidebar({ className }: SidebarProps) {
   return (
     <div className={cn("group flex flex-col gap-4 border-r", className)}>
-      <nav className="grid gap-2">
-        <div className="flex w-full items-center justify-center h-16 border-b">
+      <nav className="grid gap-y-2">
+        <div className="flex items-center justify-center h-16 border-b">
           <Link href="/">
             <span className="flex items-center space-x-2">
               <img
                 src={"/flowforge.png"}
-                width="40"
-                height="40"
+                width="30"
+                height="30"
                 alt="flowforge icon"
               />
               <p className="text-2xl font-bold">Flowforge</p>
