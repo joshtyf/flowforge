@@ -1,9 +1,9 @@
 import React from "react"
 import type { Metadata } from "next"
-import { Nunito_Sans } from "next/font/google"
+import { Poppins } from "next/font/google"
 import "@/styles/globals.css"
 
-const font = Nunito_Sans({ weight: "500", subsets: ["latin"] })
+const font = Poppins({ weight: "400", subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "FlowForge",
