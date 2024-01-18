@@ -15,17 +15,13 @@ module.exports = {
     "airbnb-typescript",
     "airbnb/hooks", // Lints React hooks
     "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended",
-    "prettier",
   ],
-  plugins: ["react", "import", "prettier", "@typescript-eslint"],
+  plugins: ["react", "import", "@typescript-eslint"],
   env: {
     browser: true,
     es6: true,
   },
   rules: {
-    // Throws error when commiting with prettier issues
-    "prettier/prettier": "error",
     "import/no-extraneous-dependencies": ["error", { devDependencies: true }],
     "no-use-before-define": "off",
     "@typescript-eslint/no-use-before-define": ["error"],
@@ -33,5 +29,9 @@ module.exports = {
     "import/no-extraneous-dependencies": "off",
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/no-shadow": "off",
+    "@typescript-eslint/quotes": "off",
+    "@typescript-eslint/semi": "off",
+    "@typescript-eslint/indent": "off",
+    "@typescript-eslint/comma-dangle": "off",
   },
-};
+}
