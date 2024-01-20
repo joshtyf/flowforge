@@ -1,19 +1,16 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
-	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/joshtyf/flowforge/src/database"
+	"github.com/joshtyf/flowforge/src/database/client"
+	dbmodels "github.com/joshtyf/flowforge/src/database/models"
+	handlermodels "github.com/joshtyf/flowforge/src/handlers/models"
 	_ "github.com/lib/pq"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
-
-var db = os.Getenv("MONGO_DATABASE")
 
 /////////////////// Handlers ///////////////////
 
@@ -28,9 +25,14 @@ func HealthCheck(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAllServiceRequest(w http.ResponseWriter, r *http.Request) {
-	allsr, err := getAllServiceRequest()
+	client, err := client.GetMongoClient()
 	if err != nil {
-		JSONError(w, NewHttpError(err), http.StatusInternalServerError)
+		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		return
+	}
+	allsr, err := database.NewServiceRequest(client).GetAll()
+	if err != nil {
+		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -39,12 +41,17 @@ func GetAllServiceRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetServiceRequest(w http.ResponseWriter, r *http.Request) {
+	client, err := client.GetMongoClient()
+	if err != nil {
+		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		return
+	}
 	vars := mux.Vars(r)
 	requestId := vars["requestId"]
-	sr, err := getServiceRequest(requestId)
+	sr, err := database.NewServiceRequest(client).GetById(requestId)
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		JSONError(w, NewHttpError(err), http.StatusBadRequest)
+		JSONError(w, handlermodels.NewHttpError(err), http.StatusBadRequest)
 		return
 	}
 	json.NewEncoder(w).Encode(sr)
@@ -53,16 +60,21 @@ func GetServiceRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
-	sr := NewServiceRequest()
-	err := json.NewDecoder(r.Body).Decode(&sr)
-	w.Header().Set("Content-Type", "application/json")
+	client, err := client.GetMongoClient()
 	if err != nil {
-		JSONError(w, NewHttpError(err), http.StatusBadRequest)
+		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
 		return
 	}
-	err = createServiceRequest(sr)
+	var srm *dbmodels.ServiceRequestModel
+	err = json.NewDecoder(r.Body).Decode(&srm)
+	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		JSONError(w, NewHttpError(err), http.StatusInternalServerError)
+		JSONError(w, handlermodels.NewHttpError(err), http.StatusBadRequest)
+		return
+	}
+	err = database.NewServiceRequest(client).Create(srm)
+	if err != nil {
+		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
@@ -77,49 +89,7 @@ func serverHealthy() bool {
 	return true
 }
 
-func createServiceRequest(sr *ServiceRequest) (err error) {
-	client := database.NewMongoClientWrapper().GetClient()
-	_, err = client.Database(db).Collection("service_requests").InsertOne(context.TODO(), sr)
-	if err != nil {
-		return
-	}
-	return
-}
-
-func getServiceRequest(hexId string) (sr *ServiceRequest, err error) {
-	client := database.NewMongoClientWrapper().GetClient()
-	id, err := primitive.ObjectIDFromHex(hexId)
-	if err != nil {
-		return nil, err
-	}
-	filter := bson.D{{Key: "_id", Value: id}}
-	err = client.Database(db).Collection("service_requests").FindOne(context.TODO(), filter).Decode(&sr)
-	if err != nil {
-		return nil, err
-	}
-	return
-}
-
-func getAllServiceRequest() (allSr []*ServiceRequest, err error) {
-	client := database.NewMongoClientWrapper().GetClient()
-	cursor, err := client.Database(db).Collection("service_requests").Find(context.TODO(), bson.D{})
-	if err != nil {
-		return nil, err
-	}
-
-	for cursor.Next(context.TODO()) {
-		var elem *ServiceRequest
-		err := cursor.Decode(&elem)
-		if err != nil {
-			return nil, err
-		}
-
-		allSr = append(allSr, elem)
-	}
-	return
-}
-
-func JSONError(w http.ResponseWriter, err *HttpError, code int) {
+func JSONError(w http.ResponseWriter, err *handlermodels.HttpError, code int) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(code)

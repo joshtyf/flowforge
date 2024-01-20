@@ -5,6 +5,7 @@ import (
 
 	"github.com/joshtyf/flowforge/src/database/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -22,7 +23,9 @@ func (sr *ServiceRequest) Create(srm *models.ServiceRequestModel) error {
 }
 
 func (sr *ServiceRequest) GetById(id string) (*models.ServiceRequestModel, error) {
-	result := sr.c.Database(DatabaseName).Collection("service_requests").FindOne(context.Background(), bson.M{"_id": id})
+
+	objectId, _ := primitive.ObjectIDFromHex(id)
+	result := sr.c.Database(DatabaseName).Collection("service_requests").FindOne(context.Background(), bson.M{"_id": objectId})
 	if result.Err() != nil {
 		return nil, result.Err()
 	}
