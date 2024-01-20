@@ -1,5 +1,23 @@
 # FlowForge Backend Documentation
 
+## Docker
+
+Use docker profiles to manage the different environments.
+
+For example, to seed the database, run the following command:
+
+```bash
+docker compose --profile be-seed -p flowforge up --build
+```
+
+To run the backend server (no seeding), run the following command:
+
+```bash
+docker compose --profile main -p flowforge up --build
+```
+
+> This will also start the frontend
+
 ## Database Documentation
 
 ### Service request pipeline
@@ -91,3 +109,21 @@ In addition, every action made on a server request will be appended to a SQL dat
 > To think about: compaction of the records in the SQL database
 
 > To think about: passing intermediate data between steps
+
+### Connecting to MongoDB
+
+Using Homebrew (macOS):
+
+```bash
+brew install mongosh
+```
+
+Start the mongo db server in Docker.
+
+Connect to the mongo db server:
+
+```bash
+mongosh --host 127.0.0.1 -u root
+```
+
+Follow the instructions in the official [documentation](https://www.mongodb.com/docs/mongodb-shell/crud/) on how to perform CRUD operations on the database.
