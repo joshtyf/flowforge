@@ -1,16 +1,20 @@
-name: Go Tests
-on: [pull_request]
+name: Backend Tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "backend/**"
 
 jobs:
-  build:
+  go-test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: "1.21.x"
+          go-version: "1.21.6"
       - name: Install dependencies
         run: go mod download
         working-directory: backend
