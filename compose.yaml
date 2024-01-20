@@ -1,6 +1,8 @@
 version: "3.8"
 services:
   frontend:
+    profiles:
+      - main
     build:
       context: frontend
     ports:
@@ -9,12 +11,17 @@ services:
   backend:
     ports:
       - "8080:8080"
+    profiles:
+      - main
     build:
       context: backend
     environment:
       - MONGO_URI=${MONGO_URI}
 
   postgres:
+    profiles:
+      - main
+      - be-seed
     image: postgres:16-alpine
     ports:
       - "127.0.0.1:5433:5432"
@@ -26,8 +33,24 @@ services:
       - POSTGRES_DB=flowforge_db
 
   mongo:
+    profiles:
+      - main
+      - be-seed
     image: mongo:7.0
+    ports:
+      - "127.0.0.1:27017:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
       - MONGO_INITDB_DATABASE=flowforge_db
+
+  mongo_seed:
+    profiles:
+      - be-seed
+    build:
+      context: backend
+      dockerfile: dockerfiles/mongo_seed.Dockerfile
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=${MONGO_URI}
