@@ -8,15 +8,8 @@ else
     echo "Detected change from frontend Changed"
     echo '🏗️👷 Styling, testing and building your project before committing'
 
-    # Check Prettier standards
-    cd frontend && npm run check-format ||
-    (
-        echo 'Prettier Check Failed. Run npm run format, add changes and try commit again.';
-        false;
-    )
-
     # Check ESLint Standards
-    npm run check-lint ||
+    cd frontend && npm run check-lint ||
     (
             echo 'ESLint Check Failed. Make the required changes listed above, add changes and try to commit again.'
             false; 
@@ -25,11 +18,18 @@ else
     # Check tsconfig standards
     npm run check-types ||
     (
-        echo 'Are you seriously trying to write that? Make the changes required above.'
+        echo 'TypeScript Check Failed. Make the changes required above.'
+        false;
+    )
+
+    # Check Prettier standards
+     npm run format ||
+    (
+        echo 'Prettier Formatting Failed. Run npm run check-format to view the format errors.';
         false;
     )
 
     # If everything passes... Now we can commit
-    echo 'Passed format, lint and type checks. Commiting...'
+    echo 'Passed lint and type checks and formatted code. Commiting...'
 fi
 

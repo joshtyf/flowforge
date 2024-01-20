@@ -1,25 +1,36 @@
-version: '3.8'
+version: "3.8"
 services:
+  frontend:
+    build:
+      context: frontend
+    ports:
+      - "3000:3000"
+
   backend:
     ports:
       - "8080:8080"
     build:
       context: backend
     environment:
+      - MONGO_URI=${MONGO_URI}
       - MONGO_DATABASE=flowforge_db
 
   postgres:
     image: postgres:16-alpine
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_USER=postgres
       - POSTGRES_DB=flowforge_db
 
   mongo:
-    image: mongo
+    image: mongo:7.0
     ports:
       - "27017:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
-    container_name: mongodb
+      - MONGO_INITDB_DATABASE=flowforge_db
