@@ -9,6 +9,8 @@ services:
   backend:
     build:
       context: backend
+    environment:
+      - MONGO_URI=${MONGO_URI}
 
   postgres:
     image: postgres:16-alpine
@@ -22,7 +24,7 @@ services:
       - POSTGRES_DB=flowforge_db
 
   mongo:
-    image: mongo
+    image: mongo:7.0
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
