@@ -1,8 +1,12 @@
 version: '3.8'
 services:
   backend:
+    ports:
+      - "8080:8080"
     build:
       context: backend
+    environment:
+      - MONGO_DATABASE=flowforge_db
 
   postgres:
     image: postgres:16-alpine
@@ -13,7 +17,9 @@ services:
 
   mongo:
     image: mongo
+    ports:
+      - "27017:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
-      - MONGO_INITDB_DATABASE=flowforge_db
+    container_name: mongodb
