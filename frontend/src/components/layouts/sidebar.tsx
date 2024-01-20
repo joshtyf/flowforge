@@ -23,7 +23,7 @@ const links: LinkType[] = [
   {
     title: "Service Catalog",
     icon: LibraryBig,
-    href: "#",
+    href: "/service-catalog",
     variant: "ghost",
   },
   {
