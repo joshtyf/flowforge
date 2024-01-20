@@ -12,7 +12,7 @@ services:
     build:
       context: backend
     environment:
-      - MONGO_URI={MONGO_URI}
+      - MONGO_URI=${MONGO_URI}
 
   postgres:
     image: postgres:16-alpine

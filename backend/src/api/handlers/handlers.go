@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	handlermodels "github.com/joshtyf/flowforge/src/api/handlers/models"
 	"github.com/joshtyf/flowforge/src/database"
 	"github.com/joshtyf/flowforge/src/database/client"
 	dbmodels "github.com/joshtyf/flowforge/src/database/models"
-	handlermodels "github.com/joshtyf/flowforge/src/handlers/models"
 	_ "github.com/lib/pq"
 )
 
