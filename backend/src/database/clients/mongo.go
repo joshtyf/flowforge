@@ -9,10 +9,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const (
-	DatabaseName = "flowforge_db"
-)
-
 var c *mongo.Client
 
 func GetMongoClient() (*mongo.Client, error) {
