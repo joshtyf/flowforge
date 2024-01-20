@@ -17,12 +17,12 @@ func NewServiceRequest(c *mongo.Client) *ServiceRequest {
 }
 
 func (sr *ServiceRequest) Create(srm *models.ServiceRequestModel) error {
-	_, err := c.Database(DatabaseName).Collection("service_requests").InsertOne(context.Background(), srm)
+	_, err := sr.c.Database(DatabaseName).Collection("service_requests").InsertOne(context.Background(), srm)
 	return err
 }
 
 func (sr *ServiceRequest) GetById(id string) (*models.ServiceRequestModel, error) {
-	result := c.Database(DatabaseName).Collection("service_requests").FindOne(context.Background(), bson.M{"_id": id})
+	result := sr.c.Database(DatabaseName).Collection("service_requests").FindOne(context.Background(), bson.M{"_id": id})
 	if result.Err() != nil {
 		return nil, result.Err()
 	}
@@ -32,7 +32,7 @@ func (sr *ServiceRequest) GetById(id string) (*models.ServiceRequestModel, error
 }
 
 func (sr *ServiceRequest) GetAll() ([]*models.ServiceRequestModel, error) {
-	result, err := c.Database(DatabaseName).Collection("service_requests").Find(context.Background(), bson.M{})
+	result, err := sr.c.Database(DatabaseName).Collection("service_requests").Find(context.Background(), bson.M{})
 	if err != nil {
 		return nil, err
 	}
