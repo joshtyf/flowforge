@@ -3,20 +3,17 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/joshtyf/flowforge/src/database"
 	_ "github.com/lib/pq"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
+
+var db = os.Getenv("MONGO_DATABASE")
 
 /////////////////// Handlers ///////////////////
 
@@ -80,49 +77,23 @@ func serverHealthy() bool {
 	return true
 }
 
-func getDatabase() (database *mongo.Database, err error) {
-	log.Println("function called")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://mongodb:27017"))
-	if err != nil {
-		log.Println("database connection error", err)
-		return nil, err
-	}
-
-	err = client.Ping(ctx, readpref.Primary())
-	if err != nil {
-		log.Println("err", err)
-		return
-	}
-	log.Println("Successfully connected and pinged.")
-
-	dbName := os.Getenv("MONGO_DATABASE")
-	log.Println("DBNAME:", dbName)
-	database = client.Database(dbName)
-
-	log.Println(dbName, database.Name())
-	return database, nil
-}
-
 func createServiceRequest(sr *ServiceRequest) (err error) {
-	db, err := getDatabase()
-	result, err := db.Collection("service_requests").InsertOne(context.TODO(), sr)
+	client := database.NewMongoClientWrapper().GetClient()
+	_, err = client.Database(db).Collection("service_requests").InsertOne(context.TODO(), sr)
 	if err != nil {
 		return
 	}
-	fmt.Printf("Inserted document with _id: %v\n", result.InsertedID)
 	return
 }
 
 func getServiceRequest(hexId string) (sr *ServiceRequest, err error) {
-	db, err := getDatabase()
+	client := database.NewMongoClientWrapper().GetClient()
 	id, err := primitive.ObjectIDFromHex(hexId)
 	if err != nil {
 		return nil, err
 	}
 	filter := bson.D{{Key: "_id", Value: id}}
-	err = db.Collection("service_requests").FindOne(context.TODO(), filter).Decode(&sr)
+	err = client.Database(db).Collection("service_requests").FindOne(context.TODO(), filter).Decode(&sr)
 	if err != nil {
 		return nil, err
 	}
@@ -130,8 +101,8 @@ func getServiceRequest(hexId string) (sr *ServiceRequest, err error) {
 }
 
 func getAllServiceRequest() (allSr []*ServiceRequest, err error) {
-	db, err := getDatabase()
-	cursor, err := db.Collection("service_requests").Find(context.TODO(), bson.D{})
+	client := database.NewMongoClientWrapper().GetClient()
+	cursor, err := client.Database(db).Collection("service_requests").Find(context.TODO(), bson.D{})
 	if err != nil {
 		return nil, err
 	}
