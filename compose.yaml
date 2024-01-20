@@ -13,7 +13,6 @@ services:
       context: backend
     environment:
       - MONGO_URI={MONGO_URI}
-      - MONGO_DATABASE=flowforge_db
 
   postgres:
     image: postgres:16-alpine
