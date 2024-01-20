@@ -13,7 +13,7 @@ const createDummyServices = (noOfServices: number) => {
 }
 
 const useServices = () => {
-  const services: ServiceRequest[] = createDummyServices(5)
+  const services: ServiceRequest[] = createDummyServices(25)
   return {
     services,
   }
