@@ -72,7 +72,7 @@ func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 		JSONError(w, handlermodels.NewHttpError(err), http.StatusBadRequest)
 		return
 	}
-	err = database.NewServiceRequest(client).Create(srm)
+	_, err = database.NewServiceRequest(client).Create(srm)
 	if err != nil {
 		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
 		return

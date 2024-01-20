@@ -17,9 +17,9 @@ func NewServiceRequest(c *mongo.Client) *ServiceRequest {
 	return &ServiceRequest{c: c}
 }
 
-func (sr *ServiceRequest) Create(srm *models.ServiceRequestModel) error {
-	_, err := sr.c.Database(DatabaseName).Collection("service_requests").InsertOne(context.Background(), srm)
-	return err
+func (sr *ServiceRequest) Create(srm *models.ServiceRequestModel) (*mongo.InsertOneResult, error) {
+	res, err := sr.c.Database(DatabaseName).Collection("service_requests").InsertOne(context.Background(), srm)
+	return res, err
 }
 
 func (sr *ServiceRequest) GetById(id string) (*models.ServiceRequestModel, error) {
