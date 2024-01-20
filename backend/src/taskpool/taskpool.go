@@ -1,6 +1,10 @@
 package taskpool
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/joshtyf/flowforge/src/logger"
+)
 
 type Task struct {
 	params  interface{}
@@ -18,6 +22,7 @@ func NewTaskPool() *TaskPool {
 }
 
 func (t *TaskPool) Start() {
+	logger.Info("Starting task pool", nil)
 	go func() {
 		for {
 			select {
@@ -40,6 +45,7 @@ func (t *TaskPool) Start() {
 }
 
 func (t *TaskPool) Stop() {
+	logger.Info("Stopping task pool", nil)
 	t.stop <- struct{}{}
 }
 
