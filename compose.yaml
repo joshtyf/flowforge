@@ -12,7 +12,7 @@ services:
     build:
       context: backend
     environment:
-      - MONGO_URI=mongodb://mongodb:27017
+      - MONGO_URI={MONGO_URI}
       - MONGO_DATABASE=flowforge_db
 
   postgres:
