@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/joshtyf/flowforge/src/handlers"
+	handlers "github.com/joshtyf/flowforge/src/handlers/api"
 )
 
 func main() {
