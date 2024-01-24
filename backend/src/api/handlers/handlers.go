@@ -4,12 +4,15 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/gookit/event"
 	"github.com/gorilla/mux"
 	handlermodels "github.com/joshtyf/flowforge/src/api/handlers/models"
 	"github.com/joshtyf/flowforge/src/database"
 	"github.com/joshtyf/flowforge/src/database/client"
 	dbmodels "github.com/joshtyf/flowforge/src/database/models"
+	"github.com/joshtyf/flowforge/src/events"
 	_ "github.com/lib/pq"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 /////////////////// Handlers ///////////////////
@@ -72,13 +75,15 @@ func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 		JSONError(w, handlermodels.NewHttpError(err), http.StatusBadRequest)
 		return
 	}
-	_, err = database.NewServiceRequest(client).Create(srm)
+	res, err := database.NewServiceRequest(client).Create(srm)
 	if err != nil {
 		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
 		return
 	}
+	insertedId, _ := res.InsertedID.(primitive.ObjectID)
+	srm.Id = insertedId
+	event.FireEvent(events.NewNewServiceRequestEvent(srm))
 	w.WriteHeader(http.StatusCreated)
-	return
 }
 
 /////////////////// Helper Functions ///////////////////
