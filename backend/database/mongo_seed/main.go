@@ -17,7 +17,7 @@ func main() {
 	serviceRequest := models.ServiceRequestModel{
 		PipelineUuid:    "1",
 		PipelineVersion: 1,
-		Status:          "Pending",
+		Status:          models.Success,
 		Remarks:         "This is a test service request.",
 	}
 
