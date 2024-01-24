@@ -87,7 +87,7 @@ func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	insertedId, _ := res.InsertedID.(primitive.ObjectID)
 	srm.Id = insertedId
-	event.FireEvent(events.NewNewServiceRequestEvent(srm))
+	event.FireAsync(events.NewNewServiceRequestEvent(srm))
 	w.WriteHeader(http.StatusCreated)
 }
 
