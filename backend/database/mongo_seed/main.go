@@ -14,7 +14,12 @@ func main() {
 		panic(err)
 	}
 
+	serviceReqId, err := primitive.ObjectIDFromHex("F2D8E1A73B964C5E7A0F81D9")
+	if err != nil {
+		panic(err)
+	}
 	serviceRequest := models.ServiceRequestModel{
+		Id:              serviceReqId,
 		PipelineUuid:    "1",
 		PipelineVersion: 1,
 		Status:          models.Success,
