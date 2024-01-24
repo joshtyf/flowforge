@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gookit/event"
 	"github.com/gorilla/mux"
@@ -68,8 +69,12 @@ func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
 		return
 	}
-	var srm *dbmodels.ServiceRequestModel
-	err = json.NewDecoder(r.Body).Decode(&srm)
+	srm := &dbmodels.ServiceRequestModel{
+		CreatedOn:   time.Now(),
+		LastUpdated: time.Now(),
+		Status:      dbmodels.Pending,
+	}
+	err = json.NewDecoder(r.Body).Decode(srm)
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		JSONError(w, handlermodels.NewHttpError(err), http.StatusBadRequest)
