@@ -48,7 +48,12 @@ export default function ServiceCatalogPage() {
                 <CardDescription>{service.description}</CardDescription>
               </CardHeader>
               <CardFooter className="flex justify-end">
-                <Button variant="outline">Request</Button>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push(`/service-catalog/${service.id}`)}
+                >
+                  Request
+                </Button>
               </CardFooter>
             </Card>
           </div>
