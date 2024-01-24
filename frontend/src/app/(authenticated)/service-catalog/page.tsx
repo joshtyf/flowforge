@@ -19,10 +19,11 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export default function ServiceCatalogPage() {
   const { services } = useServices()
+  const router = useRouter()
 
   return (
     <>
@@ -30,9 +31,12 @@ export default function ServiceCatalogPage() {
         <HeaderAccessory />
         <div className="flex items-baseline">
           <p className="font-bold text-3xl pt-5">Service Catalog</p>
-          <Link href="/service-catalog/create-service" className="ml-auto">
-            <Button>Create Service</Button>
-          </Link>
+          <Button
+            className="ml-auto"
+            onClick={() => router.push("/service-catalog/create-service")}
+          >
+            Create Service
+          </Button>
         </div>
       </div>
       <div className=" grid grid-cols-auto-fill-min-20 gap-y-10 max-h-[75%] overflow-y-auto">
