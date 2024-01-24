@@ -23,7 +23,6 @@ func (sr *ServiceRequest) Create(srm *models.ServiceRequestModel) (*mongo.Insert
 }
 
 func (sr *ServiceRequest) GetById(id string) (*models.ServiceRequestModel, error) {
-
 	objectId, _ := primitive.ObjectIDFromHex(id)
 	result := sr.c.Database(DatabaseName).Collection("service_requests").FindOne(context.Background(), bson.M{"_id": objectId})
 	if result.Err() != nil {
@@ -46,4 +45,14 @@ func (sr *ServiceRequest) GetAll() ([]*models.ServiceRequestModel, error) {
 		srms = append(srms, srm)
 	}
 	return srms, nil
+}
+
+func (sr *ServiceRequest) UpdateStatus(id string, status models.ServiceRequestStatus) error {
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	_, err = sr.c.Database(DatabaseName).Collection("service_requests").UpdateOne(
+		context.Background(), bson.M{"_id": objectId}, bson.M{"$set": bson.M{"status": status}})
+	return err
 }
