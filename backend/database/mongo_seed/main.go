@@ -39,4 +39,38 @@ func main() {
 	} else {
 		panic("Inserted ID is not an ObjectID")
 	}
+	pipelineUuid, err := primitive.ObjectIDFromHex("8A7F3EBCD951246A5F0E9B87")
+	if err != nil {
+		panic(err)
+	}
+	pipeline := models.PipelineModel{
+		PipelineName:  "Test Pipeline",
+		Uuid:          pipelineUuid,
+		PipelineId:    "1",
+		Version:       1,
+		FirstStepName: "step1",
+		Steps: []models.PipelineStepModel{
+			{
+				StepName:     "step1",
+				StepType:     models.APIStep,
+				NextStepName: "",
+				PrevStepName: "",
+				Parameters: map[string]string{
+					"method": "GET",
+					"url":    "https://example.com",
+				},
+				IsTerminalStep: true,
+			},
+		},
+	}
+
+	res, err = database.NewPipeline(c).Create(&pipeline)
+	if err != nil {
+		panic(err)
+	}
+	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
+		logger.Info("Inserted pipeline", map[string]interface{}{"id": oid.String()})
+	} else {
+		panic("Inserted ID is not an ObjectID")
+	}
 }
