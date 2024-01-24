@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"log"
 	"strings"
 )
@@ -16,7 +17,7 @@ func init() {
 func Info(msg string, args map[string]interface{}) {
 	argsSlice := make([]string, 0, len(args))
 	for k, v := range args {
-		argsSlice = append(argsSlice, k+"="+v.(string))
+		argsSlice = append(argsSlice, fmt.Sprintf("%s=%v", k, v))
 	}
 	log.Printf(logFormat, "INFO", msg, strings.Join(argsSlice, ", "))
 }
@@ -24,7 +25,7 @@ func Info(msg string, args map[string]interface{}) {
 func Error(msg string, args map[string]interface{}) {
 	argsSlice := make([]string, 0, len(args))
 	for k, v := range args {
-		argsSlice = append(argsSlice, k+"="+v.(string))
+		argsSlice = append(argsSlice, fmt.Sprintf("%s=%v", k, v))
 	}
 	log.Printf(logFormat, "ERR", msg, strings.Join(argsSlice, ", "))
 }
@@ -32,7 +33,7 @@ func Error(msg string, args map[string]interface{}) {
 func Warn(msg string, args map[string]interface{}) {
 	argsSlice := make([]string, 0, len(args))
 	for k, v := range args {
-		argsSlice = append(argsSlice, k+"="+v.(string))
+		argsSlice = append(argsSlice, fmt.Sprintf("%s=%v", k, v))
 	}
 	log.Printf(logFormat, "WARN", msg, strings.Join(argsSlice, ", "))
 }
