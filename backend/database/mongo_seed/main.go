@@ -1,8 +1,6 @@
 package main
 
 import (
-	"time"
-
 	"github.com/joshtyf/flowforge/src/database"
 	"github.com/joshtyf/flowforge/src/database/client"
 	"github.com/joshtyf/flowforge/src/database/models"
@@ -21,8 +19,6 @@ func main() {
 		PipelineVersion: 1,
 		Status:          "Pending",
 		Remarks:         "This is a test service request.",
-		CreatedOn:       time.Now(),
-		LastUpdated:     time.Now(),
 	}
 
 	res, err := database.NewServiceRequest(c).Create(&serviceRequest)
