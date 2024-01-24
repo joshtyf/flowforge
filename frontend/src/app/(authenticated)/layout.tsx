@@ -25,7 +25,9 @@ export default function AuthenticatedLayout({
         />
         <div className="w-full">
           <Navbar toggleSidebar={toggleSidebar} />
-          {children}
+          <div className="w-full h-full max-h-[90vh] flex justify-center items-center flex-col relative">
+            <div className="w-5/6 h-full relative">{children}</div>
+          </div>
         </div>
       </div>
     </>
