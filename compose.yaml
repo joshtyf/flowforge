@@ -3,6 +3,7 @@ services:
   frontend:
     profiles:
       - main
+      - fe
     build:
       context: frontend
     ports:
@@ -13,6 +14,7 @@ services:
       - "8080:8080"
     profiles:
       - main
+      - be
     build:
       context: backend
     environment:
@@ -21,6 +23,7 @@ services:
   postgres:
     profiles:
       - main
+      - be
       - be-seed
     image: postgres:16-alpine
     ports:
@@ -35,6 +38,7 @@ services:
   mongo:
     profiles:
       - main
+      - be
       - be-seed
     image: mongo:7.0
     ports:
