@@ -6,6 +6,11 @@ import HeaderAccessory from "@/components/ui/header-accessory"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft } from "lucide-react"
 import useServiceRequest from "./_hooks/useServiceRequest"
+import validator from "@rjsf/validator-ajv8"
+import Form from "@rjsf/core"
+import FieldTemplate from "@/components/form/custom-templates/field-template"
+import FieldErrorTemplate from "@/components/form/custom-templates/field-error-template"
+import BaseInputTemplate from "@/components/form/custom-templates/base-input-template"
 
 export default function ServiceRequestPage() {
   const { serviceRequestId } = useParams()
@@ -13,10 +18,11 @@ export default function ServiceRequestPage() {
     ? serviceRequestId[0]
     : serviceRequestId
   const router = useRouter()
-  const { serviceRequest } = useServiceRequest({
+  const { serviceRequest, handleSubmit } = useServiceRequest({
     serviceRequestId: serviceRequestIdString,
   })
-  const { name, description } = serviceRequest
+
+  const { name, description, form } = serviceRequest
   return (
     <>
       <div className="flex flex-col justify-start py-10">
@@ -28,6 +34,25 @@ export default function ServiceRequestPage() {
           <p className="font-bold text-3xl pt-5">{name}</p>
         </div>
         <p className="text-lg pt-3 ml-12 text-gray-500">{description}</p>
+      </div>
+      <div className="w-full flex justify-center">
+        <div className="w-4/5 h-full">
+          <Form
+            schema={form}
+            validator={validator}
+            onSubmit={handleSubmit}
+            templates={{
+              FieldTemplate,
+              FieldErrorTemplate,
+              BaseInputTemplate,
+            }}
+            showErrorList={false}
+          >
+            <Button className="mt-auto" type="submit">
+              Submit
+            </Button>
+          </Form>
+        </div>
       </div>
     </>
   )
