@@ -57,7 +57,7 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel)
 		logger.Error("[ServiceRequestManager] Error getting mongo client", map[string]interface{}{"err": err})
 	}
 	// Fetch the pipeline so that we know what steps to execute
-	pipeline, err := database.NewPipeline(mongoClient).GetById(serviceRequest.PipelineUuid)
+	pipeline, err := database.NewPipeline(mongoClient).GetById(serviceRequest.PipelineId)
 	if err != nil {
 		logger.Error("[ServiceRequestManager] Error getting pipeline", map[string]interface{}{"err": err})
 	}

@@ -22,10 +22,10 @@ type PipelineStepModel struct {
 }
 
 type PipelineModel struct {
-	Uuid          primitive.ObjectID  `bson:"_id,omitempty" json:"uuid,omitempty"` // unique id for the pipeline
+	Id            primitive.ObjectID  `bson:"_id,omitempty" json:"uuid,omitempty"` // unique id for the pipeline
 	PipelineName  string              `bson:"pipeline_name" json:"pipeline_name"`
-	PipelineId    string              `bson:"pipeline_id" json:"pipeline_id"` // id for the pipeline. non-unique and uses `Version` to differentiate between different versions of the pipeline
 	Version       int                 `bson:"version" json:"version"`
+	PrevVersionId primitive.ObjectID  `bson:"prev_version_id" json:"prev_version_id"`
 	FirstStepName string              `bson:"first_step_name" json:"first_step_name"`
 	Steps         []PipelineStepModel `bson:"steps" json:"steps"`
 	CreatedOn     time.Time           `bson:"created_on" json:"created_on"`

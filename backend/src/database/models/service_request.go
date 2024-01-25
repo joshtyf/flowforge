@@ -17,7 +17,7 @@ const (
 
 type ServiceRequestModel struct {
 	Id              primitive.ObjectID   `bson:"_id,omitempty" json:"id,omitempty"`
-	PipelineUuid    string               `bson:"pipeline_uuid" json:"pipeline_uuid"` // should we use primitive.ObjectID here?
+	PipelineId      string               `bson:"pipeline_id" json:"pipeline_id"` // should we use primitive.ObjectID here?
 	PipelineVersion int                  `bson:"pipeline_version" json:"pipeline_version"`
 	Status          ServiceRequestStatus `bson:"status" json:"status"`
 	CreatedOn       time.Time            `bson:"created_on" json:"created_on"`

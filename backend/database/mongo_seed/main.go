@@ -22,7 +22,7 @@ func main() {
 	}
 	serviceRequest := models.ServiceRequestModel{
 		Id:              serviceReqId,
-		PipelineUuid:    "1",
+		PipelineId:      "1",
 		PipelineVersion: 1,
 		Status:          models.Success,
 		Remarks:         "This is a test service request.",
@@ -45,8 +45,7 @@ func main() {
 	}
 	pipeline := models.PipelineModel{
 		PipelineName:  "Test Pipeline",
-		Uuid:          pipelineUuid,
-		PipelineId:    "1",
+		Id:            pipelineUuid,
 		Version:       1,
 		FirstStepName: "step1",
 		Steps: []models.PipelineStepModel{
