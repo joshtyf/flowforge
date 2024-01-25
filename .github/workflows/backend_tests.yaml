@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - "backend/**"
+      - ".github/workflows/backend-tests.yml"
 
 jobs:
   go-audit:
