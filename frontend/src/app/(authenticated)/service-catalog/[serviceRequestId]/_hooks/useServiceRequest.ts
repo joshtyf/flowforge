@@ -26,6 +26,16 @@ const useServiceRequest = ({ serviceRequestId }: UseServiceRequestProps) => {
           type: "string",
           minLength: 1,
         },
+        multipleChoices: {
+          type: "array",
+          title: "Multiple choices list",
+          description: "You can select more than 1 item",
+          items: {
+            type: "string",
+            enum: ["Item 1", "Item 2", "Item 3"],
+          },
+          uniqueItems: true,
+        },
       },
     },
   }

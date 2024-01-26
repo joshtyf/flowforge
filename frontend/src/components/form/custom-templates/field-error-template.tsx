@@ -7,16 +7,10 @@ export default function FieldErrorTemplate(props: FieldErrorProps) {
     <ul className="list-disc ml-5">
       {errors?.map((error: string | ReactElement, i: number) => {
         return (
-          <>
-            <li key={i} className="text-destructive">
-              {error.toString().charAt(0).toUpperCase() +
-                error.toString().slice(1)}
-            </li>
-            <li key={i} className="text-destructive">
-              {error.toString().charAt(0).toUpperCase() +
-                error.toString().slice(1)}
-            </li>
-          </>
+          <li key={i.toString() + error.toString} className="text-destructive">
+            {error.toString().charAt(0).toUpperCase() +
+              error.toString().slice(1)}
+          </li>
         )
       })}
     </ul>

@@ -11,11 +11,8 @@ import Form from "@rjsf/core"
 import FieldTemplate from "@/components/form/custom-templates/field-template"
 import FieldErrorTemplate from "@/components/form/custom-templates/field-error-template"
 import BaseInputTemplate from "@/components/form/custom-templates/base-input-template"
-import { UiSchema } from "@rjsf/utils"
-
-const uiSchema: UiSchema = {
-  "ui:emptyValue": undefined,
-}
+import ArrayFieldTemplate from "@/components/form/custom-templates/array-field-template"
+import { generateUiSchema } from "@/lib/utils"
 
 export default function ServiceRequestPage() {
   const { serviceRequestId } = useParams()
@@ -28,6 +25,7 @@ export default function ServiceRequestPage() {
   })
 
   const { name, description, form } = serviceRequest
+
   return (
     <>
       <div className="flex flex-col justify-start py-10">
@@ -44,13 +42,14 @@ export default function ServiceRequestPage() {
         <div className="w-4/5 h-full">
           <Form
             schema={form}
-            uiSchema={uiSchema}
+            uiSchema={generateUiSchema(serviceRequest)}
             validator={validator}
             onSubmit={handleSubmit}
             templates={{
               FieldTemplate,
               FieldErrorTemplate,
               BaseInputTemplate,
+              ArrayFieldTemplate,
             }}
             showErrorList={false}
           >
