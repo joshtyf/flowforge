@@ -22,7 +22,7 @@ type PipelineStepModel struct {
 }
 
 type PipelineModel struct {
-	Id            primitive.ObjectID  `bson:"_id,omitempty" json:"uuid,omitempty"` // unique id for the pipeline
+	Id            primitive.ObjectID  `bson:"_id,omitempty" json:"id,omitempty"` // unique id for the pipeline
 	PipelineName  string              `bson:"pipeline_name" json:"pipeline_name"`
 	Version       int                 `bson:"version" json:"version"`
 	PrevVersionId primitive.ObjectID  `bson:"prev_version_id" json:"prev_version_id"`
