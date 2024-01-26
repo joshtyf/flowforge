@@ -17,11 +17,14 @@ const useServiceRequest = ({ serviceRequestId }: UseServiceRequestProps) => {
       properties: {
         resourceName: {
           title: "Resource Name",
+          description: "Test Description",
           type: "string",
+          minLength: 1,
         },
         type: {
           title: "Type",
           type: "string",
+          minLength: 1,
         },
       },
     },

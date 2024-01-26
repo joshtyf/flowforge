@@ -15,13 +15,13 @@ export default function CustomFieldTemplate(props: FieldTemplateProps) {
   } = props
   return (
     <div className={cn("my-5", classNames)} style={style}>
-      <label htmlFor={id} className="text-1xl">
+      <label htmlFor={id} className="text-lg">
         {label}
       </label>
       <span className="text-destructive">{required ? "*" : null}</span>
-      {description}
+      <span className="text-sm text-gray-400">{description}</span>
       <div className="pt-5">{children}</div>
-      <span className="text-destructive">{errors}</span>
+      {errors}
       {help}
     </div>
   )

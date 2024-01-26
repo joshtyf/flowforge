@@ -11,6 +11,11 @@ import Form from "@rjsf/core"
 import FieldTemplate from "@/components/form/custom-templates/field-template"
 import FieldErrorTemplate from "@/components/form/custom-templates/field-error-template"
 import BaseInputTemplate from "@/components/form/custom-templates/base-input-template"
+import { UiSchema } from "@rjsf/utils"
+
+const uiSchema: UiSchema = {
+  "ui:emptyValue": undefined,
+}
 
 export default function ServiceRequestPage() {
   const { serviceRequestId } = useParams()
@@ -39,6 +44,7 @@ export default function ServiceRequestPage() {
         <div className="w-4/5 h-full">
           <Form
             schema={form}
+            uiSchema={uiSchema}
             validator={validator}
             onSubmit={handleSubmit}
             templates={{
