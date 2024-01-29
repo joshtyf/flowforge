@@ -47,7 +47,7 @@ export default function ServiceRequestPage() {
         <p className="text-lg pt-3 ml-12 text-gray-500">{description}</p>
       </div>
       <div className="w-full flex justify-center">
-        <div className="w-4/5 h-full">
+        <div className="w-4/5">
           <Form
             schema={form}
             uiSchema={generateUiSchema(serviceRequest)}
