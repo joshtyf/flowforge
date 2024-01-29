@@ -13,6 +13,12 @@ import FieldErrorTemplate from "@/components/form/custom-templates/field-error-t
 import BaseInputTemplate from "@/components/form/custom-templates/base-input-template"
 import ArrayFieldTemplate from "@/components/form/custom-templates/array-field-template"
 import { generateUiSchema } from "@/lib/utils"
+import { RegistryWidgetsType } from "@rjsf/utils"
+import CustomCheckboxes from "@/components/form/custom-widgets/custom-checkboxes"
+
+const widgets: RegistryWidgetsType = {
+  CheckboxesWidget: CustomCheckboxes,
+}
 
 export default function ServiceRequestPage() {
   const { serviceRequestId } = useParams()
@@ -51,6 +57,7 @@ export default function ServiceRequestPage() {
               BaseInputTemplate,
               ArrayFieldTemplate,
             }}
+            widgets={widgets}
             showErrorList={false}
           >
             <Button className="mt-auto" type="submit">

@@ -7,31 +7,31 @@ interface UseServiceRequestProps {
 }
 
 const useServiceRequest = ({ serviceRequestId }: UseServiceRequestProps) => {
-  console.log(serviceRequestId)
   const serviceRequest: ServiceRequest = {
     name: "Sample Service Request",
     description: "Sample Service Request Form",
     form: {
       type: "object",
-      required: ["resourceName", "type"],
+      required: ["input"],
       properties: {
-        resourceName: {
-          title: "Resource Name",
-          description: "Test Description",
+        input: {
+          title: "Input",
+          description: "Input Description with minimum length 1",
           type: "string",
           minLength: 1,
         },
-        type: {
-          title: "Type",
+        dropdown: {
           type: "string",
-          minLength: 1,
+          title: "Dropdown list",
+          description: "Dropdown selection with default value as Item 1",
+          enum: ["Item 1", "Item 2", "Item 3"],
+          default: "Item 1",
         },
-        multipleChoices: {
+        checkboxes: {
           type: "array",
-          title: "Multiple choices list",
+          title: "Checkboxes",
           description: "You can select more than 1 item",
           items: {
-            type: "string",
             enum: ["Item 1", "Item 2", "Item 3"],
           },
           uniqueItems: true,
@@ -43,7 +43,11 @@ const useServiceRequest = ({ serviceRequestId }: UseServiceRequestProps) => {
   const handleSubmit = (data: IChangeEvent<object, RJSFSchema, object>) => {
     // TODO: Replace with API call
     // TODO: Add validations
-    console.log("Data submitted: ", data.formData)
+    console.log(
+      "Data submitted: ",
+      "Service id: " + serviceRequestId,
+      data.formData
+    )
   }
   return {
     serviceRequest,
