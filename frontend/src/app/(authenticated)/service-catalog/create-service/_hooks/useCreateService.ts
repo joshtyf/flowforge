@@ -16,7 +16,7 @@ const BASIC_SERVICE_OBJECT = {
     name: "",
   },
 }
-
+// TODO: Create own custom form object schema to limit RJSF features. Limit to only these for now: Basic input, Select Dropdown, Checkboxes
 const useCreateService = () => {
   const [serviceObject, setServiceObject] =
     useState<object>(BASIC_SERVICE_OBJECT)

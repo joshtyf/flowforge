@@ -15,9 +15,11 @@ import ArrayFieldTemplate from "@/components/form/custom-templates/array-field-t
 import { generateUiSchema } from "@/lib/utils"
 import { RegistryWidgetsType } from "@rjsf/utils"
 import CustomCheckboxes from "@/components/form/custom-widgets/custom-checkboxes"
+import CustomSelect from "@/components/form/custom-widgets/custom-select"
 
 const widgets: RegistryWidgetsType = {
   CheckboxesWidget: CustomCheckboxes,
+  SelectWidget: CustomSelect,
 }
 
 export default function ServiceRequestPage() {

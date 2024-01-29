@@ -7,12 +7,13 @@ interface UseServiceRequestProps {
 }
 
 const useServiceRequest = ({ serviceRequestId }: UseServiceRequestProps) => {
+  // TODO: Once service request follows our own custom validation, write a conversion util function to convert service request to RJSF friendly object
   const serviceRequest: ServiceRequest = {
     name: "Sample Service Request",
     description: "Sample Service Request Form",
     form: {
       type: "object",
-      required: ["input"],
+      required: ["input", "select"],
       properties: {
         input: {
           title: "Input",
@@ -20,12 +21,11 @@ const useServiceRequest = ({ serviceRequestId }: UseServiceRequestProps) => {
           type: "string",
           minLength: 1,
         },
-        dropdown: {
+        select: {
           type: "string",
-          title: "Dropdown list",
+          title: "Select Option",
           description: "Dropdown selection with default value as Item 1",
           enum: ["Item 1", "Item 2", "Item 3"],
-          default: "Item 1",
         },
         checkboxes: {
           type: "array",
