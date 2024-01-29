@@ -1,11 +1,15 @@
-import { RJSFSchema } from "@rjsf/utils"
+import { ServiceRequestForm } from "./sevice-request-form"
 
 type ServiceRequest = {
   id?: number
   name: string
   description: string
-  form: RJSFSchema
+  form: ServiceRequestForm
   // More to be added
 }
 
-export type { ServiceRequest }
+type ServiceRequestWithSteps = ServiceRequest & {
+  steps: object
+}
+
+export type { ServiceRequest, ServiceRequestWithSteps }

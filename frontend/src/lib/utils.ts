@@ -1,5 +1,6 @@
 import { ServiceRequest } from "@/types/service"
-import { UiSchema } from "@rjsf/utils"
+import { ServiceRequestForm } from "@/types/sevice-request-form"
+import { RJSFSchema, UiSchema } from "@rjsf/utils"
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -7,25 +8,87 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// TODO: Refactor util based on own schema
-export const generateUiSchema = (serviceRequest: ServiceRequest) => {
-  const uiSchema: UiSchema = {}
-  const properties = serviceRequest.form?.properties // Optional chaining
+export const convertServiceRequestFormToRJSFSchema = (
+  serviceRequest: ServiceRequestForm
+) => {
+  const schema: RJSFSchema = {
+    type: "object",
+  }
 
-  if (properties) {
-    for (const property in properties) {
-      const prop = properties[property] // Direct access after check
-      if (typeof prop === "object" && prop.type === "array") {
-        uiSchema[property] = {
-          "ui:widget": "checkboxes",
+  const properties: { [key: string]: object } = {}
+  const required: string[] = []
+
+  for (const item in serviceRequest) {
+    const component = serviceRequest[item]
+    // To create required array
+    if (component.required) {
+      required.push(item)
+    }
+
+    switch (component.type) {
+      case "input":
+        properties[item] = {
+          type: "string",
+          title: component.title,
+          description: component.description,
+          minLength: component.minLength,
         }
-      }
-      if (typeof prop === "object" && prop.type === "string" && !!prop.enum) {
-        uiSchema[property] = {
-          "ui:placeholder": "Select an item...",
+        break
+      case "select":
+        properties[item] = {
+          type: "string",
+          title: component.title,
+          description: component.description,
+          enum: component.options,
         }
-      }
+        break
+      case "checkboxes":
+        properties[item] = {
+          type: "array",
+          title: component.title,
+          description: component.description,
+          items: {
+            enum: component.options,
+          },
+          uniqueItems: true,
+        }
+        break
+      default:
+        break
     }
   }
+
+  schema.required = required
+  schema.properties = properties
+
+  return schema
+}
+
+export const generateUiSchema = (serviceRequest: ServiceRequest) => {
+  const uiSchema: UiSchema = {}
+  const form: ServiceRequestForm = serviceRequest.form
+
+  for (const item in form) {
+    const itemOptions = form[item]
+
+    switch (itemOptions.type) {
+      case "input":
+        break
+      case "select":
+        uiSchema[item] = {
+          "ui:placeholder": "Select an item...",
+        }
+        break
+      case "checkboxes":
+        uiSchema[item] = {
+          "ui:widget": "checkboxes",
+        }
+        break
+
+      default:
+        break
+    }
+  }
+
   return uiSchema
 }

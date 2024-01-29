@@ -12,7 +12,10 @@ import FieldTemplate from "@/components/form/custom-templates/field-template"
 import FieldErrorTemplate from "@/components/form/custom-templates/field-error-template"
 import BaseInputTemplate from "@/components/form/custom-templates/base-input-template"
 import ArrayFieldTemplate from "@/components/form/custom-templates/array-field-template"
-import { generateUiSchema } from "@/lib/utils"
+import {
+  convertServiceRequestFormToRJSFSchema,
+  generateUiSchema,
+} from "@/lib/utils"
 import { RegistryWidgetsType } from "@rjsf/utils"
 import CustomCheckboxes from "@/components/form/custom-widgets/custom-checkboxes"
 import CustomSelect from "@/components/form/custom-widgets/custom-select"
@@ -34,6 +37,9 @@ export default function ServiceRequestPage() {
 
   const { name, description, form } = serviceRequest
 
+  const uiSchema = generateUiSchema(serviceRequest)
+  const rjsfSchema = convertServiceRequestFormToRJSFSchema(form)
+
   return (
     <>
       <div className="flex flex-col justify-start py-10">
@@ -49,8 +55,8 @@ export default function ServiceRequestPage() {
       <div className="w-full flex justify-center">
         <div className="w-4/5">
           <Form
-            schema={form}
-            uiSchema={generateUiSchema(serviceRequest)}
+            schema={rjsfSchema}
+            uiSchema={uiSchema}
             validator={validator}
             onSubmit={handleSubmit}
             templates={{
