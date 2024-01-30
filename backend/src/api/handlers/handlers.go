@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/joshtyf/flowforge/src/database/client"
 	dbmodels "github.com/joshtyf/flowforge/src/database/models"
 	"github.com/joshtyf/flowforge/src/events"
+	"github.com/joshtyf/flowforge/src/logger"
 	_ "github.com/lib/pq"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -89,6 +91,76 @@ func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 	srm.Id = insertedId
 	event.FireAsync(events.NewNewServiceRequestEvent(srm))
 	w.WriteHeader(http.StatusCreated)
+}
+
+func CreatePipeline(w http.ResponseWriter, r *http.Request) {
+	pipeline := &dbmodels.PipelineModel{
+		CreatedOn: time.Now(),
+		Version:   1,
+	}
+	err := json.NewDecoder(r.Body).Decode(pipeline)
+	if err != nil {
+		logger.Error("[CreatePipeline] Unable to parse json request body", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("unable to parse json request body")), http.StatusBadRequest)
+	}
+	client, err := client.GetMongoClient()
+	if err != nil {
+		logger.Error("[CreatePipeline] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	res, err := database.NewPipeline(client).Create(pipeline)
+	if err != nil {
+		logger.Error("[CreatePipeline] Unable to create pipeline", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("failed to create pipeline")), http.StatusInternalServerError)
+		return
+	}
+	insertedId, _ := res.InsertedID.(primitive.ObjectID)
+	pipeline.Id = insertedId
+	logger.Info("[CreatePipeline] Successfully created pipeline", map[string]interface{}{"pipeline": pipeline})
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Add("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(pipeline)
+}
+
+func GetPipeline(w http.ResponseWriter, r *http.Request) {
+	client, err := client.GetMongoClient()
+	if err != nil {
+		logger.Error("[GetPipeline] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	vars := mux.Vars(r)
+	pipelineId := vars["pipelineId"]
+	pipeline, err := database.NewPipeline(client).GetById(pipelineId)
+	if err != nil {
+		logger.Error("[GetPipeline] Unable to get pipeline", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	logger.Info("[GetPipeline] Successfully retrieved pipeline", map[string]interface{}{"pipeline": pipeline})
+	w.WriteHeader(http.StatusOK)
+	w.Header().Add("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(pipeline)
+}
+
+func GetAllPipelines(w http.ResponseWriter, r *http.Request) {
+	client, err := client.GetMongoClient()
+	if err != nil {
+		logger.Error("[GetAllPipelines] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	pipelines, err := database.NewPipeline(client).GetAll()
+	if err != nil {
+		logger.Error("[GetAllPipelines] Unable to get pipelines", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	logger.Info("[GetAllPipelines] Successfully retrieved pipelines", map[string]interface{}{"count": len(pipelines)})
+	w.WriteHeader(http.StatusOK)
+	w.Header().Add("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(pipelines)
 }
 
 /////////////////// Helper Functions ///////////////////

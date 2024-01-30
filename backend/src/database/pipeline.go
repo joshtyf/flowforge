@@ -37,3 +37,17 @@ func (p *Pipeline) GetById(id string) (*models.PipelineModel, error) {
 	res.Decode(pipeline)
 	return pipeline, nil
 }
+
+func (p *Pipeline) GetAll() ([]*models.PipelineModel, error) {
+	res, err := p.c.Database(DatabaseName).Collection("pipelines").Find(context.Background(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	pipelines := []*models.PipelineModel{}
+	for res.Next(context.Background()) {
+		pipeline := &models.PipelineModel{}
+		res.Decode(pipeline)
+		pipelines = append(pipelines, pipeline)
+	}
+	return pipelines, nil
+}
