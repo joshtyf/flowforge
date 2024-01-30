@@ -7,6 +7,7 @@ import (
 
 const (
 	NewServiceRequestEventName = "NewServiceRequestEvent"
+	StepCompletedEventName     = "StepCompletedEvent"
 )
 
 type NewServiceRequestEvent struct {
@@ -24,4 +25,38 @@ func NewNewServiceRequestEvent(serviceRequest *models.ServiceRequestModel) *NewS
 
 func (e *NewServiceRequestEvent) ServiceRequest() *models.ServiceRequestModel {
 	return e.serviceRequest
+}
+
+type StepCompletedEvent struct {
+	event.BasicEvent
+	completedStep  *models.PipelineStepModel
+	serviceRequest *models.ServiceRequestModel
+	results        interface{}
+	err            error
+}
+
+func NewStepCompletedEvent(completedStep *models.PipelineStepModel, results interface{}, err error) *StepCompletedEvent {
+	e := &StepCompletedEvent{
+		completedStep: completedStep,
+		results:       results,
+		err:           err,
+	}
+	e.SetName(StepCompletedEventName)
+	return e
+}
+
+func (e *StepCompletedEvent) CompletedStep() *models.PipelineStepModel {
+	return e.completedStep
+}
+
+func (e *StepCompletedEvent) ServiceRequest() *models.ServiceRequestModel {
+	return e.serviceRequest
+}
+
+func (e *StepCompletedEvent) Results() interface{} {
+	return e.results
+}
+
+func (e *StepCompletedEvent) Err() error {
+	return e.err
 }
