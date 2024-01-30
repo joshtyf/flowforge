@@ -45,6 +45,7 @@ func NewStepExecutionManager(configs ...ExecutionManagerConfig) *ExecutionManage
 // Starts the manager by registering event listeners
 func (srm *ExecutionManager) Start() {
 	event.On(events.NewServiceRequestEventName, event.ListenerFunc(srm.handleNewServiceRequestEvent), event.Normal)
+	event.On(events.StepCompletedEventName, event.ListenerFunc(srm.handleCompletedStepEvent), event.Normal)
 }
 
 func (srm *ExecutionManager) handleNewServiceRequestEvent(e event.Event) error {
@@ -112,5 +113,36 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 	// 	logger.Error("[ServiceRequestManager] Error updating service request status", map[string]interface{}{"err": err})
 	// }
 
+	return nil
+}
+
+func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
+	logger.Info("[ServiceRequestManager] Handling step completed event", nil)
+	completedStepEvent := e.(*events.StepCompletedEvent)
+	completedStep := completedStepEvent.CompletedStep()
+	serviceRequest := completedStepEvent.ServiceRequest()
+	if completedStep.IsTerminalStep {
+		return nil
+	}
+	pipeline, err := database.NewPipeline(srm.mongoClient).GetById(serviceRequest.PipelineId)
+	if err != nil {
+		logger.Error("[ServiceRequestManager] Error getting pipeline", map[string]interface{}{"err": err})
+		return err
+	}
+
+	// Set the current executor to the next executor
+	nextStep := pipeline.GetPipelineStep(completedStep.NextStepName)
+	if nextStep == nil {
+		logger.Error("[ServiceRequestManager] No next step found", map[string]interface{}{"step": completedStep.NextStepName})
+		return fmt.Errorf("no next step found")
+	}
+	nextExecutor := srm.executors[nextStep.StepType]
+	if nextExecutor == nil {
+		// TODO: Handle error
+		logger.Error("[ServiceRequestManager] No executor found for next step", map[string]interface{}{"step": nextStep.StepName})
+		return fmt.Errorf("no executor found for next step")
+	}
+
+	srm.execute(serviceRequest, nextStep, nextExecutor)
 	return nil
 }
