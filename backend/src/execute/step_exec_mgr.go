@@ -101,14 +101,6 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 		return err
 	}
 
-	// TODO: temporary disable. need to re-enable
-	// err = database.NewServiceRequest(mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Success)
-	// if err != nil {
-	// 	// TODO: Handle error
-	// 	// Need to ensure idempotency or figure out a rollback solution
-	// 	logger.Error("[ServiceRequestManager] Error updating service request status", map[string]interface{}{"err": err})
-	// }
-
 	return nil
 }
 
@@ -118,6 +110,12 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 	completedStep := completedStepEvent.CompletedStep()
 	serviceRequest := completedStepEvent.ServiceRequest()
 	if completedStep.IsTerminalStep {
+		err := database.NewServiceRequest(srm.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Success)
+		if err != nil {
+			// TODO: Handle error
+			// Need to ensure idempotency or figure out a rollback solution
+			logger.Error("[ServiceRequestManager] Error updating service request status", map[string]interface{}{"err": err})
+		}
 		return nil
 	}
 	pipeline, err := database.NewPipeline(srm.mongoClient).GetById(serviceRequest.PipelineId)
