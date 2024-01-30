@@ -11,10 +11,12 @@ import (
 	"github.com/joshtyf/flowforge/src/events"
 	"github.com/joshtyf/flowforge/src/logger"
 	"github.com/joshtyf/flowforge/src/util"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type ExecutionManager struct {
-	executors map[models.PipelineStepType]*stepExecutor
+	mongoClient *mongo.Client
+	executors   map[models.PipelineStepType]*stepExecutor
 }
 
 type ExecutionManagerConfig func(*ExecutionManager)
@@ -26,8 +28,13 @@ func WithStepExecutor(step stepExecutor) ExecutionManagerConfig {
 }
 
 func NewStepExecutionManager(configs ...ExecutionManagerConfig) *ExecutionManager {
+	mongoClient, err := client.GetMongoClient()
+	if err != nil {
+		logger.Error("[ServiceRequestManager] Error getting mongo client", map[string]interface{}{"err": err})
+	}
 	srm := &ExecutionManager{
-		executors: map[models.PipelineStepType]*stepExecutor{},
+		executors:   map[models.PipelineStepType]*stepExecutor{},
+		mongoClient: mongoClient,
 	}
 	for _, c := range configs {
 		c(srm)
