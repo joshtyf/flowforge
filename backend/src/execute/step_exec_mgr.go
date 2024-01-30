@@ -42,12 +42,7 @@ func (srm *ExecutionManager) Start() {
 
 func (srm *ExecutionManager) handleNewServiceRequestEvent(e event.Event) error {
 	logger.Info("[ServiceRequestManager] Handling new service request event", nil)
-	req := e.(*events.NewServiceRequestEvent).ServiceRequest()
-	err := srm.execute(req)
-	return err
-}
-
-func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel) error {
+	serviceRequest := e.(*events.NewServiceRequestEvent).ServiceRequest()
 	if serviceRequest == nil {
 		logger.Error("[ServiceRequestManager] Service request is nil", nil)
 		return fmt.Errorf("service request is nil")
@@ -74,61 +69,41 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel)
 		logger.Error("[ServiceRequestManager] No executor found for first step", map[string]interface{}{"step": firstStep.StepName})
 		return fmt.Errorf("no executor found for first step")
 	}
-	currStep := firstStep
 
 	err = database.NewServiceRequest(mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Running)
 	if err != nil {
 		logger.Error("[ServiceRequestManager] Error updating service request status", map[string]interface{}{"err": err})
 		return err
 	}
+	err = srm.execute(serviceRequest, firstStep, currExecutor)
+	return err
+}
 
-	// Execute the pipeline step by step
-	for {
-
-		// Create an execution context with the current step and service request
-		executeCtx := context.WithValue(
-			context.WithValue(
-				context.Background(),
-				util.ServiceRequestKey,
-				serviceRequest),
-			util.StepKey,
-			currStep,
-		)
-		// Execute the current step
-		_, err := (*currExecutor).execute(executeCtx)
-		if err != nil {
-			logger.Error("[ServiceRequestManager] Error executing step", map[string]interface{}{"step": (*currExecutor).getStepType(), "err": err})
-			// TODO: Handle error
-			return err
-		}
-
-		if currStep.IsTerminalStep {
-			// If the current step is a terminal step, we're done
-			break
-		} else {
-			// Set the current executor to the next executor
-			nextStep := pipeline.GetPipelineStep(currStep.NextStepName)
-			if nextStep == nil {
-				logger.Error("[ServiceRequestManager] No next step found", map[string]interface{}{"step": currStep.NextStepName})
-				return fmt.Errorf("no next step found")
-			}
-			nextExecutor := srm.executors[nextStep.StepType]
-			if nextExecutor == nil {
-				// TODO: Handle error
-				logger.Error("[ServiceRequestManager] No executor found for next step", map[string]interface{}{"step": nextStep.StepName})
-				return fmt.Errorf("no executor found for next step")
-			}
-			currExecutor = nextExecutor
-			currStep = nextStep
-		}
-	}
-
-	err = database.NewServiceRequest(mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Success)
+func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel, step *models.PipelineStepModel, executor *stepExecutor) error {
+	// Create an execution context with the current step and service request
+	executeCtx := context.WithValue(
+		context.WithValue(
+			context.Background(),
+			util.ServiceRequestKey,
+			serviceRequest),
+		util.StepKey,
+		step,
+	)
+	// Execute the current step
+	_, err := (*executor).execute(executeCtx)
 	if err != nil {
+		logger.Error("[ServiceRequestManager] Error executing step", map[string]interface{}{"step": (*executor).getStepType(), "err": err})
 		// TODO: Handle error
-		// Need to ensure idempotency or figure out a rollback solution
-		logger.Error("[ServiceRequestManager] Error updating service request status", map[string]interface{}{"err": err})
+		return err
 	}
+
+	// TODO: temporary disable. need to re-enable
+	// err = database.NewServiceRequest(mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Success)
+	// if err != nil {
+	// 	// TODO: Handle error
+	// 	// Need to ensure idempotency or figure out a rollback solution
+	// 	logger.Error("[ServiceRequestManager] Error updating service request status", map[string]interface{}{"err": err})
+	// }
 
 	return nil
 }
