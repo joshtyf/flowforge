@@ -55,12 +55,8 @@ func (srm *ExecutionManager) handleNewServiceRequestEvent(e event.Event) error {
 		logger.Error("[ServiceRequestManager] Service request is nil", nil)
 		return fmt.Errorf("service request is nil")
 	}
-	mongoClient, err := client.GetMongoClient()
-	if err != nil {
-		logger.Error("[ServiceRequestManager] Error getting mongo client", map[string]interface{}{"err": err})
-	}
 	// Fetch the pipeline so that we know what steps to execute
-	pipeline, err := database.NewPipeline(mongoClient).GetById(serviceRequest.PipelineId)
+	pipeline, err := database.NewPipeline(srm.mongoClient).GetById(serviceRequest.PipelineId)
 	if err != nil {
 		logger.Error("[ServiceRequestManager] Error getting pipeline", map[string]interface{}{"err": err})
 	}
@@ -78,7 +74,7 @@ func (srm *ExecutionManager) handleNewServiceRequestEvent(e event.Event) error {
 		return fmt.Errorf("no executor found for first step")
 	}
 
-	err = database.NewServiceRequest(mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Running)
+	err = database.NewServiceRequest(srm.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Running)
 	if err != nil {
 		logger.Error("[ServiceRequestManager] Error updating service request status", map[string]interface{}{"err": err})
 		return err
