@@ -93,6 +93,24 @@ func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+func DeleteServiceRequest(w http.ResponseWriter, r *http.Request) {
+	client, err := client.GetMongoClient()
+	if err != nil {
+		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		return
+	}
+	vars := mux.Vars(r)
+	requestId := vars["requestId"]
+	_, err = database.NewServiceRequest(client).DeleteById(requestId)
+	w.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	return
+}
+
 func CreatePipeline(w http.ResponseWriter, r *http.Request) {
 	pipeline := &dbmodels.PipelineModel{
 		CreatedOn: time.Now(),

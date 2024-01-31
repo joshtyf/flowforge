@@ -33,6 +33,15 @@ func (sr *ServiceRequest) GetById(id string) (*models.ServiceRequestModel, error
 	return srm, nil
 }
 
+func (sr *ServiceRequest) DeleteById(id string) (*mongo.DeleteResult, error) {
+	objectId, _ := primitive.ObjectIDFromHex(id)
+	res, err := sr.c.Database(DatabaseName).Collection("service_requests").DeleteOne(context.Background(), bson.M{"_id": objectId})
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func (sr *ServiceRequest) GetAll() ([]*models.ServiceRequestModel, error) {
 	result, err := sr.c.Database(DatabaseName).Collection("service_requests").Find(context.Background(), bson.M{})
 	if err != nil {

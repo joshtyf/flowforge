@@ -16,6 +16,7 @@ func main() {
 	r.HandleFunc("/api/healthcheck", handlers.HealthCheck).Methods("GET")
 	r.HandleFunc("/api/servicerequest/new", handlers.CreateServiceRequest).Methods("POST").Headers("Content-Type", "application/json")
 	r.HandleFunc("/api/servicerequest/{requestId}", handlers.GetServiceRequest).Methods("GET")
+	r.HandleFunc("/api/servicerequest/{requestId}", handlers.DeleteServiceRequest).Methods("DELETE")
 	r.HandleFunc("/api/servicerequest", handlers.GetAllServiceRequest).Methods("GET")
 	r.HandleFunc("/api/pipeline", handlers.CreatePipeline).Methods("POST").Headers("Content-Type", "application/json")
 	r.HandleFunc("/api/pipeline", handlers.GetAllPipelines).Methods("GET")
