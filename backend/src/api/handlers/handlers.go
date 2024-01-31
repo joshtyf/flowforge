@@ -111,6 +111,33 @@ func DeleteServiceRequest(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func UpdateServiceRequest(w http.ResponseWriter, r *http.Request) {
+	client, err := client.GetMongoClient()
+	if err != nil {
+		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		return
+	}
+	srm := &dbmodels.ServiceRequestModel{
+		CreatedOn:   time.Now(),
+		LastUpdated: time.Now(),
+		Status:      dbmodels.Pending,
+	}
+	err = json.NewDecoder(r.Body).Decode(srm)
+	w.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		JSONError(w, handlermodels.NewHttpError(err), http.StatusBadRequest)
+		return
+	}
+	vars := mux.Vars(r)
+	requestId := vars["requestId"]
+	_, err = database.NewServiceRequest(client).UpdateById(requestId, srm)
+	if err != nil {
+		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 func CreatePipeline(w http.ResponseWriter, r *http.Request) {
 	pipeline := &dbmodels.PipelineModel{
 		CreatedOn: time.Now(),
