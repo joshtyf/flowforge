@@ -52,12 +52,20 @@ func main() {
 			{
 				StepName:     "step1",
 				StepType:     models.APIStep,
-				NextStepName: "",
+				NextStepName: "step2",
 				PrevStepName: "",
 				Parameters: map[string]string{
 					"method": "GET",
 					"url":    "https://example.com",
 				},
+				IsTerminalStep: false,
+			},
+			{
+				StepName:       "step2",
+				StepType:       models.WaitForApprovalStep,
+				NextStepName:   "",
+				PrevStepName:   "step1",
+				Parameters:     map[string]string{},
 				IsTerminalStep: true,
 			},
 		},
