@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gookit/event"
 	"github.com/joshtyf/flowforge/src/database/models"
+	"github.com/joshtyf/flowforge/src/events"
 	"github.com/joshtyf/flowforge/src/logger"
 	"github.com/joshtyf/flowforge/src/util"
 )
@@ -48,6 +50,7 @@ func (e *apiStepExecutor) execute(ctx context.Context) (*stepExecResult, error) 
 		return nil, fmt.Errorf("Non-200 response")
 	}
 	logger.Info("[APIStepExecutor] Success", map[string]interface{}{"status": resp.StatusCode})
+	event.FireAsync(events.NewStepCompletedEvent(step, &stepExecResult{}, nil))
 	return &stepExecResult{}, nil
 }
 
