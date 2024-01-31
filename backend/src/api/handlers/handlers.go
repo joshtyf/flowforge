@@ -33,14 +33,17 @@ func HealthCheck(w http.ResponseWriter, r *http.Request) {
 func GetAllServiceRequest(w http.ResponseWriter, r *http.Request) {
 	client, err := client.GetMongoClient()
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		logger.Error("[GetAllServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
 	allsr, err := database.NewServiceRequest(client).GetAll()
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		logger.Error("[GetAllServiceRequest] Error retrieving all service request", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
+	logger.Info("[GetAllServiceRequest] Successfully retrieved service requests", map[string]interface{}{"count": len(allsr)})
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(allsr)
 	w.WriteHeader(http.StatusOK)
@@ -49,7 +52,8 @@ func GetAllServiceRequest(w http.ResponseWriter, r *http.Request) {
 func GetServiceRequest(w http.ResponseWriter, r *http.Request) {
 	client, err := client.GetMongoClient()
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		logger.Error("[GetServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
 	vars := mux.Vars(r)
@@ -57,9 +61,11 @@ func GetServiceRequest(w http.ResponseWriter, r *http.Request) {
 	sr, err := database.NewServiceRequest(client).GetById(requestId)
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusBadRequest)
+		logger.Error("[GetServiceRequest] Unable to retrieve service request", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusBadRequest)
 		return
 	}
+	logger.Info("[GetServiceRequest] Successfully retrieved service request", map[string]interface{}{"sr": sr})
 	json.NewEncoder(w).Encode(sr)
 	w.WriteHeader(http.StatusOK)
 	return
@@ -68,7 +74,8 @@ func GetServiceRequest(w http.ResponseWriter, r *http.Request) {
 func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 	client, err := client.GetMongoClient()
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		logger.Error("[CreateServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
 	srm := &dbmodels.ServiceRequestModel{
@@ -79,16 +86,19 @@ func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(srm)
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusBadRequest)
+		logger.Error("[CreateServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("unable to parse json request body")), http.StatusBadRequest)
 		return
 	}
 	res, err := database.NewServiceRequest(client).Create(srm)
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		logger.Error("[CreateServiceRequest] Error creating service request", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
 	insertedId, _ := res.InsertedID.(primitive.ObjectID)
 	srm.Id = insertedId
+	logger.Info("[CreateServiceRequest] Successfully created service request", map[string]interface{}{"sr": srm})
 	event.FireAsync(events.NewNewServiceRequestEvent(srm))
 	w.WriteHeader(http.StatusCreated)
 }
@@ -96,17 +106,20 @@ func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 func DeleteServiceRequest(w http.ResponseWriter, r *http.Request) {
 	client, err := client.GetMongoClient()
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		logger.Error("[DeleteServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
 	vars := mux.Vars(r)
 	requestId := vars["requestId"]
-	_, err = database.NewServiceRequest(client).DeleteById(requestId)
+	res, err := database.NewServiceRequest(client).DeleteById(requestId)
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		logger.Error("[DeleteServiceRequest] Error deleting service request", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
+	logger.Info("[DeleteServiceRequest] Successfully deleted service request", map[string]interface{}{"count": res.DeletedCount})
 	w.WriteHeader(http.StatusOK)
 	return
 }
@@ -114,7 +127,8 @@ func DeleteServiceRequest(w http.ResponseWriter, r *http.Request) {
 func UpdateServiceRequest(w http.ResponseWriter, r *http.Request) {
 	client, err := client.GetMongoClient()
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		logger.Error("[UpdateServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
 	srm := &dbmodels.ServiceRequestModel{
@@ -125,16 +139,19 @@ func UpdateServiceRequest(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(srm)
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusBadRequest)
+		logger.Error("[UpdateServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("unable to parse json request body")), http.StatusBadRequest)
 		return
 	}
 	vars := mux.Vars(r)
 	requestId := vars["requestId"]
-	_, err = database.NewServiceRequest(client).UpdateById(requestId, srm)
+	res, err := database.NewServiceRequest(client).UpdateById(requestId, srm)
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		logger.Error("[UpdateServiceRequest] Error updating service request", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
+	logger.Info("[UpdateServiceRequest] Successfully updated service request", map[string]interface{}{"count": res.ModifiedCount})
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -147,6 +164,7 @@ func CreatePipeline(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Error("[CreatePipeline] Unable to parse json request body", map[string]interface{}{"err": err})
 		JSONError(w, handlermodels.NewHttpError(errors.New("unable to parse json request body")), http.StatusBadRequest)
+		return
 	}
 	client, err := client.GetMongoClient()
 	if err != nil {
