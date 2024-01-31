@@ -62,3 +62,19 @@ func (e *apiStepExecutor) execute(ctx context.Context) (*stepExecResult, error) 
 func (e *apiStepExecutor) getStepType() models.PipelineStepType {
 	return models.APIStep
 }
+
+type waitForApprovalStepExecutor struct {
+}
+
+func NewWaitForApprovalStepExecutor() *waitForApprovalStepExecutor {
+	return &waitForApprovalStepExecutor{}
+}
+
+func (e *waitForApprovalStepExecutor) execute(ctx context.Context) (*stepExecResult, error) {
+	logger.Info("[WaitForApprovalStepExecutor] Waiting for approval", nil)
+	return &stepExecResult{}, nil
+}
+
+func (e *waitForApprovalStepExecutor) getStepType() models.PipelineStepType {
+	return models.WaitForApprovalStep
+}
