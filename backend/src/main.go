@@ -9,7 +9,10 @@ import (
 )
 
 func main() {
-	srm := execute.NewStepExecutionManager(execute.WithStepExecutor(execute.NewApiStepExecutor()))
+	srm := execute.NewStepExecutionManager(
+		execute.WithStepExecutor(execute.NewApiStepExecutor()),
+		execute.WithStepExecutor(execute.NewWaitForApprovalStepExecutor()),
+	)
 	srm.Start()
 
 	r := mux.NewRouter()
