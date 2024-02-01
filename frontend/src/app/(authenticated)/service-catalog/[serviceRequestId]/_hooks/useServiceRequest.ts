@@ -38,7 +38,6 @@ const ORIGINAL_RJSF_OBJECT: RJSFSchema =
   }
 
 const useServiceRequest = ({ serviceRequestId }: UseServiceRequestProps) => {
-  // TODO: Once service request follows our own custom validation, write a conversion util function to convert service request to RJSF friendly object
   const serviceRequest: ServiceRequest = {
     name: "Sample Service Request",
     description: "Sample Service Request Form",
