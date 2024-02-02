@@ -4,6 +4,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { isJson } from "@/lib/utils"
 import { KeyboardEvent, KeyboardEventHandler } from "react"
+import { validateFormSchema } from "../_utils/validation"
 
 const DEFAULT_FORM = {
   input: { title: "", description: "", type: "input", required: true },
@@ -35,8 +36,27 @@ const DEFAULT_STEPS = {
 const createServiceSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string(),
-  form: z.string(),
-  steps: z.string(),
+  form: z
+    .string()
+    .min(1, "Form Schema is required")
+    .superRefine((val, ctx) => {
+      const errorList = validateFormSchema(val)
+      if (errorList.length > 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: errorList.join(" , "),
+        })
+      }
+    })
+    .refine((arg) => isJson(arg), {
+      message: "Ensure that Form is valid JSON Schema",
+    }),
+  steps: z
+    .string()
+    .min(1, "Pipeline Steps Schema is required")
+    .refine((arg) => isJson(arg), {
+      message: "Ensure that Form is valid JSON Schema",
+    }),
 })
 const useCreateService = () => {
   const form = useForm<z.infer<typeof createServiceSchema>>({
@@ -77,7 +97,6 @@ const useCreateService = () => {
     }
   }
 
-  // TODO: Add validation of JSON object on edit/submit
   return {
     form,
     handleSubmitForm,
