@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import useServices from "./_hooks/useServices"
+import useServices from "./_hooks/use-services"
 import {
   Card,
   CardDescription,

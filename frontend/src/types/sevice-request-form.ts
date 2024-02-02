@@ -30,4 +30,11 @@ type ServiceRequestForm = {
   [key: string]: FormInput | FormSelect | FormCheckboxes
 }
 
-export type { ServiceRequestForm }
+export type {
+  FormComponent,
+  FormComponentWithOptions,
+  FormInput,
+  FormSelect,
+  FormCheckboxes,
+  ServiceRequestForm,
+}
