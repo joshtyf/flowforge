@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { isJson } from "@/lib/utils"
+import { KeyboardEvent, KeyboardEventHandler } from "react"
 
 const DEFAULT_FORM = {
   input: { title: "", description: "", type: "input", required: true },
@@ -60,10 +61,27 @@ const useCreateService = () => {
     })
   }
 
+  function handleTextAreaTabKeyDown(event: KeyboardEvent): void {
+    if (event.key == "Tab") {
+      event.preventDefault()
+      const htmlTextElement = event.target as HTMLTextAreaElement
+      const start = htmlTextElement.selectionStart
+      const end = htmlTextElement.selectionEnd
+
+      htmlTextElement.value =
+        htmlTextElement.value.substring(0, start) +
+        "\t" +
+        htmlTextElement.value.substring(end)
+
+      htmlTextElement.selectionStart = htmlTextElement.selectionEnd = start + 1
+    }
+  }
+
   // TODO: Add validation of JSON object on edit/submit
   return {
     form,
     handleSubmitForm,
+    handleTextAreaTabKeyDown,
   }
 }
 

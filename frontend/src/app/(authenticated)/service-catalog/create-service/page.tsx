@@ -20,7 +20,8 @@ import { Textarea } from "@/components/ui/textarea"
 export default function CreateServicePage() {
   const router = useRouter()
 
-  const { form, handleSubmitForm } = useCreateService()
+  const { form, handleSubmitForm, handleTextAreaTabKeyDown } =
+    useCreateService()
 
   return (
     <>
@@ -44,7 +45,7 @@ export default function CreateServicePage() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel className="font-bold text-lg">Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Name of service" {...field} />
                   </FormControl>
@@ -57,7 +58,9 @@ export default function CreateServicePage() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel className="font-bold text-lg">
+                    Description
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Description of service" {...field} />
                   </FormControl>
@@ -71,11 +74,13 @@ export default function CreateServicePage() {
                 name="form"
                 render={({ field }) => (
                   <FormItem className="w-1/2">
-                    <FormLabel>Form</FormLabel>
+                    <FormLabel className="font-bold text-lg">Form</FormLabel>
                     <FormControl>
                       <Textarea
+                        id="textarea"
                         placeholder="Form schema"
                         className="h-[300px]"
+                        onKeyDown={handleTextAreaTabKeyDown}
                         {...field}
                       />
                     </FormControl>
@@ -88,11 +93,15 @@ export default function CreateServicePage() {
                 name="steps"
                 render={({ field }) => (
                   <FormItem className="w-1/2">
-                    <FormLabel>Pipeline Steps</FormLabel>
+                    <FormLabel className="font-bold text-lg">
+                      Pipeline Steps
+                    </FormLabel>
                     <FormControl>
                       <Textarea
+                        id="textarea"
                         className="h-[300px]"
                         placeholder="Pipeline steps schema"
+                        onKeyDown={handleTextAreaTabKeyDown}
                         {...field}
                       />
                     </FormControl>
