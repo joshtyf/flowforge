@@ -11,6 +11,7 @@ import (
 	handlermodels "github.com/joshtyf/flowforge/src/api/handlers/models"
 	"github.com/joshtyf/flowforge/src/database"
 	"github.com/joshtyf/flowforge/src/database/client"
+	"github.com/joshtyf/flowforge/src/database/models"
 	dbmodels "github.com/joshtyf/flowforge/src/database/models"
 	"github.com/joshtyf/flowforge/src/events"
 	"github.com/joshtyf/flowforge/src/logger"
@@ -103,23 +104,41 @@ func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func DeleteServiceRequest(w http.ResponseWriter, r *http.Request) {
+func CancelStartedServiceRequest(w http.ResponseWriter, r *http.Request) {
 	client, err := client.GetMongoClient()
 	if err != nil {
-		logger.Error("[DeleteServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
+		logger.Error("[CancelStartedServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
 		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
 	vars := mux.Vars(r)
 	requestId := vars["requestId"]
-	res, err := database.NewServiceRequest(client).DeleteById(requestId)
+	status, err := database.NewServiceRequest(client).GetStatus(requestId)
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		logger.Error("[DeleteServiceRequest] Error deleting service request", map[string]interface{}{"err": err})
+		logger.Error("[CancelStartedServiceRequest] Error getting service request status", map[string]interface{}{"err": err})
 		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
-	logger.Info("[DeleteServiceRequest] Successfully deleted service request", map[string]interface{}{"count": res.DeletedCount})
+
+	if status != models.Pending && status != models.Running {
+		logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has been completed", nil)
+		JSONError(w, handlermodels.NewHttpError(errors.New("service request execution has been completed")), http.StatusBadRequest)
+		return
+	}
+
+	// TODO: implement cancellation of sr
+
+	err = database.NewServiceRequest(client).UpdateStatus(requestId, models.Canceled)
+
+	// TODO: discuss how to handle this error
+	if err != nil {
+		logger.Error("[CancelStartedServiceRequest] Unable to update service request status", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+
+	logger.Info("[CancelStartedServiceRequest] Successfully canceled started service request", nil)
 	w.WriteHeader(http.StatusOK)
 	return
 }

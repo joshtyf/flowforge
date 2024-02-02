@@ -81,3 +81,11 @@ func (sr *ServiceRequest) UpdateStatus(id string, status models.ServiceRequestSt
 		context.Background(), bson.M{"_id": objectId}, bson.M{"$set": bson.M{"status": status}})
 	return err
 }
+
+func (sr *ServiceRequest) GetStatus(id string) (status models.ServiceRequestStatus, err error) {
+	srm, err := sr.GetById(id)
+	if err != nil {
+		return "", err
+	}
+	return srm.Status, nil
+}
