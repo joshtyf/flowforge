@@ -127,6 +127,12 @@ func CancelStartedServiceRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if status == models.NotStarted {
+		logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has not been started", nil)
+		JSONError(w, handlermodels.NewHttpError(errors.New("service request execution has not been started")), http.StatusBadRequest)
+		return
+	}
+
 	// TODO: implement cancellation of sr
 
 	err = database.NewServiceRequest(client).UpdateStatus(requestId, models.Canceled)
