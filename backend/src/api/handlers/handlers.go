@@ -170,6 +170,17 @@ func UpdateServiceRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := mux.Vars(r)
 	requestId := vars["requestId"]
+	status, err := database.NewServiceRequest(client).GetStatus(requestId)
+	if err != nil {
+		logger.Error("[UpdateServiceRequest] Error getting service request status", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	if status != models.NotStarted {
+		logger.Error("[UpdateServiceRequest] Unable to update service request as service request has been started", nil)
+		JSONError(w, handlermodels.NewHttpError(errors.New("service request has been started")), http.StatusBadRequest)
+		return
+	}
 	res, err := database.NewServiceRequest(client).UpdateById(requestId, srm)
 	if err != nil {
 		logger.Error("[UpdateServiceRequest] Error updating service request", map[string]interface{}{"err": err})
