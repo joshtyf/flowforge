@@ -97,10 +97,9 @@ func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
+	logger.Info("[CreateServiceRequest] Successfully created service request", map[string]interface{}{"sr": srm})
 	insertedId, _ := res.InsertedID.(primitive.ObjectID)
 	srm.Id = insertedId
-	logger.Info("[CreateServiceRequest] Successfully created service request", map[string]interface{}{"sr": srm})
-	event.FireAsync(events.NewNewServiceRequestEvent(srm))
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(srm)
 }
@@ -122,13 +121,13 @@ func CancelStartedServiceRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	status := sr.Status
 	w.Header().Set("Content-Type", "application/json")
-	if status != models.Pending && status != models.Running {
+	if status != dbmodels.Pending && status != dbmodels.Running {
 		logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has been completed", nil)
 		JSONError(w, handlermodels.NewHttpError(errors.New("service request execution has been completed")), http.StatusBadRequest)
 		return
 	}
 
-	if status == models.NotStarted {
+	if status == dbmodels.NotStarted {
 		logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has not been started", nil)
 		JSONError(w, handlermodels.NewHttpError(errors.New("service request execution has not been started")), http.StatusBadRequest)
 		return
@@ -174,7 +173,7 @@ func UpdateServiceRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	status := sr.Status
-	if status != models.NotStarted {
+	if status != dbmodels.NotStarted {
 		logger.Error("[UpdateServiceRequest] Unable to update service request as service request has been started", nil)
 		JSONError(w, handlermodels.NewHttpError(errors.New("service request has been started")), http.StatusBadRequest)
 		return
@@ -186,6 +185,30 @@ func UpdateServiceRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	logger.Info("[UpdateServiceRequest] Successfully updated service request", map[string]interface{}{"count": res.ModifiedCount})
+	w.WriteHeader(http.StatusOK)
+}
+
+func StartServiceRequest(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	requestId := vars["requestId"]
+	client, err := client.GetMongoClient()
+	if err != nil {
+		logger.Error("[StartServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	srm, err := database.NewServiceRequest(client).GetById(requestId)
+	if err != nil {
+		logger.Error("[StartServiceRequest] Unable retrieve service request", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	if srm.Status != dbmodels.NotStarted {
+		logger.Error("[StartServiceRequest] Service request has already been started", nil)
+		JSONError(w, handlermodels.NewHttpError(errors.New("service request started")), http.StatusBadRequest)
+		return
+	}
+	event.FireAsync(events.NewNewServiceRequestEvent(srm))
 	w.WriteHeader(http.StatusOK)
 }
 
