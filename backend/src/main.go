@@ -9,7 +9,10 @@ import (
 )
 
 func main() {
-	srm := execute.NewStepExecutionManager(execute.WithStepExecutor(execute.NewApiStepExecutor()))
+	srm := execute.NewStepExecutionManager(
+		execute.WithStepExecutor(execute.NewApiStepExecutor()),
+		execute.WithStepExecutor(execute.NewWaitForApprovalStepExecutor()),
+	)
 	srm.Start()
 
 	r := mux.NewRouter()
@@ -17,6 +20,7 @@ func main() {
 	r.HandleFunc("/api/servicerequest/new", handlers.CreateServiceRequest).Methods("POST").Headers("Content-Type", "application/json")
 	r.HandleFunc("/api/servicerequest/{requestId}", handlers.GetServiceRequest).Methods("GET")
 	r.HandleFunc("/api/servicerequest", handlers.GetAllServiceRequest).Methods("GET")
+	r.HandleFunc("/api/servicerequest/{requestId}/approve", handlers.ApproveServiceRequest).Methods("POST").Headers("Content-Type", "application/json")
 	r.HandleFunc("/api/pipeline", handlers.CreatePipeline).Methods("POST").Headers("Content-Type", "application/json")
 	r.HandleFunc("/api/pipeline", handlers.GetAllPipelines).Methods("GET")
 	r.HandleFunc("/api/pipeline/{pipelineId}", handlers.GetPipeline).Methods("GET")

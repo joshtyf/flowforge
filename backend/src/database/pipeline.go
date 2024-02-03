@@ -34,7 +34,10 @@ func (p *Pipeline) GetById(id string) (*models.PipelineModel, error) {
 		return nil, res.Err()
 	}
 	pipeline := &models.PipelineModel{}
-	res.Decode(pipeline)
+	err = res.Decode(pipeline)
+	if err != nil {
+		return nil, err
+	}
 	return pipeline, nil
 }
 
