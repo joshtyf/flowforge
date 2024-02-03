@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/joshtyf/flowforge/src/api"
 	"github.com/joshtyf/flowforge/src/execute"
@@ -27,5 +28,5 @@ func main() {
 	r.HandleFunc("/api/pipeline", api.NewHandler(api.CreatePipeline)).Methods("POST").Headers("Content-Type", "application/json")
 	r.HandleFunc("/api/pipeline", api.NewHandler(api.GetAllPipelines)).Methods("GET")
 	r.HandleFunc("/api/pipeline/{pipelineId}", api.NewHandler(api.GetPipeline)).Methods("GET")
-	http.ListenAndServe(":8080", r)
+	http.ListenAndServe(":8080", gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"localhost:3000"}))(r))
 }
