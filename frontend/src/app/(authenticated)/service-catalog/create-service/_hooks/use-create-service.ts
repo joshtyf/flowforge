@@ -2,8 +2,12 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { isJson } from "@/lib/utils"
-import { KeyboardEvent } from "react"
+import { KeyboardEvent, useState } from "react"
 import { validateFormSchema } from "../_utils/validation"
+import { createPipeline } from "@/lib/service"
+import { Pipeline, PipelineForm } from "@/types/pipeline"
+import { JsonFormComponents } from "@/types/json-form-components"
+import { toast } from "@/components/ui/use-toast"
 
 const DEFAULT_FORM = {
   input: { title: "", description: "", type: "input", required: true },
@@ -23,8 +27,7 @@ const DEFAULT_FORM = {
   },
 }
 
-const DEFAULT_STEPS = {
-  pipeline_name: "Test Pipeline",
+const DEFAULT_PIPELINE = {
   version: 1,
   first_step_name: "step1",
   steps: [
@@ -68,7 +71,7 @@ const createServiceSchema = z.object({
     .refine((arg) => isJson(arg), {
       message: "Ensure that Form is valid JSON Schema",
     }),
-  steps: z
+  pipeline: z
     .string()
     .min(1, "Pipeline Steps Schema is required")
     .refine((arg) => isJson(arg), {
@@ -76,27 +79,17 @@ const createServiceSchema = z.object({
     }),
 })
 const useCreateService = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   const form = useForm<z.infer<typeof createServiceSchema>>({
     resolver: zodResolver(createServiceSchema),
     defaultValues: {
       name: "",
       description: "",
       form: JSON.stringify(DEFAULT_FORM, null, 4),
-      steps: JSON.stringify(DEFAULT_STEPS, null, 4),
+      pipeline: JSON.stringify(DEFAULT_PIPELINE, null, 4),
     },
   })
-
-  const handleSubmitForm = (values: z.infer<typeof createServiceSchema>) => {
-    const { description, form, name, steps } = values
-
-    // TODO: Replace with API call
-    console.log("Submitting:", {
-      name,
-      description,
-      form: JSON.parse(form),
-      steps: JSON.parse(steps),
-    })
-  }
 
   function handleTextAreaTabKeyDown(event: KeyboardEvent): void {
     if (event.key == "Tab") {
@@ -114,10 +107,50 @@ const useCreateService = () => {
     }
   }
 
+  const handleSubmitForm = (values: z.infer<typeof createServiceSchema>) => {
+    const { description, form, name, pipeline } = values
+    console.log("Submitting:", {
+      name,
+      description,
+      form: JSON.parse(form),
+      pipeline: JSON.parse(pipeline),
+    })
+
+    // TODO: add formJson into the api call as a parameter once ready
+    const formJson: JsonFormComponents = JSON.parse(form)
+    const pipelineJson: Pipeline = {
+      pipeline_name: name,
+      pipeline_description: description,
+      ...JSON.parse(pipeline),
+    }
+
+    setIsSubmitting(true)
+
+    createPipeline(pipelineJson)
+      .then((res) => {
+        toast({
+          title: "Submission Successful",
+          description:
+            "Service creation form has been submitt successfully. Please check the service catalog for the new service in a short while.",
+        })
+      })
+      .catch((err) => {
+        console.error(err)
+        toast({
+          title: "Submission Error",
+          description:
+            "Encountered error submitting pipeline. Please try again later",
+          variant: "destructive",
+        })
+      })
+      .finally(() => setIsSubmitting(false))
+  }
+
   return {
     form,
-    handleSubmitForm,
     handleTextAreaTabKeyDown,
+    handleSubmitForm,
+    isSubmitting,
   }
 }
 

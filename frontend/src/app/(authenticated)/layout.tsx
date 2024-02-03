@@ -2,6 +2,7 @@
 
 import Navbar from "@/components/layouts/navbar"
 import Sidebar from "@/components/layouts/sidebar"
+import { Toaster } from "@/components/ui/toaster"
 import React, { ReactNode, useState } from "react"
 
 interface AuthenticatedLayoutProps {
@@ -29,6 +30,7 @@ export default function AuthenticatedLayout({
             <div className="w-5/6 h-full relative">{children}</div>
           </div>
         </div>
+        <Toaster />
       </div>
     </>
   )

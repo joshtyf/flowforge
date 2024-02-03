@@ -8,6 +8,10 @@ services:
       context: frontend
     ports:
       - "3000:3000"
+    env_file:
+      - fileName=.env.local
+    environment:
+      - NEXT_PUBLIC_APP_ENV=${NEXT_PUBLIC_APP_ENV}
 
   backend:
     ports:

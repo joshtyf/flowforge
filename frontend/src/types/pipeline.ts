@@ -10,13 +10,17 @@ type PipelineStep = {
   is_terminal_step: boolean
 }
 
-type Pipeline = {
-  id: string
-  pipeline_name: string
+type PipelineForm = {
+  id?: string
   version?: number
   first_step_name?: string
   steps?: PipelineStep[]
   created_on?: string
 }
 
-export type { Pipeline, PipelineStep }
+type Pipeline = PipelineForm & {
+  pipeline_name: string
+  pipeline_description?: string
+}
+
+export type { Pipeline, PipelineForm, PipelineStep }
