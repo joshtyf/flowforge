@@ -82,15 +82,31 @@ func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 		JSONError(w, handlermodels.NewHttpError(err), http.StatusBadRequest)
 		return
 	}
-	res, err := database.NewServiceRequest(client).Create(srm)
+	_, err = database.NewServiceRequest(client).Create(srm)
 	if err != nil {
 		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
 		return
 	}
-	insertedId, _ := res.InsertedID.(primitive.ObjectID)
-	srm.Id = insertedId
-	event.FireAsync(events.NewNewServiceRequestEvent(srm))
 	w.WriteHeader(http.StatusCreated)
+}
+
+func StartServiceRequest(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	requestId := vars["requestId"]
+	client, err := client.GetMongoClient()
+	if err != nil {
+		logger.Error("[StartServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	srm, err := database.NewServiceRequest(client).GetById(requestId)
+	if err != nil {
+		logger.Error("[StartServiceRequest] Unable retrieve service request", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	event.FireAsync(events.NewNewServiceRequestEvent(srm))
+	w.WriteHeader(http.StatusOK)
 }
 
 func CreatePipeline(w http.ResponseWriter, r *http.Request) {
