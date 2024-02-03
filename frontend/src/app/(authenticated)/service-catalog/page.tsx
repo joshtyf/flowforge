@@ -44,8 +44,9 @@ export default function ServiceCatalogPage() {
           <div key={service.id} className="flex items-center justify-center">
             <Card className="w-[250px] shadow">
               <CardHeader>
-                <CardTitle>{service.name}</CardTitle>
-                <CardDescription>{service.description}</CardDescription>
+                <CardTitle>{service.pipeline_name}</CardTitle>
+                {/* TODO: Add description once available */}
+                {/* <CardDescription>{service.description}</CardDescription> */}
               </CardHeader>
               <CardFooter className="flex justify-end">
                 <Button

@@ -1,4 +1,4 @@
-import { ServiceRequest } from "@/types/service"
+import { ServiceRequestForm } from "@/types/service-request"
 import { IChangeEvent } from "@rjsf/core"
 import { RJSFSchema } from "@rjsf/utils"
 
@@ -7,7 +7,7 @@ interface UseServiceRequestProps {
 }
 
 const useServiceRequest = ({ serviceRequestId }: UseServiceRequestProps) => {
-  const serviceRequest: ServiceRequest = {
+  const serviceRequest: ServiceRequestForm = {
     name: "Sample Service Request",
     description: "Sample Service Request Form",
     form: {

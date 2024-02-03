@@ -11,10 +11,11 @@ type PipelineStep = {
 }
 
 type Pipeline = {
+  id: string
   pipeline_name: string
-  version: number
-  first_step_name: string
-  steps: PipelineStep[]
+  version?: number
+  first_step_name?: string
+  steps?: PipelineStep[]
   created_on?: string
 }
 

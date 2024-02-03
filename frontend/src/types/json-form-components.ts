@@ -26,7 +26,7 @@ type FormCheckboxes = FormComponentWithOptions & {
   required?: false
 }
 
-type ServiceRequestForm = {
+type JsonFormComponents = {
   [key: string]: FormInput | FormSelect | FormCheckboxes
 }
 
@@ -36,5 +36,5 @@ export type {
   FormInput,
   FormSelect,
   FormCheckboxes,
-  ServiceRequestForm,
+  JsonFormComponents,
 }
