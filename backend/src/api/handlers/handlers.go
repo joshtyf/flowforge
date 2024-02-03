@@ -113,14 +113,14 @@ func CancelStartedServiceRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := mux.Vars(r)
 	requestId := vars["requestId"]
-	status, err := database.NewServiceRequest(client).GetStatus(requestId)
-	w.Header().Set("Content-Type", "application/json")
+	sr, err := database.NewServiceRequest(client).GetById(requestId)
 	if err != nil {
-		logger.Error("[CancelStartedServiceRequest] Error getting service request status", map[string]interface{}{"err": err})
+		logger.Error("[CancelStartedServiceRequest] Error getting service request", map[string]interface{}{"err": err})
 		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
-
+	status := sr.Status
+	w.Header().Set("Content-Type", "application/json")
 	if status != models.Pending && status != models.Running {
 		logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has been completed", nil)
 		JSONError(w, handlermodels.NewHttpError(errors.New("service request execution has been completed")), http.StatusBadRequest)
@@ -166,12 +166,13 @@ func UpdateServiceRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := mux.Vars(r)
 	requestId := vars["requestId"]
-	status, err := database.NewServiceRequest(client).GetStatus(requestId)
+	sr, err := database.NewServiceRequest(client).GetById(requestId)
 	if err != nil {
-		logger.Error("[UpdateServiceRequest] Error getting service request status", map[string]interface{}{"err": err})
+		logger.Error("[UpdateServiceRequest] Error getting service request", map[string]interface{}{"err": err})
 		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
+	status := sr.Status
 	if status != models.NotStarted {
 		logger.Error("[UpdateServiceRequest] Unable to update service request as service request has been started", nil)
 		JSONError(w, handlermodels.NewHttpError(errors.New("service request has been started")), http.StatusBadRequest)
