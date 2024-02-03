@@ -33,6 +33,11 @@ func (e *apiStepExecutor) execute(ctx context.Context) (*stepExecResult, error) 
 		logger.Error("[APIStepExecutor] Error getting step from context", nil)
 		return nil, fmt.Errorf("error getting step from context")
 	}
+	serviceRequest, ok := ctx.Value(util.ServiceRequestKey).(*models.ServiceRequestModel)
+	if !ok {
+		logger.Error("[APIStepExecutor] Error getting service request from context", nil)
+		return nil, fmt.Errorf("error getting service request from context")
+	}
 	url := step.Parameters["url"]
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -50,10 +55,26 @@ func (e *apiStepExecutor) execute(ctx context.Context) (*stepExecResult, error) 
 		return nil, fmt.Errorf("Non-200 response")
 	}
 	logger.Info("[APIStepExecutor] Success", map[string]interface{}{"status": resp.StatusCode})
-	event.FireAsync(events.NewStepCompletedEvent(step, &stepExecResult{}, nil))
+	event.FireAsync(events.NewStepCompletedEvent(step, serviceRequest, &stepExecResult{}, nil))
 	return &stepExecResult{}, nil
 }
 
 func (e *apiStepExecutor) getStepType() models.PipelineStepType {
 	return models.APIStep
+}
+
+type waitForApprovalStepExecutor struct {
+}
+
+func NewWaitForApprovalStepExecutor() *waitForApprovalStepExecutor {
+	return &waitForApprovalStepExecutor{}
+}
+
+func (e *waitForApprovalStepExecutor) execute(ctx context.Context) (*stepExecResult, error) {
+	logger.Info("[WaitForApprovalStepExecutor] Waiting for approval", nil)
+	return &stepExecResult{}, nil
+}
+
+func (e *waitForApprovalStepExecutor) getStepType() models.PipelineStepType {
+	return models.WaitForApprovalStep
 }

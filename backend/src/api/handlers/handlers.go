@@ -102,6 +102,7 @@ func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 	logger.Info("[CreateServiceRequest] Successfully created service request", map[string]interface{}{"sr": srm})
 	event.FireAsync(events.NewNewServiceRequestEvent(srm))
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(srm)
 }
 
 func CancelStartedServiceRequest(w http.ResponseWriter, r *http.Request) {
@@ -257,6 +258,52 @@ func GetAllPipelines(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(pipelines)
+}
+
+func ApproveServiceRequest(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	serviceRequestId := params["requestId"]
+	client, err := client.GetMongoClient()
+	if err != nil {
+		logger.Error("[ApproveServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	serviceRequest, err := database.NewServiceRequest(client).GetById(serviceRequestId)
+	if err != nil {
+		logger.Error("[ApproveServiceRequest] Unable to get service request", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	requestBody := struct {
+		StepName string `json:"step_name"`
+	}{}
+	err = json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil {
+		logger.Error("[ApproveServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("unable to parse json request body")), http.StatusBadRequest)
+		return
+	}
+	pipeline, err := database.NewPipeline(client).GetById(serviceRequest.PipelineId)
+	if err != nil {
+		logger.Error("[ApproveServiceRequest] Unable to get pipeline", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	waitForApprovalStep := pipeline.GetPipelineStep(requestBody.StepName)
+
+	if waitForApprovalStep == nil {
+		logger.Error("[ApproveServiceRequest] Unable to get wait for approval step", map[string]interface{}{"step": requestBody.StepName})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	if waitForApprovalStep.StepType != dbmodels.WaitForApprovalStep {
+		logger.Error("[ApproveServiceRequest] Step is not a wait for approval step", map[string]interface{}{"step": requestBody.StepName})
+		JSONError(w, handlermodels.NewHttpError(errors.New("step is not a wait for approval step")), http.StatusBadRequest)
+		return
+	}
+	// TODO: figure out how to pass the step result prior to the approval to the next step
+	event.FireAsync(events.NewStepCompletedEvent(waitForApprovalStep, serviceRequest, nil, nil))
 }
 
 /////////////////// Helper Functions ///////////////////

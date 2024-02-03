@@ -35,11 +35,12 @@ type StepCompletedEvent struct {
 	err            error
 }
 
-func NewStepCompletedEvent(completedStep *models.PipelineStepModel, results interface{}, err error) *StepCompletedEvent {
+func NewStepCompletedEvent(completedStep *models.PipelineStepModel, serviceRequest *models.ServiceRequestModel, results interface{}, err error) *StepCompletedEvent {
 	e := &StepCompletedEvent{
-		completedStep: completedStep,
-		results:       results,
-		err:           err,
+		completedStep:  completedStep,
+		serviceRequest: serviceRequest,
+		results:        results,
+		err:            err,
 	}
 	e.SetName(StepCompletedEventName)
 	return e
