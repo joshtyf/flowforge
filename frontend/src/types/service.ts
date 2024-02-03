@@ -1,3 +1,4 @@
+import { Pipeline } from "./pipeline"
 import { ServiceRequestForm } from "./sevice-request-form"
 
 type ServiceRequest = {
@@ -5,7 +6,7 @@ type ServiceRequest = {
   name: string
   description: string
   form: ServiceRequestForm
-  // More to be added
+  pipeline?: Pipeline
 }
 
 type ServiceRequestWithSteps = ServiceRequest & {

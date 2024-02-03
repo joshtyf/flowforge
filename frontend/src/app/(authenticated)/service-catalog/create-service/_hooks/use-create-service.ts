@@ -1,9 +1,8 @@
-import { ServiceRequestWithSteps } from "@/types/service"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { isJson } from "@/lib/utils"
-import { KeyboardEvent, KeyboardEventHandler } from "react"
+import { KeyboardEvent } from "react"
 import { validateFormSchema } from "../_utils/validation"
 
 const DEFAULT_FORM = {
@@ -25,12 +24,30 @@ const DEFAULT_FORM = {
 }
 
 const DEFAULT_STEPS = {
-  Approval: {
-    name: "Approval",
-    type: "approval",
-    next: "",
-    start: true,
-  },
+  pipeline_name: "Test Pipeline",
+  version: 1,
+  first_step_name: "step1",
+  steps: [
+    {
+      step_name: "step1",
+      step_type: "API",
+      next_step_name: "step2",
+      prev_step_name: "",
+      parameters: {
+        method: "GET",
+        url: "https://example.com",
+      },
+      is_terminal_step: false,
+    },
+    {
+      step_name: "step2",
+      step_type: "WAIT_FOR_APPROVAL",
+      next_step_name: "",
+      prev_step_name: "step1",
+      parameters: {},
+      is_terminal_step: true,
+    },
+  ],
 }
 
 const createServiceSchema = z.object({
