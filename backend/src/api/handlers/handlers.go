@@ -91,13 +91,15 @@ func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 		JSONError(w, handlermodels.NewHttpError(errors.New("unable to parse json request body")), http.StatusBadRequest)
 		return
 	}
-	_, err = database.NewServiceRequest(client).Create(srm)
+	res, err := database.NewServiceRequest(client).Create(srm)
 	if err != nil {
 		logger.Error("[CreateServiceRequest] Error creating service request", map[string]interface{}{"err": err})
 		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
 	logger.Info("[CreateServiceRequest] Successfully created service request", map[string]interface{}{"sr": srm})
+	insertedId, _ := res.InsertedID.(primitive.ObjectID)
+	srm.Id = insertedId
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(srm)
 }
@@ -119,13 +121,13 @@ func CancelStartedServiceRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	status := sr.Status
 	w.Header().Set("Content-Type", "application/json")
-	if status != models.Pending && status != models.Running {
+	if status != dbmodels.Pending && status != dbmodels.Running {
 		logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has been completed", nil)
 		JSONError(w, handlermodels.NewHttpError(errors.New("service request execution has been completed")), http.StatusBadRequest)
 		return
 	}
 
-	if status == models.NotStarted {
+	if status == dbmodels.NotStarted {
 		logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has not been started", nil)
 		JSONError(w, handlermodels.NewHttpError(errors.New("service request execution has not been started")), http.StatusBadRequest)
 		return
@@ -171,7 +173,7 @@ func UpdateServiceRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	status := sr.Status
-	if status != models.NotStarted {
+	if status != dbmodels.NotStarted {
 		logger.Error("[UpdateServiceRequest] Unable to update service request as service request has been started", nil)
 		JSONError(w, handlermodels.NewHttpError(errors.New("service request has been started")), http.StatusBadRequest)
 		return
