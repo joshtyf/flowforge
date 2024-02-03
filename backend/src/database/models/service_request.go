@@ -9,10 +9,12 @@ import (
 type ServiceRequestStatus string
 
 const (
-	Pending ServiceRequestStatus = "Pending"
-	Running ServiceRequestStatus = "Running"
-	Success ServiceRequestStatus = "Success"
-	Failure ServiceRequestStatus = "Failure"
+	Pending    ServiceRequestStatus = "Pending"
+	Running    ServiceRequestStatus = "Running"
+	Success    ServiceRequestStatus = "Success"
+	Failure    ServiceRequestStatus = "Failure"
+	Canceled   ServiceRequestStatus = "Canceled"
+	NotStarted ServiceRequestStatus = "Not Started"
 )
 
 type ServiceRequestModel struct {

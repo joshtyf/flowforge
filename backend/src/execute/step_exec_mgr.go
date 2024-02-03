@@ -108,7 +108,16 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 	logger.Info("[ServiceRequestManager] Handling step completed event", nil)
 	completedStepEvent := e.(*events.StepCompletedEvent)
 	completedStep := completedStepEvent.CompletedStep()
+	if completedStep == nil {
+		logger.Error("[ServiceRequestManager] Completed step is nil", nil)
+		return fmt.Errorf("completed step is nil")
+	}
 	serviceRequest := completedStepEvent.ServiceRequest()
+	if serviceRequest == nil {
+		logger.Error("[ServiceRequestManager] Service request is nil", nil)
+		return fmt.Errorf("service request is nil")
+	}
+
 	if completedStep.IsTerminalStep {
 		err := database.NewServiceRequest(srm.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Success)
 		if err != nil {

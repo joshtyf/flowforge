@@ -33,5 +33,6 @@ module.exports = {
     "@typescript-eslint/semi": "off",
     "@typescript-eslint/indent": "off",
     "@typescript-eslint/comma-dangle": "off",
+    "@typescript-eslint/no-unused-vars": "off",
   },
 }

@@ -9,7 +9,8 @@ import (
 type PipelineStepType string
 
 const (
-	APIStep PipelineStepType = "API"
+	APIStep             PipelineStepType = "API"
+	WaitForApprovalStep PipelineStepType = "WAIT_FOR_APPROVAL"
 )
 
 type PipelineStepModel struct {

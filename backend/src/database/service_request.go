@@ -33,6 +33,25 @@ func (sr *ServiceRequest) GetById(id string) (*models.ServiceRequestModel, error
 	return srm, nil
 }
 
+func (sr *ServiceRequest) UpdateById(id string, srm *models.ServiceRequestModel) (*mongo.UpdateResult, error) {
+	// TODO: update the method once form data is finalised
+	// objectId, _ := primitive.ObjectIDFromHex(id)
+	// filter := bson.M{"_id": objectId}
+	// update := bson.M{"$set": bson.M{
+	// 	"pipeline_id":      srm.PipelineId,
+	// 	"pipeline_version": srm.PipelineVersion,
+	// 	"last_updated":     srm.LastUpdated,
+	// 	"remarks":          srm.Remarks}}
+
+	// res, err := sr.c.Database(DatabaseName).Collection("service_requests").UpdateOne(context.Background(), filter, update)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// return res, nil
+
+	return nil, nil
+}
+
 func (sr *ServiceRequest) GetAll() ([]*models.ServiceRequestModel, error) {
 	result, err := sr.c.Database(DatabaseName).Collection("service_requests").Find(context.Background(), bson.M{})
 	if err != nil {

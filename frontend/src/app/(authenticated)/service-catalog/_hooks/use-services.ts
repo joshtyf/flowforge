@@ -7,6 +7,7 @@ const createDummyServices = (noOfServices: number) => {
       id: i + 1,
       name: `Service ${i + 1}`,
       description: `Description ${i + 1}`,
+      form: {},
     })
   }
   return services

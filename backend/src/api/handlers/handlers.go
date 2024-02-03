@@ -11,6 +11,7 @@ import (
 	handlermodels "github.com/joshtyf/flowforge/src/api/handlers/models"
 	"github.com/joshtyf/flowforge/src/database"
 	"github.com/joshtyf/flowforge/src/database/client"
+	"github.com/joshtyf/flowforge/src/database/models"
 	dbmodels "github.com/joshtyf/flowforge/src/database/models"
 	"github.com/joshtyf/flowforge/src/events"
 	"github.com/joshtyf/flowforge/src/logger"
@@ -33,14 +34,17 @@ func HealthCheck(w http.ResponseWriter, r *http.Request) {
 func GetAllServiceRequest(w http.ResponseWriter, r *http.Request) {
 	client, err := client.GetMongoClient()
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		logger.Error("[GetAllServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
 	allsr, err := database.NewServiceRequest(client).GetAll()
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		logger.Error("[GetAllServiceRequest] Error retrieving all service request", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
+	logger.Info("[GetAllServiceRequest] Successfully retrieved service requests", map[string]interface{}{"count": len(allsr)})
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(allsr)
 	w.WriteHeader(http.StatusOK)
@@ -49,7 +53,8 @@ func GetAllServiceRequest(w http.ResponseWriter, r *http.Request) {
 func GetServiceRequest(w http.ResponseWriter, r *http.Request) {
 	client, err := client.GetMongoClient()
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		logger.Error("[GetServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
 	vars := mux.Vars(r)
@@ -57,9 +62,11 @@ func GetServiceRequest(w http.ResponseWriter, r *http.Request) {
 	sr, err := database.NewServiceRequest(client).GetById(requestId)
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusBadRequest)
+		logger.Error("[GetServiceRequest] Unable to retrieve service request", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusBadRequest)
 		return
 	}
+	logger.Info("[GetServiceRequest] Successfully retrieved service request", map[string]interface{}{"sr": sr})
 	json.NewEncoder(w).Encode(sr)
 	w.WriteHeader(http.StatusOK)
 	return
@@ -68,7 +75,8 @@ func GetServiceRequest(w http.ResponseWriter, r *http.Request) {
 func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 	client, err := client.GetMongoClient()
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		logger.Error("[CreateServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
 	srm := &dbmodels.ServiceRequestModel{
@@ -79,15 +87,103 @@ func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(srm)
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusBadRequest)
+		logger.Error("[CreateServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("unable to parse json request body")), http.StatusBadRequest)
 		return
 	}
 	_, err = database.NewServiceRequest(client).Create(srm)
 	if err != nil {
-		JSONError(w, handlermodels.NewHttpError(err), http.StatusInternalServerError)
+		logger.Error("[CreateServiceRequest] Error creating service request", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
+	logger.Info("[CreateServiceRequest] Successfully created service request", map[string]interface{}{"sr": srm})
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(srm)
+}
+
+func CancelStartedServiceRequest(w http.ResponseWriter, r *http.Request) {
+	client, err := client.GetMongoClient()
+	if err != nil {
+		logger.Error("[CancelStartedServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	vars := mux.Vars(r)
+	requestId := vars["requestId"]
+	sr, err := database.NewServiceRequest(client).GetById(requestId)
+	if err != nil {
+		logger.Error("[CancelStartedServiceRequest] Error getting service request", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	status := sr.Status
+	w.Header().Set("Content-Type", "application/json")
+	if status != models.Pending && status != models.Running {
+		logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has been completed", nil)
+		JSONError(w, handlermodels.NewHttpError(errors.New("service request execution has been completed")), http.StatusBadRequest)
+		return
+	}
+
+	if status == models.NotStarted {
+		logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has not been started", nil)
+		JSONError(w, handlermodels.NewHttpError(errors.New("service request execution has not been started")), http.StatusBadRequest)
+		return
+	}
+
+	// TODO: implement cancellation of sr
+
+	err = database.NewServiceRequest(client).UpdateStatus(requestId, models.Canceled)
+
+	// TODO: discuss how to handle this error
+	if err != nil {
+		logger.Error("[CancelStartedServiceRequest] Unable to update service request status", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+
+	logger.Info("[CancelStartedServiceRequest] Successfully canceled started service request", nil)
+	w.WriteHeader(http.StatusOK)
+	return
+}
+
+func UpdateServiceRequest(w http.ResponseWriter, r *http.Request) {
+	client, err := client.GetMongoClient()
+	if err != nil {
+		logger.Error("[UpdateServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	srm := &dbmodels.ServiceRequestModel{}
+	err = json.NewDecoder(r.Body).Decode(srm)
+	w.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		logger.Error("[UpdateServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("unable to parse json request body")), http.StatusBadRequest)
+		return
+	}
+	vars := mux.Vars(r)
+	requestId := vars["requestId"]
+	sr, err := database.NewServiceRequest(client).GetById(requestId)
+	if err != nil {
+		logger.Error("[UpdateServiceRequest] Error getting service request", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	status := sr.Status
+	if status != models.NotStarted {
+		logger.Error("[UpdateServiceRequest] Unable to update service request as service request has been started", nil)
+		JSONError(w, handlermodels.NewHttpError(errors.New("service request has been started")), http.StatusBadRequest)
+		return
+	}
+	res, err := database.NewServiceRequest(client).UpdateById(requestId, srm)
+	if err != nil {
+		logger.Error("[UpdateServiceRequest] Error updating service request", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	logger.Info("[UpdateServiceRequest] Successfully updated service request", map[string]interface{}{"count": res.ModifiedCount})
+	w.WriteHeader(http.StatusOK)
 }
 
 func StartServiceRequest(w http.ResponseWriter, r *http.Request) {
@@ -105,6 +201,11 @@ func StartServiceRequest(w http.ResponseWriter, r *http.Request) {
 		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
+	if srm.Status != dbmodels.NotStarted {
+		logger.Error("[StartServiceRequest] Service request has already been started", nil)
+		JSONError(w, handlermodels.NewHttpError(errors.New("service request started")), http.StatusBadRequest)
+		return
+	}
 	event.FireAsync(events.NewNewServiceRequestEvent(srm))
 	w.WriteHeader(http.StatusOK)
 }
@@ -118,6 +219,7 @@ func CreatePipeline(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Error("[CreatePipeline] Unable to parse json request body", map[string]interface{}{"err": err})
 		JSONError(w, handlermodels.NewHttpError(errors.New("unable to parse json request body")), http.StatusBadRequest)
+		return
 	}
 	client, err := client.GetMongoClient()
 	if err != nil {
@@ -177,6 +279,52 @@ func GetAllPipelines(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(pipelines)
+}
+
+func ApproveServiceRequest(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	serviceRequestId := params["requestId"]
+	client, err := client.GetMongoClient()
+	if err != nil {
+		logger.Error("[ApproveServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	serviceRequest, err := database.NewServiceRequest(client).GetById(serviceRequestId)
+	if err != nil {
+		logger.Error("[ApproveServiceRequest] Unable to get service request", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	requestBody := struct {
+		StepName string `json:"step_name"`
+	}{}
+	err = json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil {
+		logger.Error("[ApproveServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("unable to parse json request body")), http.StatusBadRequest)
+		return
+	}
+	pipeline, err := database.NewPipeline(client).GetById(serviceRequest.PipelineId)
+	if err != nil {
+		logger.Error("[ApproveServiceRequest] Unable to get pipeline", map[string]interface{}{"err": err})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	waitForApprovalStep := pipeline.GetPipelineStep(requestBody.StepName)
+
+	if waitForApprovalStep == nil {
+		logger.Error("[ApproveServiceRequest] Unable to get wait for approval step", map[string]interface{}{"step": requestBody.StepName})
+		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
+		return
+	}
+	if waitForApprovalStep.StepType != dbmodels.WaitForApprovalStep {
+		logger.Error("[ApproveServiceRequest] Step is not a wait for approval step", map[string]interface{}{"step": requestBody.StepName})
+		JSONError(w, handlermodels.NewHttpError(errors.New("step is not a wait for approval step")), http.StatusBadRequest)
+		return
+	}
+	// TODO: figure out how to pass the step result prior to the approval to the next step
+	event.FireAsync(events.NewStepCompletedEvent(waitForApprovalStep, serviceRequest, nil, nil))
 }
 
 /////////////////// Helper Functions ///////////////////

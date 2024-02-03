@@ -9,15 +9,21 @@ import (
 )
 
 func main() {
-	srm := execute.NewStepExecutionManager(execute.WithStepExecutor(execute.NewApiStepExecutor()))
+	srm := execute.NewStepExecutionManager(
+		execute.WithStepExecutor(execute.NewApiStepExecutor()),
+		execute.WithStepExecutor(execute.NewWaitForApprovalStepExecutor()),
+	)
 	srm.Start()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/api/healthcheck", handlers.HealthCheck).Methods("GET")
-	r.HandleFunc("/api/servicerequest/new", handlers.CreateServiceRequest).Methods("POST").Headers("Content-Type", "application/json")
-	r.HandleFunc("/api/servicerequest/{requestId}", handlers.GetServiceRequest).Methods("GET")
-	r.HandleFunc("/api/servicerequest/{requestId}/start", handlers.StartServiceRequest).Methods("GET")
-	r.HandleFunc("/api/servicerequest", handlers.GetAllServiceRequest).Methods("GET")
+	r.HandleFunc("/api/service_request", handlers.CreateServiceRequest).Methods("POST").Headers("Content-Type", "application/json")
+	r.HandleFunc("/api/service_request/{requestId}", handlers.GetServiceRequest).Methods("GET")
+	r.HandleFunc("/api/service_request", handlers.GetAllServiceRequest).Methods("GET")
+	r.HandleFunc("/api/service_request/{requestId}/start", handlers.StartServiceRequest).Methods("GET")
+	r.HandleFunc("/api/service_request/{requestId}/approve", handlers.ApproveServiceRequest).Methods("POST").Headers("Content-Type", "application/json")
+	r.HandleFunc("/api/service_request/{requestId}/cancel", handlers.CancelStartedServiceRequest).Methods("GET")
+	r.HandleFunc("/api/service_request/{requestId}", handlers.UpdateServiceRequest).Methods("PATCH").Headers("Content-Type", "application/json")
 	r.HandleFunc("/api/pipeline", handlers.CreatePipeline).Methods("POST").Headers("Content-Type", "application/json")
 	r.HandleFunc("/api/pipeline", handlers.GetAllPipelines).Methods("GET")
 	r.HandleFunc("/api/pipeline/{pipelineId}", handlers.GetPipeline).Methods("GET")
