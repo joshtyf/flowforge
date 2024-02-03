@@ -21,6 +21,8 @@ func main() {
 	r.HandleFunc("/api/service_request/{requestId}", handlers.GetServiceRequest).Methods("GET")
 	r.HandleFunc("/api/service_request", handlers.GetAllServiceRequest).Methods("GET")
 	r.HandleFunc("/api/service_request/{requestId}/approve", handlers.ApproveServiceRequest).Methods("POST").Headers("Content-Type", "application/json")
+	r.HandleFunc("/api/service_request/{requestId}/cancel", handlers.CancelStartedServiceRequest).Methods("GET")
+	r.HandleFunc("/api/service_request/{requestId}", handlers.UpdateServiceRequest).Methods("PATCH").Headers("Content-Type", "application/json")
 	r.HandleFunc("/api/pipeline", handlers.CreatePipeline).Methods("POST").Headers("Content-Type", "application/json")
 	r.HandleFunc("/api/pipeline", handlers.GetAllPipelines).Methods("GET")
 	r.HandleFunc("/api/pipeline/{pipelineId}", handlers.GetPipeline).Methods("GET")
