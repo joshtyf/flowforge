@@ -1,8 +1,15 @@
+import { ServiceRequestForm } from "./sevice-request-form"
+
 type ServiceRequest = {
-  id: number
+  id?: number
   name: string
   description: string
+  form: ServiceRequestForm
   // More to be added
 }
 
-export type { ServiceRequest }
+type ServiceRequestWithSteps = ServiceRequest & {
+  steps: object
+}
+
+export type { ServiceRequest, ServiceRequestWithSteps }
