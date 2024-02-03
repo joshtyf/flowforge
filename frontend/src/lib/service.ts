@@ -1,6 +1,6 @@
 import { Pipeline } from "@/types/pipeline"
 import apiClient from "./apiClient"
-import { ServiceRequest } from "@/types/service"
+import { ServiceRequest } from "@/types/service-request"
 
 export async function createPipeline(pipeline: Pipeline): Promise<Pipeline> {
   return apiClient.post("/pipeline", pipeline)
@@ -14,15 +14,25 @@ export async function getPipeline(pipelineId: string): Promise<Pipeline> {
   return apiClient.get(`/pipeline/${pipelineId}`)
 }
 
-export async function createServiceRequest(serviceRequest: ServiceRequest) {
-  return apiClient.post("/service-request", serviceRequest.pipeline)
+export async function createServiceRequest(
+  pipelineId: string,
+  pipelineVersion?: string,
+  remarks?: string
+): Promise<ServiceRequest> {
+  return apiClient.post("/service-request", {
+    pipeline_id: pipelineId,
+    pipeline_version: pipelineVersion,
+    remarks: remarks,
+  })
 }
 
-export async function getAllServiceRequest() {
+export async function getAllServiceRequest(): Promise<ServiceRequest[]> {
   return apiClient.post("/service-request")
 }
 
-export async function getServiceRequest(serviceRequestId: string) {
+export async function getServiceRequest(
+  serviceRequestId: string
+): Promise<ServiceRequest> {
   return apiClient.post(`/service-request/${serviceRequestId}`)
 }
 
