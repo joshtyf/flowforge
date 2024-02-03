@@ -156,11 +156,7 @@ func UpdateServiceRequest(w http.ResponseWriter, r *http.Request) {
 		JSONError(w, handlermodels.NewHttpError(errors.New("internal server error")), http.StatusInternalServerError)
 		return
 	}
-	srm := &dbmodels.ServiceRequestModel{
-		CreatedOn:   time.Now(),
-		LastUpdated: time.Now(),
-		Status:      dbmodels.Pending,
-	}
+	srm := &dbmodels.ServiceRequestModel{}
 	err = json.NewDecoder(r.Body).Decode(srm)
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
