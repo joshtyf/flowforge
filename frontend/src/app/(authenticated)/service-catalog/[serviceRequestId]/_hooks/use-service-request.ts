@@ -6,37 +6,6 @@ interface UseServiceRequestProps {
   serviceRequestId: string
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const ORIGINAL_RJSF_OBJECT: RJSFSchema =
-  // TO SHOW: original RJSF Object
-  {
-    type: "object",
-    required: ["input", "select"],
-    properties: {
-      input: {
-        title: "Input",
-        description: "Input Description with minimum length 1",
-        type: "string",
-        minLength: 1,
-      },
-      select: {
-        type: "string",
-        title: "Select Option",
-        description: "Dropdown selection with default value as Item 1",
-        enum: ["Item 1", "Item 2", "Item 3"],
-      },
-      checkboxes: {
-        type: "array",
-        title: "Checkboxes",
-        description: "You can select more than 1 item",
-        items: {
-          enum: ["Item 1", "Item 2", "Item 3"],
-        },
-        uniqueItems: true,
-      },
-    },
-  }
-
 const useServiceRequest = ({ serviceRequestId }: UseServiceRequestProps) => {
   const serviceRequest: ServiceRequest = {
     name: "Sample Service Request",
