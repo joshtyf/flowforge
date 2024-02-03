@@ -68,9 +68,11 @@ export default function ServiceRequestPage() {
             widgets={widgets}
             showErrorList={false}
           >
-            <Button className="mt-auto" type="submit">
-              Submit
-            </Button>
+            <div className="flex justify-end">
+              <Button size="lg" type="submit">
+                Submit
+              </Button>
+            </div>
           </Form>
         </div>
       </div>
