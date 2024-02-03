@@ -91,6 +91,7 @@ func CreateServiceRequest(w http.ResponseWriter, r *http.Request) {
 	srm.Id = insertedId
 	event.FireAsync(events.NewNewServiceRequestEvent(srm))
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(srm)
 }
 
 func CreatePipeline(w http.ResponseWriter, r *http.Request) {
