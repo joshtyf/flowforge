@@ -29,11 +29,8 @@ func main() {
 	r.HandleFunc("/api/pipeline", api.NewHandler(api.GetAllPipelines)).Methods("GET")
 	r.HandleFunc("/api/pipeline/{pipelineId}", api.NewHandler(api.GetPipeline)).Methods("GET")
 	http.ListenAndServe(":8080", gorillaHandlers.CORS(
-		gorillaHandlers.AllowedOrigins([]string{"localhost:3000"}),
+		gorillaHandlers.AllowedOrigins([]string{"http://localhost:3000"}),
 		gorillaHandlers.AllowedHeaders([]string{
-			"Content-Type",
-			"Authorization",
-			"Accept",
 			"Access-Control-Allow-Origin",
 			"Access-Control-Allow-Headers",
 			"Access-Control-Allow-Methods",
