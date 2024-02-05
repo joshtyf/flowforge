@@ -31,9 +31,6 @@ func main() {
 	http.ListenAndServe(":8080", gorillaHandlers.CORS(
 		gorillaHandlers.AllowedOrigins([]string{"http://localhost:3000"}),
 		gorillaHandlers.AllowedHeaders([]string{
-			"Content-Type",
-			"Authorization",
-			"Accept",
 			"Access-Control-Allow-Origin",
 			"Access-Control-Allow-Headers",
 			"Access-Control-Allow-Methods",
