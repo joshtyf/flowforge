@@ -39,7 +39,7 @@ export default function ServiceRequestView({
     <>
       <div className="flex flex-col justify-start py-10">
         <HeaderAccessory />
-        <div className="flex items-baseline space-x-2">
+        <div className="flex items-baseline space-x-2 pt-5">
           <Button
             size="icon"
             variant="ghost"
@@ -47,7 +47,7 @@ export default function ServiceRequestView({
           >
             <ChevronLeft />
           </Button>
-          <p className="font-bold text-3xl pt-5">{service?.pipeline_name}</p>
+          <p className="font-bold text-3xl">{service?.pipeline_name}</p>
         </div>
         <p className="text-lg pt-3 ml-12 text-gray-500">
           {service?.pipeline_description}
@@ -70,14 +70,16 @@ export default function ServiceRequestView({
             showErrorList={false}
           >
             <div className="flex justify-end">
-              <ButtonWithSpinner
-                type="submit"
-                disabled={isSubmittingRequest}
-                isLoading={isSubmittingRequest}
-                size="lg"
-              >
-                Submit
-              </ButtonWithSpinner>
+              {service && (
+                <ButtonWithSpinner
+                  type="submit"
+                  disabled={isSubmittingRequest}
+                  isLoading={isSubmittingRequest}
+                  size="lg"
+                >
+                  Submit
+                </ButtonWithSpinner>
+              )}
             </div>
           </Form>
         </div>

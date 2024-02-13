@@ -46,6 +46,7 @@ const useServiceRequest = ({ pipelineId }: UseServiceRequestProps) => {
   useEffect(() => {
     getPipeline(pipelineId)
       .then((data) => {
+        // TODO: To remove once data contains form and description
         data.form = DUMMY_SERVICE_REQUEST_FORM
         data.pipeline_description = "Pipeline description"
         setService(data)

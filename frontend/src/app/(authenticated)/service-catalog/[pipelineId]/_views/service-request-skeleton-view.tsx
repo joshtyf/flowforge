@@ -15,7 +15,7 @@ export default function ServiceRequestSkeletonView({
     <>
       <div className="flex flex-col justify-start py-10">
         <HeaderAccessory />
-        <div className="flex items-baseline space-x-2">
+        <div className="flex items-baseline space-x-2 mt-5">
           <Button
             size="icon"
             variant="ghost"
@@ -23,7 +23,7 @@ export default function ServiceRequestSkeletonView({
           >
             <ChevronLeft />
           </Button>
-          <Skeleton className="w-[250px] h-[35px] mt-5" />
+          <Skeleton className="w-[250px] h-[35px]" />
         </div>
         <Skeleton className="w-[400px] h-[20px] mt-3 ml-12" />
       </div>
