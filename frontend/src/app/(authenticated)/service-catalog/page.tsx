@@ -40,7 +40,7 @@ export default function ServiceCatalogPage() {
         </div>
       </div>
       <div className=" grid grid-cols-auto-fill-min-20 gap-y-10 max-h-[75%] overflow-y-auto">
-        {services.map((service) => (
+        {services?.map((service) => (
           <div key={service.id} className="flex items-center justify-center">
             <Card className="w-[250px] shadow">
               <CardHeader>
@@ -60,6 +60,7 @@ export default function ServiceCatalogPage() {
           </div>
         ))}
       </div>
+      {/* TODO: Implement pagination logic */}
       <div className="w-full flex justify-center absolute bottom-0">
         <Pagination>
           <PaginationContent>

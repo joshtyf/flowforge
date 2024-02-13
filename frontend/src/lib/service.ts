@@ -7,7 +7,7 @@ export async function createPipeline(pipeline: Pipeline): Promise<Pipeline> {
 }
 
 export async function getAllPipeline(): Promise<Pipeline[]> {
-  return apiClient.get("/pipeline")
+  return apiClient.get("/pipeline").then((res) => res.data)
 }
 
 export async function getPipeline(pipelineId: string): Promise<Pipeline> {

@@ -1,5 +1,8 @@
+import { toast } from "@/components/ui/use-toast"
+import { getAllPipeline } from "@/lib/service"
 import { Pipeline } from "@/types/pipeline"
 import { ServiceRequest } from "@/types/service-request"
+import { useQuery } from "@tanstack/react-query"
 
 const createDummyServices = (noOfServices: number) => {
   const services: Pipeline[] = []
@@ -15,9 +18,22 @@ const createDummyServices = (noOfServices: number) => {
 }
 
 const useServices = () => {
-  const services: Pipeline[] = createDummyServices(25)
+  // const services: Pipeline[] = createDummyServices(25)
+  const { isLoading, data: pipelines } = useQuery({
+    queryKey: ["pipelines"],
+    queryFn: () =>
+      getAllPipeline().catch((err) => {
+        console.log(err)
+        toast({
+          title: "Fetching Services Error",
+          description: "Failed to fetch the services. Please try again later.",
+          variant: "destructive",
+        })
+      }),
+  })
+
   return {
-    services,
+    services: pipelines,
   }
 }
 
