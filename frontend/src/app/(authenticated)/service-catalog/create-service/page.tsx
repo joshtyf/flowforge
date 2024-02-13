@@ -18,8 +18,13 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 export default function CreateServicePage() {
   const router = useRouter()
-  const { form, handleTextAreaTabKeyDown, handleSubmitForm, isSubmitting } =
-    useCreateService({ router })
+  const {
+    form,
+    handleTextAreaTabKeyDown,
+    handleSubmitForm,
+    isSubmitting,
+    submitted,
+  } = useCreateService({ router })
 
   return (
     <>
@@ -115,7 +120,7 @@ export default function CreateServicePage() {
             <div className="flex justify-end">
               <ButtonWithSpinner
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || submitted}
                 isLoading={isSubmitting}
                 size="lg"
               >

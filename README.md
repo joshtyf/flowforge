@@ -18,12 +18,6 @@ Run the following command to seed the database wth sample data
 docker compose --profile be-seed -p flowforge up --build
 ```
 
-Run the following command to delete container
-
-```bash
-docker compose -p flowforge down
-```
-
 Run the following command to start just the frontend:
 
 ```bash
@@ -34,6 +28,12 @@ Run the following command to start just the backend:
 
 ```bash
 docker compose --profile be -p flowforge up --build
+```
+
+Run the following command to delete container
+
+```bash
+docker compose -p flowforge down
 ```
 
 ## Setup Frontend Development

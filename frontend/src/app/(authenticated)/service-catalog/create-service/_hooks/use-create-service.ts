@@ -85,7 +85,7 @@ interface UseCreateServiceProps {
 }
 const useCreateService = ({ router }: UseCreateServiceProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
-
+  const [submitted, setSubmitted] = useState(false)
   const form = useForm<z.infer<typeof createServiceSchema>>({
     resolver: zodResolver(createServiceSchema),
     defaultValues: {
@@ -135,9 +135,10 @@ const useCreateService = ({ router }: UseCreateServiceProps) => {
       .then(() => {
         toast({
           title: "Service Creation Successful",
-          description: "Please check the service catalog for the new service.",
+          description: "Redirecting to service catalog...",
         })
-        router.push("/service-catalog")
+        setSubmitted(true)
+        setTimeout(() => router.push("/service-catalog"), 1500)
       })
       .catch((err) => {
         console.error(err)
@@ -155,6 +156,7 @@ const useCreateService = ({ router }: UseCreateServiceProps) => {
     form,
     handleTextAreaTabKeyDown,
     handleSubmitForm,
+    submitted,
     isSubmitting,
   }
 }
