@@ -129,9 +129,8 @@ const useCreateService = () => {
     createPipeline(pipelineJson)
       .then((res) => {
         toast({
-          title: "Submission Successful",
-          description:
-            "Service creation form has been submitt successfully. Please check the service catalog for the new service in a short while.",
+          title: "Service Creation Successful",
+          description: "Please check the service catalog for the new service.",
         })
       })
       .catch((err) => {
