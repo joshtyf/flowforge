@@ -1,3 +1,6 @@
+import { JsonFormComponents } from "./json-form-components"
+import { ServiceRequestForm } from "./service-request"
+
 type PipelineStep = {
   step_name: string
   step_type: "API" | "WAIT_FOR_APPROVAL"
@@ -10,7 +13,7 @@ type PipelineStep = {
   is_terminal_step: boolean
 }
 
-type PipelineForm = {
+type PipelineDetails = {
   id?: string
   version?: number
   first_step_name?: string
@@ -18,9 +21,10 @@ type PipelineForm = {
   created_on?: string
 }
 
-type Pipeline = PipelineForm & {
+type Pipeline = PipelineDetails & {
   pipeline_name: string
   pipeline_description?: string
+  form?: JsonFormComponents
 }
 
-export type { Pipeline, PipelineForm, PipelineStep }
+export type { Pipeline, PipelineDetails, PipelineStep }

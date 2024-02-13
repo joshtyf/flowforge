@@ -11,7 +11,7 @@ export async function getAllPipeline(): Promise<Pipeline[]> {
 }
 
 export async function getPipeline(pipelineId: string): Promise<Pipeline> {
-  return apiClient.get(`/pipeline/${pipelineId}`)
+  return apiClient.get(`/pipeline/${pipelineId}`).then((res) => res.data)
 }
 
 export async function createServiceRequest(

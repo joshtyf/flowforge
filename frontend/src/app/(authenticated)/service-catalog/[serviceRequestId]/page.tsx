@@ -12,10 +12,6 @@ import FieldTemplate from "@/components/form/custom-templates/field-template"
 import FieldErrorTemplate from "@/components/form/custom-templates/field-error-template"
 import BaseInputTemplate from "@/components/form/custom-templates/base-input-template"
 import ArrayFieldTemplate from "@/components/form/custom-templates/array-field-template"
-import {
-  convertServiceRequestFormToRJSFSchema,
-  generateUiSchema,
-} from "@/lib/utils"
 import { RegistryWidgetsType } from "@rjsf/utils"
 import CustomCheckboxes from "@/components/form/custom-widgets/custom-checkboxes"
 import CustomSelect from "@/components/form/custom-widgets/custom-select"
@@ -31,14 +27,9 @@ export default function ServiceRequestPage() {
     ? serviceRequestId[0]
     : serviceRequestId
   const router = useRouter()
-  const { serviceRequest, handleSubmit } = useServiceRequest({
+  const { service, rjsfSchema, uiSchema, handleSubmit } = useServiceRequest({
     serviceRequestId: serviceRequestIdString,
   })
-
-  const { name, description, form } = serviceRequest
-
-  const uiSchema = generateUiSchema(serviceRequest)
-  const rjsfSchema = convertServiceRequestFormToRJSFSchema(form)
 
   return (
     <>
@@ -48,9 +39,11 @@ export default function ServiceRequestPage() {
           <Button size="icon" variant="ghost" onClick={() => router.back()}>
             <ChevronLeft />
           </Button>
-          <p className="font-bold text-3xl pt-5">{name}</p>
+          <p className="font-bold text-3xl pt-5">{service?.pipeline_name}</p>
         </div>
-        <p className="text-lg pt-3 ml-12 text-gray-500">{description}</p>
+        <p className="text-lg pt-3 ml-12 text-gray-500">
+          {service?.pipeline_description}
+        </p>
       </div>
       <div className="w-full flex justify-center">
         <div className="w-4/5">

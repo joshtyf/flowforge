@@ -5,7 +5,7 @@ import { isJson } from "@/lib/utils"
 import { KeyboardEvent, useState } from "react"
 import { validateFormSchema } from "../_utils/validation"
 import { createPipeline } from "@/lib/service"
-import { Pipeline, PipelineForm } from "@/types/pipeline"
+import { Pipeline } from "@/types/pipeline"
 import { JsonFormComponents } from "@/types/json-form-components"
 import { toast } from "@/components/ui/use-toast"
 

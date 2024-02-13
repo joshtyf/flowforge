@@ -9,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const convertServiceRequestFormToRJSFSchema = (
-  jsonFormComponents: JsonFormComponents
+  jsonFormComponents?: JsonFormComponents
 ) => {
   const schema: RJSFSchema = {
     type: "object",
@@ -64,9 +64,8 @@ export const convertServiceRequestFormToRJSFSchema = (
   return schema
 }
 
-export const generateUiSchema = (serviceRequest: ServiceRequestForm) => {
+export const generateUiSchema = (jsonFormComponents?: JsonFormComponents) => {
   const uiSchema: UiSchema = {}
-  const jsonFormComponents: JsonFormComponents = serviceRequest.form
 
   for (const item in jsonFormComponents) {
     const itemOptions = jsonFormComponents[item]
