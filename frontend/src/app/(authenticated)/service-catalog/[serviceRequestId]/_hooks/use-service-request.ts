@@ -40,21 +40,22 @@ const DUMMY_SERVICE_REQUEST_FORM: JsonFormComponents = {
 
 const useServiceRequest = ({ serviceRequestId }: UseServiceRequestProps) => {
   const [service, setService] = useState<Pipeline>()
-  const [isLoadingForm, setIsLoadingForm] = useState(false)
+  const [isLoadingForm, setIsLoadingForm] = useState(true)
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
 
   useEffect(() => {
-    setIsLoadingForm(true)
     getPipeline(serviceRequestId)
       .then((data) => {
         data.form = DUMMY_SERVICE_REQUEST_FORM
+        data.pipeline_description = "Pipeline description"
         setService(data)
       })
       .catch((err) => {
         console.log(err)
         toast({
           title: "Fetching Service Error",
-          description: "Failed to fetch the service. Please try again later.",
+          description:
+            "Failed to fetch the service for service request. Please try again later.",
           variant: "destructive",
         })
       })
@@ -64,6 +65,7 @@ const useServiceRequest = ({ serviceRequestId }: UseServiceRequestProps) => {
   }, [serviceRequestId])
 
   const handleSubmit = (data: IChangeEvent<object, RJSFSchema, object>) => {
+    setIsSubmittingRequest(true)
     // TODO: Replace with API call
     // TODO: Add validations
     console.log(
@@ -71,6 +73,7 @@ const useServiceRequest = ({ serviceRequestId }: UseServiceRequestProps) => {
       "Service id: " + serviceRequestId,
       data.formData
     )
+    setIsSubmittingRequest(false)
   }
 
   const uiSchema = generateUiSchema(service?.form)
@@ -81,6 +84,8 @@ const useServiceRequest = ({ serviceRequestId }: UseServiceRequestProps) => {
     rjsfSchema,
     uiSchema,
     handleSubmit,
+    isLoadingForm,
+    isSubmittingRequest,
   }
 }
 
