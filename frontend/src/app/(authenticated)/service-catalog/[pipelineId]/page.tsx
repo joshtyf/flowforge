@@ -15,10 +15,10 @@ const widgets: RegistryWidgetsType = {
 }
 
 export default function ServiceRequestPage() {
-  const { serviceRequestId } = useParams()
-  const serviceRequestIdString = Array.isArray(serviceRequestId)
-    ? serviceRequestId[0]
-    : serviceRequestId
+  const { pipelineId } = useParams()
+  const pipelineIdString = Array.isArray(pipelineId)
+    ? pipelineId[0]
+    : pipelineId
   const router = useRouter()
   const {
     service,
@@ -28,7 +28,7 @@ export default function ServiceRequestPage() {
     isLoadingForm,
     isSubmittingRequest,
   } = useServiceRequest({
-    serviceRequestId: serviceRequestIdString,
+    pipelineId: pipelineIdString,
   })
 
   return isLoadingForm ? (

@@ -1,5 +1,5 @@
 import { toast } from "@/components/ui/use-toast"
-import { getPipeline } from "@/lib/service"
+import { createServiceRequest, getPipeline } from "@/lib/service"
 import {
   convertServiceRequestFormToRJSFSchema,
   generateUiSchema,
@@ -11,7 +11,7 @@ import { RJSFSchema } from "@rjsf/utils"
 import { useEffect, useState } from "react"
 
 interface UseServiceRequestProps {
-  serviceRequestId: string
+  pipelineId: string
 }
 
 const DUMMY_SERVICE_REQUEST_FORM: JsonFormComponents = {
@@ -38,13 +38,13 @@ const DUMMY_SERVICE_REQUEST_FORM: JsonFormComponents = {
   },
 }
 
-const useServiceRequest = ({ serviceRequestId }: UseServiceRequestProps) => {
+const useServiceRequest = ({ pipelineId }: UseServiceRequestProps) => {
   const [service, setService] = useState<Pipeline>()
   const [isLoadingForm, setIsLoadingForm] = useState(true)
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
 
   useEffect(() => {
-    getPipeline(serviceRequestId)
+    getPipeline(pipelineId)
       .then((data) => {
         data.form = DUMMY_SERVICE_REQUEST_FORM
         data.pipeline_description = "Pipeline description"
@@ -54,26 +54,39 @@ const useServiceRequest = ({ serviceRequestId }: UseServiceRequestProps) => {
         console.log(err)
         toast({
           title: "Fetching Service Error",
-          description:
-            "Failed to fetch the service for service request. Please try again later.",
+          description: "Failed to fetch the service for service request.",
           variant: "destructive",
         })
       })
       .finally(() => {
         setIsLoadingForm(false)
       })
-  }, [serviceRequestId])
+  }, [pipelineId])
 
   const handleSubmit = (data: IChangeEvent<object, RJSFSchema, object>) => {
     setIsSubmittingRequest(true)
-    // TODO: Replace with API call
-    // TODO: Add validations
-    console.log(
-      "Data submitted: ",
-      "Service id: " + serviceRequestId,
-      data.formData
-    )
-    setIsSubmittingRequest(false)
+    // TODO: Add validations if needed
+    // TODO: Add submission of form data
+    createServiceRequest(pipelineId)
+      .then((data) => {
+        toast({
+          title: "Request Submission Successful",
+          description:
+            "Please check the dashboard for the status of the request.",
+        })
+        console.log("Response: ", data)
+      })
+      .catch((err) => {
+        console.log(err)
+        toast({
+          title: "Request Submission Error",
+          description: "Failed to submit the service request.",
+          variant: "destructive",
+        })
+      })
+      .finally(() => {
+        setIsSubmittingRequest(false)
+      })
   }
 
   const uiSchema = generateUiSchema(service?.form)

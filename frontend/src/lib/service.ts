@@ -19,7 +19,7 @@ export async function createServiceRequest(
   pipelineVersion?: string,
   remarks?: string
 ): Promise<ServiceRequest> {
-  return apiClient.post("/service-request", {
+  return apiClient.post("/service_request", {
     pipeline_id: pipelineId,
     pipeline_version: pipelineVersion,
     remarks: remarks,
@@ -27,17 +27,17 @@ export async function createServiceRequest(
 }
 
 export async function getAllServiceRequest(): Promise<ServiceRequest[]> {
-  return apiClient.post("/service-request")
+  return apiClient.post("/service_request")
 }
 
 export async function getServiceRequest(
   serviceRequestId: string
 ): Promise<ServiceRequest> {
-  return apiClient.post(`/service-request/${serviceRequestId}`)
+  return apiClient.post(`/service_request/${serviceRequestId}`)
 }
 
 export async function approveServiceRequest(serviceRequestId: string) {
-  return apiClient.post(`/service-request/${serviceRequestId}/approve`, {
+  return apiClient.post(`/service_request/${serviceRequestId}/approve`, {
     step_name: "step2",
   })
 }

@@ -40,7 +40,11 @@ export default function ServiceRequestView({
       <div className="flex flex-col justify-start py-10">
         <HeaderAccessory />
         <div className="flex items-baseline space-x-2">
-          <Button size="icon" variant="ghost" onClick={() => router.back()}>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => router.push("/service-catalog")}
+          >
             <ChevronLeft />
           </Button>
           <p className="font-bold text-3xl pt-5">{service?.pipeline_name}</p>

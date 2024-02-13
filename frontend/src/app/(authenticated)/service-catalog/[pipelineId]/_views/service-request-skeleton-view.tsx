@@ -16,7 +16,11 @@ export default function ServiceRequestSkeletonView({
       <div className="flex flex-col justify-start py-10">
         <HeaderAccessory />
         <div className="flex items-baseline space-x-2">
-          <Button size="icon" variant="ghost" onClick={() => router.back()}>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => router.push("/service-catalog")}
+          >
             <ChevronLeft />
           </Button>
           <Skeleton className="w-[250px] h-[35px] mt-5" />
