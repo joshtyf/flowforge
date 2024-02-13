@@ -19,7 +19,7 @@ import { Textarea } from "@/components/ui/textarea"
 export default function CreateServicePage() {
   const router = useRouter()
   const { form, handleTextAreaTabKeyDown, handleSubmitForm, isSubmitting } =
-    useCreateService()
+    useCreateService({ router })
 
   return (
     <>

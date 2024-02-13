@@ -8,6 +8,7 @@ import { createPipeline } from "@/lib/service"
 import { Pipeline } from "@/types/pipeline"
 import { JsonFormComponents } from "@/types/json-form-components"
 import { toast } from "@/components/ui/use-toast"
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
 
 const DEFAULT_FORM = {
   input: { title: "", description: "", type: "input", required: true },
@@ -78,7 +79,11 @@ const createServiceSchema = z.object({
       message: "Ensure that Form is valid JSON Schema",
     }),
 })
-const useCreateService = () => {
+
+interface UseCreateServiceProps {
+  router: AppRouterInstance
+}
+const useCreateService = ({ router }: UseCreateServiceProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<z.infer<typeof createServiceSchema>>({
@@ -127,11 +132,12 @@ const useCreateService = () => {
     setIsSubmitting(true)
 
     createPipeline(pipelineJson)
-      .then((res) => {
+      .then(() => {
         toast({
           title: "Service Creation Successful",
           description: "Please check the service catalog for the new service.",
         })
+        router.push("/service-catalog")
       })
       .catch((err) => {
         console.error(err)

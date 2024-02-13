@@ -10,7 +10,7 @@ import { IChangeEvent } from "@rjsf/core"
 import { RJSFSchema } from "@rjsf/utils"
 import { useEffect, useState } from "react"
 
-interface UseServiceRequestProps {
+interface UseServiceRequestOptions {
   pipelineId: string
 }
 
@@ -38,7 +38,7 @@ const DUMMY_SERVICE_REQUEST_FORM: JsonFormComponents = {
   },
 }
 
-const useServiceRequest = ({ pipelineId }: UseServiceRequestProps) => {
+const useServiceRequest = ({ pipelineId }: UseServiceRequestOptions) => {
   const [service, setService] = useState<Pipeline>()
   const [isLoadingForm, setIsLoadingForm] = useState(true)
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
