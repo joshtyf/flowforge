@@ -11,12 +11,16 @@ import {
 } from "@/components/ui/pagination"
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
 interface ServicesViewProps {
-  services?: Pipeline[] | void
+  services: Pipeline[] | void
   router: AppRouterInstance
 }
 
 export default function ServicesView({ services, router }: ServicesViewProps) {
-  return (
+  return services && services.length === 0 ? (
+    <div className="flex justify-center items-center w-full h-3/5">
+      <h1 className="font-bold text-3xl">No services available</h1>
+    </div>
+  ) : (
     <>
       <div className=" grid grid-cols-auto-fill-min-20 gap-y-10 max-h-[75%] overflow-y-auto">
         {services?.map((service) => (
