@@ -13,6 +13,17 @@ const (
 	WaitForApprovalStep PipelineStepType = "WAIT_FOR_APPROVAL"
 )
 
+var allPipelineStepTypes = []PipelineStepType{APIStep, WaitForApprovalStep}
+
+func IsValidPipelineStepType(stepType PipelineStepType) bool {
+	for _, validStepType := range allPipelineStepTypes {
+		if stepType == validStepType {
+			return true
+		}
+	}
+	return false
+}
+
 type PipelineStepModel struct {
 	StepName       string            `bson:"step_name" json:"step_name"`
 	StepType       PipelineStepType  `bson:"step_type" json:"step_type"`
