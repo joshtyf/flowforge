@@ -3,13 +3,12 @@
 import React from "react"
 import HeaderAccessory from "@/components/ui/header-accessory"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
+import { Button, ButtonWithSpinner } from "@/components/ui/button"
 import { ChevronLeft } from "lucide-react"
 import useCreateService from "./_hooks/use-create-service"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -19,16 +18,24 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 export default function CreateServicePage() {
   const router = useRouter()
-
-  const { form, handleSubmitForm, handleTextAreaTabKeyDown } =
-    useCreateService()
+  const {
+    form,
+    handleTextAreaTabKeyDown,
+    handleSubmitForm,
+    isSubmitting,
+    submitted,
+  } = useCreateService({ router })
 
   return (
     <>
       <div className="flex flex-col justify-start py-10">
         <HeaderAccessory />
         <div className="flex items-baseline space-x-2">
-          <Button size="icon" variant="ghost" onClick={() => router.back()}>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => router.push("/service-catalog")}
+          >
             <ChevronLeft />
           </Button>
           <p className="font-bold text-3xl pt-5">Create Service</p>
@@ -90,17 +97,17 @@ export default function CreateServicePage() {
               />
               <FormField
                 control={form.control}
-                name="steps"
+                name="pipeline"
                 render={({ field }) => (
                   <FormItem className="w-1/2">
                     <FormLabel className="font-bold text-lg">
-                      Pipeline Steps
+                      Pipeline
                     </FormLabel>
                     <FormControl>
                       <Textarea
                         id="textarea"
                         className="h-[300px]"
-                        placeholder="Pipeline steps schema"
+                        placeholder="Pipeline schema"
                         onKeyDown={handleTextAreaTabKeyDown}
                         {...field}
                       />
@@ -110,11 +117,16 @@ export default function CreateServicePage() {
                 )}
               />
             </div>
-            {/* <div className="w-3/5 flex justify-end"> */}
-            <Button type="submit" size="lg">
-              Submit
-            </Button>
-            {/* </div> */}
+            <div className="flex justify-end">
+              <ButtonWithSpinner
+                type="submit"
+                disabled={isSubmitting || submitted}
+                isLoading={isSubmitting}
+                size="lg"
+              >
+                Submit
+              </ButtonWithSpinner>
+            </div>
           </form>
         </Form>
       </div>

@@ -1,22 +1,24 @@
-import { ServiceRequest } from "@/types/service"
-
-const createDummyServices = (noOfServices: number) => {
-  const services: ServiceRequest[] = []
-  for (let i = 0; i < noOfServices; i++) {
-    services.push({
-      id: i + 1,
-      name: `Service ${i + 1}`,
-      description: `Description ${i + 1}`,
-      form: {},
-    })
-  }
-  return services
-}
+import { toast } from "@/components/ui/use-toast"
+import { getAllPipeline } from "@/lib/service"
+import { useQuery } from "@tanstack/react-query"
 
 const useServices = () => {
-  const services: ServiceRequest[] = createDummyServices(25)
+  const { isLoading, data: pipelines } = useQuery({
+    queryKey: ["pipelines"],
+    queryFn: () =>
+      getAllPipeline().catch((err) => {
+        console.log(err)
+        toast({
+          title: "Fetching Services Error",
+          description: "Failed to fetch the services. Please try again later.",
+          variant: "destructive",
+        })
+      }),
+  })
+
   return {
-    services,
+    services: pipelines,
+    isServicesLoading: isLoading,
   }
 }
 

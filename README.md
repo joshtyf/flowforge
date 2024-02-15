@@ -9,7 +9,31 @@ Service request pipeline web application.
 Run the following command to start both the frontend and backend:
 
 ```bash
-docker compose -p flowforge up --build
+docker compose --profile main -p flowforge up --build
+```
+
+Run the following command to seed the database wth sample data
+
+```bash
+docker compose --profile be-seed -p flowforge up --build
+```
+
+Run the following command to start just the frontend:
+
+```bash
+docker compose --profile fe -p flowforge up --build
+```
+
+Run the following command to start just the backend:
+
+```bash
+docker compose --profile be -p flowforge up --build
+```
+
+Run the following command to delete container
+
+```bash
+docker compose -p flowforge down
 ```
 
 ## Setup Frontend Development

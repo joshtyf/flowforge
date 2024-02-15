@@ -1,12 +1,11 @@
 import { isJson } from "@/lib/utils"
-import { ServiceRequestWithSteps } from "@/types/service"
 import {
   FormCheckboxes,
   FormComponent,
   FormComponentWithOptions,
   FormInput,
   FormSelect,
-} from "@/types/sevice-request-form"
+} from "@/types/json-form-components"
 
 const isFormAttribute = (
   formItemAttribute: string
@@ -27,7 +26,7 @@ const isInputFormAttribute = (
 
 const isSelectFormAttribute = (
   formItemAttribute: string
-): formItemAttribute is keyof FormComponentWithOptions => {
+): formItemAttribute is keyof FormSelect => {
   return (
     isFormAttribute(formItemAttribute) ||
     formItemAttribute === "options" ||
@@ -37,7 +36,9 @@ const isSelectFormAttribute = (
   )
 }
 
-const isCheckboxesFormAttribute = (formItemAttribute: string) => {
+const isCheckboxesFormAttribute = (
+  formItemAttribute: string
+): formItemAttribute is keyof FormCheckboxes => {
   return (
     isFormAttribute(formItemAttribute) ||
     formItemAttribute === "options" ||

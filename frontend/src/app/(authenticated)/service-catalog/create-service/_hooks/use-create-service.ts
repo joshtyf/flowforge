@@ -1,10 +1,14 @@
-import { ServiceRequestWithSteps } from "@/types/service"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { isJson } from "@/lib/utils"
-import { KeyboardEvent, KeyboardEventHandler } from "react"
+import { KeyboardEvent, useState } from "react"
 import { validateFormSchema } from "../_utils/validation"
+import { createPipeline } from "@/lib/service"
+import { Pipeline } from "@/types/pipeline"
+import { JsonFormComponents } from "@/types/json-form-components"
+import { toast } from "@/components/ui/use-toast"
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
 
 const DEFAULT_FORM = {
   input: { title: "", description: "", type: "input", required: true },
@@ -24,13 +28,30 @@ const DEFAULT_FORM = {
   },
 }
 
-const DEFAULT_STEPS = {
-  Approval: {
-    name: "Approval",
-    type: "approval",
-    next: "",
-    start: true,
-  },
+const DEFAULT_PIPELINE = {
+  version: 1,
+  first_step_name: "step1",
+  steps: [
+    {
+      step_name: "step1",
+      step_type: "API",
+      next_step_name: "step2",
+      prev_step_name: "",
+      parameters: {
+        method: "GET",
+        url: "https://example.com",
+      },
+      is_terminal_step: false,
+    },
+    {
+      step_name: "step2",
+      step_type: "WAIT_FOR_APPROVAL",
+      next_step_name: "",
+      prev_step_name: "step1",
+      parameters: {},
+      is_terminal_step: true,
+    },
+  ],
 }
 
 const createServiceSchema = z.object({
@@ -51,35 +72,29 @@ const createServiceSchema = z.object({
     .refine((arg) => isJson(arg), {
       message: "Ensure that Form is valid JSON Schema",
     }),
-  steps: z
+  pipeline: z
     .string()
     .min(1, "Pipeline Steps Schema is required")
     .refine((arg) => isJson(arg), {
       message: "Ensure that Form is valid JSON Schema",
     }),
 })
-const useCreateService = () => {
+
+interface UseCreateServiceProps {
+  router: AppRouterInstance
+}
+const useCreateService = ({ router }: UseCreateServiceProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
   const form = useForm<z.infer<typeof createServiceSchema>>({
     resolver: zodResolver(createServiceSchema),
     defaultValues: {
       name: "",
       description: "",
       form: JSON.stringify(DEFAULT_FORM, null, 4),
-      steps: JSON.stringify(DEFAULT_STEPS, null, 4),
+      pipeline: JSON.stringify(DEFAULT_PIPELINE, null, 4),
     },
   })
-
-  const handleSubmitForm = (values: z.infer<typeof createServiceSchema>) => {
-    const { description, form, name, steps } = values
-
-    // TODO: Replace with API call
-    console.log("Submitting:", {
-      name,
-      description,
-      form: JSON.parse(form),
-      steps: JSON.parse(steps),
-    })
-  }
 
   function handleTextAreaTabKeyDown(event: KeyboardEvent): void {
     if (event.key == "Tab") {
@@ -97,10 +112,52 @@ const useCreateService = () => {
     }
   }
 
+  const handleSubmitForm = (values: z.infer<typeof createServiceSchema>) => {
+    const { description, form, name, pipeline } = values
+    console.log("Submitting:", {
+      name,
+      description,
+      form: JSON.parse(form),
+      pipeline: JSON.parse(pipeline),
+    })
+
+    // TODO: add formJson into the api call as a parameter once ready
+    const formJson: JsonFormComponents = JSON.parse(form)
+    const pipelineJson: Pipeline = {
+      pipeline_name: name,
+      pipeline_description: description,
+      ...JSON.parse(pipeline),
+    }
+
+    setIsSubmitting(true)
+
+    createPipeline(pipelineJson)
+      .then(() => {
+        toast({
+          title: "Service Creation Successful",
+          description: "Redirecting to service catalog...",
+        })
+        setSubmitted(true)
+        setTimeout(() => router.push("/service-catalog"), 1500)
+      })
+      .catch((err) => {
+        console.error(err)
+        toast({
+          title: "Submission Error",
+          description:
+            "Encountered error submitting pipeline. Please try again later",
+          variant: "destructive",
+        })
+      })
+      .finally(() => setIsSubmitting(false))
+  }
+
   return {
     form,
-    handleSubmitForm,
     handleTextAreaTabKeyDown,
+    handleSubmitForm,
+    submitted,
+    isSubmitting,
   }
 }
 

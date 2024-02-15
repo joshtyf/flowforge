@@ -1,5 +1,5 @@
-import { ServiceRequest } from "@/types/service"
-import { ServiceRequestForm } from "@/types/sevice-request-form"
+import { ServiceRequest, ServiceRequestForm } from "@/types/service-request"
+import { JsonFormComponents } from "@/types/json-form-components"
 import { RJSFSchema, UiSchema } from "@rjsf/utils"
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
@@ -9,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const convertServiceRequestFormToRJSFSchema = (
-  serviceRequest: ServiceRequestForm
+  jsonFormComponents?: JsonFormComponents
 ) => {
   const schema: RJSFSchema = {
     type: "object",
@@ -18,8 +18,8 @@ export const convertServiceRequestFormToRJSFSchema = (
   const properties: { [key: string]: object } = {}
   const required: string[] = []
 
-  for (const item in serviceRequest) {
-    const component = serviceRequest[item]
+  for (const item in jsonFormComponents) {
+    const component = jsonFormComponents[item]
     // To create required array
     if (component.required) {
       required.push(item)
@@ -64,12 +64,11 @@ export const convertServiceRequestFormToRJSFSchema = (
   return schema
 }
 
-export const generateUiSchema = (serviceRequest: ServiceRequest) => {
+export const generateUiSchema = (jsonFormComponents?: JsonFormComponents) => {
   const uiSchema: UiSchema = {}
-  const form: ServiceRequestForm = serviceRequest.form
 
-  for (const item in form) {
-    const itemOptions = form[item]
+  for (const item in jsonFormComponents) {
+    const itemOptions = jsonFormComponents[item]
 
     switch (itemOptions.type) {
       case "input":
