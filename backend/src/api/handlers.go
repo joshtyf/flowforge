@@ -21,9 +21,16 @@ type HandlerError struct {
 	Code    int    `json:"code"`
 }
 
-func NewHandler(handlerFunc func(http.ResponseWriter, *http.Request) *HandlerError) func(http.ResponseWriter, *http.Request) {
+type customHandlerFunc func(http.ResponseWriter, *http.Request) *HandlerError
+
+func NewHandler(handlerFunc customHandlerFunc, mws ...customMiddleWareFunc) http.HandlerFunc {
+	handlerChain := handlerFunc
+	// Build the handler chain
+	for _, mw := range mws {
+		handlerChain = mw(handlerChain)
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := handlerFunc(w, r)
+		err := handlerChain(w, r)
 		if err != nil {
 			w.Header().Add("Content-Type", "application/json")
 			w.WriteHeader(err.Code)
