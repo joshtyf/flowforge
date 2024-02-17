@@ -21,11 +21,12 @@ const DUMMY_SERVICE_REQUEST_FORM: JsonFormComponents = {
     description: "Input Description with minimum length 1",
     minLength: 1,
     required: true,
+    placeholder: "Input placeholder...",
   },
   select: {
     title: "Select Option",
     type: "select",
-    placeholder: "Select Placeholder",
+    placeholder: "Select placeholder",
     description: "Dropdown selection with default value as Item 1",
     options: ["Item 1", "Item 2", "Item 3"],
     required: true,
