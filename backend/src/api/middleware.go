@@ -18,7 +18,7 @@ func ValidateCreatePipelineRequest(nextHandlerFunc customHandlerFunc) customHand
 		err := validation.ValidatePipeline(pipeline)
 		if err != nil {
 			logger.Error("[ValidateCreatePipelineRequest] Error validating pipeline", map[string]interface{}{"err": err})
-			return &HandlerError{Error: err, Message: err.Error(), Code: http.StatusBadRequest}
+			return NewHandlerError(err, http.StatusBadRequest)
 		}
 
 		return nextHandlerFunc(w, r)
