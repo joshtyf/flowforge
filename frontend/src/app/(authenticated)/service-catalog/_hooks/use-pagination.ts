@@ -34,7 +34,6 @@ const usePagination = ({ services }: UsePaginationOptions) => {
   )
 
   useEffect(() => {
-    const noOfPages = services ? Math.ceil(services.length / itemsPerPage) : 0
     if (page > noOfPages) {
       // Set page to last page
       const newPageNo = noOfPages
@@ -43,7 +42,7 @@ const usePagination = ({ services }: UsePaginationOptions) => {
     } else {
       handleSetServicesAtPage(page)
     }
-  }, [itemsPerPage, page, services, handleSetServicesAtPage])
+  }, [itemsPerPage, page, services, handleSetServicesAtPage, noOfPages])
 
   const handleClickNextPage = () => {
     if (page < noOfPages) {
