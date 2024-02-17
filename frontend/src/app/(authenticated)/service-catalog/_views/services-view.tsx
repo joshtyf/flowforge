@@ -11,6 +11,15 @@ import {
 } from "@/components/ui/pagination"
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
 import usePagination from "../_hooks/use-pagination"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 interface ServicesViewProps {
   services: Pipeline[] | void
   router: AppRouterInstance
@@ -49,6 +58,7 @@ export default function ServicesView({ services, router }: ServicesViewProps) {
     handleClickPrevPage,
     isPrevDisabled,
     handleClickPageNo,
+    handleSetItemsPerPage,
     servicesAtPage,
   } = usePagination({ itemsPerPage: 4, services })
 
@@ -104,6 +114,21 @@ export default function ServicesView({ services, router }: ServicesViewProps) {
                 <PaginationNext />
               </Button>
             </PaginationItem>
+            <Select defaultValue="10" onValueChange={handleSetItemsPerPage}>
+              <SelectTrigger className="w-[100px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Items per page</SelectLabel>
+                  <SelectItem value={"5"}>5</SelectItem>
+                  <SelectItem value={"10"}>10</SelectItem>
+                  <SelectItem value={"15"}>15</SelectItem>
+                  <SelectItem value={"20"}>20</SelectItem>
+                  <SelectItem value={"25"}>25</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </PaginationContent>
         </Pagination>
       </div>

@@ -1,26 +1,49 @@
 import { Pipeline } from "@/types/pipeline"
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 interface UsePaginationOptions {
   itemsPerPage?: number
   services?: Pipeline[] | void
 }
 
-const usePagination = ({
-  itemsPerPage = 12,
-  services,
-}: UsePaginationOptions) => {
+type ItemsPerRowType = "5" | "10" | "15" | "20" | "25"
+
+const ITEMS_PER_PAGE = {
+  "5": 5,
+  "10": 10,
+  "15": 15,
+  "20": 20,
+  "25": 25,
+}
+
+const usePagination = ({ services }: UsePaginationOptions) => {
   const [page, setPage] = useState<number>(1)
+  const [itemsPerPage, setItemsPerPage] = useState<number>(ITEMS_PER_PAGE["10"])
   const [servicesAtPage, setServicesAtPage] = useState<Pipeline[]>(
     services ? services.slice(0, itemsPerPage) : []
   )
   const noOfPages = services ? Math.ceil(services.length / itemsPerPage) : 0
 
-  const handleSetServicesAtPage = (pageNo: number) => {
-    const startIndex = (pageNo - 1) * itemsPerPage
-    const endIndex = pageNo * itemsPerPage
-    setServicesAtPage(services ? services.slice(startIndex, endIndex) : [])
-  }
+  const handleSetServicesAtPage = useCallback(
+    (pageNo: number, items: number = itemsPerPage) => {
+      const startIndex = (pageNo - 1) * items
+      const endIndex = pageNo * items
+      setServicesAtPage(services ? services.slice(startIndex, endIndex) : [])
+    },
+    [services, itemsPerPage]
+  )
+
+  useEffect(() => {
+    const noOfPages = services ? Math.ceil(services.length / itemsPerPage) : 0
+    if (page > noOfPages) {
+      // Set page to last page
+      const newPageNo = noOfPages
+      setPage(newPageNo)
+      handleSetServicesAtPage(newPageNo)
+    } else {
+      handleSetServicesAtPage(page)
+    }
+  }, [itemsPerPage, page, services, handleSetServicesAtPage])
 
   const handleClickNextPage = () => {
     if (page < noOfPages) {
@@ -41,6 +64,10 @@ const usePagination = ({
     setPage(pageNo)
   }
 
+  const handleSetItemsPerPage = (itemsPerPageValue: ItemsPerRowType) => {
+    const itemsPerPage = ITEMS_PER_PAGE[itemsPerPageValue]
+    setItemsPerPage(itemsPerPage)
+  }
   return {
     page,
     noOfPages,
@@ -49,6 +76,7 @@ const usePagination = ({
     handleClickPrevPage,
     isPrevDisabled: page === 1,
     handleClickPageNo,
+    handleSetItemsPerPage,
     servicesAtPage,
   }
 }
