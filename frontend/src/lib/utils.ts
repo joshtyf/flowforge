@@ -75,7 +75,7 @@ export const generateUiSchema = (jsonFormComponents?: JsonFormComponents) => {
         break
       case "select":
         uiSchema[item] = {
-          "ui:placeholder": "Select an item...",
+          "ui:placeholder": itemOptions.placeholder ?? "Select an item...",
         }
         break
       case "checkboxes":

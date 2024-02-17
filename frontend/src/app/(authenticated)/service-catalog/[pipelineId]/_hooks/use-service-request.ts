@@ -25,6 +25,7 @@ const DUMMY_SERVICE_REQUEST_FORM: JsonFormComponents = {
   select: {
     title: "Select Option",
     type: "select",
+    placeholder: "Select Placeholder",
     description: "Dropdown selection with default value as Item 1",
     options: ["Item 1", "Item 2", "Item 3"],
     required: true,
