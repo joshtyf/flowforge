@@ -10,12 +10,48 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
+import usePagination from "../_hooks/use-pagination"
 interface ServicesViewProps {
   services: Pipeline[] | void
   router: AppRouterInstance
 }
 
+const createPaginationItems = (
+  currentPage: number,
+  noOfPages: number,
+  handleClickPageNo: (pageNo: number) => void
+) => {
+  const paginationItems = []
+  for (let i = 1; i <= noOfPages; i++) {
+    paginationItems.push(
+      <PaginationItem key={i}>
+        <Button
+          variant="ghost"
+          className="p-0"
+          onClick={() => {
+            handleClickPageNo(i)
+          }}
+        >
+          <PaginationLink isActive={i === currentPage}>{i}</PaginationLink>
+        </Button>
+      </PaginationItem>
+    )
+  }
+  return paginationItems
+}
+
 export default function ServicesView({ services, router }: ServicesViewProps) {
+  const {
+    page,
+    noOfPages,
+    handleClickNextPage,
+    isNextDisabled,
+    handleClickPrevPage,
+    isPrevDisabled,
+    handleClickPageNo,
+    servicesAtPage,
+  } = usePagination({ itemsPerPage: 4, services })
+
   return services && services.length === 0 ? (
     <div className="flex justify-center items-center w-full h-3/5">
       <h1 className="font-bold text-3xl">No services available</h1>
@@ -23,7 +59,7 @@ export default function ServicesView({ services, router }: ServicesViewProps) {
   ) : (
     <>
       <div className=" grid grid-cols-auto-fill-min-20 gap-y-10 max-h-[75%] overflow-y-auto">
-        {services?.map((service) => (
+        {servicesAtPage?.map((service) => (
           <div key={service.id} className="flex items-center justify-center">
             <Card className="w-[250px] shadow">
               <CardHeader>
@@ -48,19 +84,25 @@ export default function ServicesView({ services, router }: ServicesViewProps) {
         <Pagination>
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious />
+              <Button
+                variant="ghost"
+                className="p-0"
+                disabled={isPrevDisabled}
+                onClick={handleClickPrevPage}
+              >
+                <PaginationPrevious />
+              </Button>
             </PaginationItem>
+            {createPaginationItems(page, noOfPages, handleClickPageNo)}
             <PaginationItem>
-              <PaginationLink isActive>1</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink>2</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink>3</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext />
+              <Button
+                variant="ghost"
+                className="p-0"
+                disabled={isNextDisabled}
+                onClick={handleClickNextPage}
+              >
+                <PaginationNext />
+              </Button>
             </PaginationItem>
           </PaginationContent>
         </Pagination>
