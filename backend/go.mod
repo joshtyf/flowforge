@@ -10,12 +10,15 @@ require (
 	go.mongodb.org/mongo-driver v1.13.1
 )
 
+require github.com/gorilla/securecookie v1.1.2 // indirect
+
 require (
 	github.com/coreos/go-oidc/v3 v3.9.0 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
+	github.com/gorilla/sessions v1.2.2
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect

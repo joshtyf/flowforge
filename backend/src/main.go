@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joshtyf/flowforge/src/api"
 	"github.com/joshtyf/flowforge/src/execute"
+	"github.com/joshtyf/flowforge/src/middleware"
 )
 
 func main() {
@@ -17,6 +18,8 @@ func main() {
 	srm.Start()
 
 	r := mux.NewRouter()
+	r.Use(middleware.IsAuthenticated)
+
 	r.HandleFunc("/api/healthcheck", api.NewHandler(api.HealthCheck)).Methods("GET")
 	r.HandleFunc("/api/service_request", api.NewHandler(api.CreateServiceRequest)).Methods("POST").Headers("Content-Type", "application/json")
 	r.HandleFunc("/api/service_request/{requestId}", api.NewHandler(api.GetServiceRequest)).Methods("GET")
