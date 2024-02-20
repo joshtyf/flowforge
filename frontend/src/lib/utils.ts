@@ -1,4 +1,3 @@
-import { ServiceRequest, ServiceRequestForm } from "@/types/service-request"
 import { JsonFormComponents } from "@/types/json-form-components"
 import { RJSFSchema, UiSchema } from "@rjsf/utils"
 import { type ClassValue, clsx } from "clsx"
@@ -101,4 +100,41 @@ export function isJson(item: string) {
   }
 
   return typeof value === "object" && value !== null
+}
+
+export function formatDateString(date: Date) {
+  const options: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }
+
+  return date.toLocaleDateString("en-UK", options)
+}
+
+export function formatTimeDifference(date: Date) {
+  if (!date || isNaN(date.getTime())) {
+    return "Invalid date"
+  }
+
+  const now = new Date()
+
+  const diff = now.getTime() - date.getTime()
+  if (diff < 0) {
+    return "Date is ahead of current time"
+  }
+
+  if (diff < 3600000) {
+    const minutes = Math.floor(diff / 60000)
+    return `${minutes} min${minutes > 1 ? "s" : ""} ago`
+  } else if (diff < 86400000) {
+    const hours = Math.floor(diff / 3600000) // Convert to hours
+    return `${hours} hr${hours > 1 ? "s" : ""} ago`
+  } else if (diff < 31536000000) {
+    const days = Math.floor(diff / 86400000) // Convert to days
+    return `${days} day${days > 1 ? "s" : ""} ago`
+  } else {
+    const years = Math.floor(diff / 31536000000) // Convert to years
+    return `${years} year${years > 1 ? "s" : ""} ago`
+  }
 }
