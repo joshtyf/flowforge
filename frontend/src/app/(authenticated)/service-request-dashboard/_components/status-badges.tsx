@@ -38,7 +38,7 @@ const StatusIcon = ({ status }: { status: ServiceRequestStatus }) => {
     case ServiceRequestStatus.PENDING:
       return <CircleEllipsis />
     case ServiceRequestStatus.RUNNING:
-      return <CircleDotDashed />
+      return <CircleDotDashed className="animate-spin-slow" />
     case ServiceRequestStatus.SUCCESS:
       return <CheckCircle2 />
     case ServiceRequestStatus.FAILURE:
@@ -55,11 +55,11 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
     <div
       className={cn(
         statusBadgeVariant({ status }),
-        "flex w-[10rem] py-2 pl-4 pr-5 items-center justify-center space-x-2"
+        "flex w-fit py-2 pl-4 pr-5 items-center space-x-2"
       )}
     >
       <StatusIcon status={status} />
-      <p>{status}</p>
+      <p className="w-[5rem] flex justify-center">{status}</p>
     </div>
   )
 }

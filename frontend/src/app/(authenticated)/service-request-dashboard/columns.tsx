@@ -6,6 +6,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Calendar } from "lucide-react"
 import Link from "next/link"
 import StatusBadge from "./_components/status-badges"
+import ServiceRequestActions from "./_components/service-request-actions"
 
 export const columns: ColumnDef<ServiceRequest>[] = [
   {
@@ -47,6 +48,19 @@ export const columns: ColumnDef<ServiceRequest>[] = [
       const dateIsoString: string = row.getValue("last_updated")
       const dateObject = new Date(dateIsoString)
       return formatTimeDifference(dateObject)
+    },
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    cell: ({ row }) => {
+      const pipelineId: string = row.getValue("pipeline_id")
+      return (
+        <ServiceRequestActions
+          pipelineId={pipelineId}
+          onCancelRequest={(pipelineId: string) => {}}
+        />
+      )
     },
   },
 ]
