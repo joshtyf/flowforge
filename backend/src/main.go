@@ -25,7 +25,10 @@ func main() {
 	r.HandleFunc("/api/service_request/{requestId}/cancel", api.NewHandler(api.CancelStartedServiceRequest)).Methods("GET")
 	r.HandleFunc("/api/service_request/{requestId}/start", api.NewHandler(api.StartServiceRequest)).Methods("GET")
 	r.HandleFunc("/api/service_request/{requestId}", api.NewHandler(api.UpdateServiceRequest)).Methods("PATCH").Headers("Content-Type", "application/json")
-	r.HandleFunc("/api/pipeline", api.NewHandler(api.CreatePipeline)).Methods("POST").Headers("Content-Type", "application/json")
+	r.HandleFunc("/api/pipeline", api.NewHandler(
+		api.CreatePipeline,
+		api.ValidateCreatePipelineRequest,
+	)).Methods("POST").Headers("Content-Type", "application/json")
 	r.HandleFunc("/api/pipeline", api.NewHandler(api.GetAllPipelines)).Methods("GET")
 	r.HandleFunc("/api/pipeline/{pipelineId}", api.NewHandler(api.GetPipeline)).Methods("GET")
 	http.ListenAndServe(":8080", gorillaHandlers.CORS(
