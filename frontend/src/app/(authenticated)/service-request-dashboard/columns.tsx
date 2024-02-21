@@ -1,15 +1,20 @@
 "use client"
 
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
-import { ServiceRequest } from "@/types/service-request"
+import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
 import { Calendar } from "lucide-react"
 import Link from "next/link"
+import StatusBadge from "./_components/status-badges"
 
 export const columns: ColumnDef<ServiceRequest>[] = [
   {
     accessorKey: "status",
     header: "Status",
+    cell: ({ row }) => {
+      const status: ServiceRequestStatus = row.getValue("status")
+      return <StatusBadge status={status} />
+    },
   },
   {
     accessorKey: "pipeline_id",
