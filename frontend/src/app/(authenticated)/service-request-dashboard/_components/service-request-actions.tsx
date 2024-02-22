@@ -25,11 +25,12 @@ export default function ServiceRequestActions({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         {/* TODO: Add more actions for requests*/}
-        {/* TODO: Add on click logic*/}
         <DropdownMenuItem>
+          {/* TODO: Add modal open on click*/}
           <Button variant="ghost">View Details</Button>
         </DropdownMenuItem>
         <DropdownMenuItem>
+          {/* TODO: Add on click logic*/}
           <Button variant="ghost" onClick={() => onCancelRequest(pipelineId)}>
             Cancel Request
           </Button>
