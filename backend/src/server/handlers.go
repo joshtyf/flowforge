@@ -67,24 +67,18 @@ func handleGetAllServiceRequest(client *mongo.Client) http.Handler {
 	})
 }
 
-func GetServiceRequest(w http.ResponseWriter, r *http.Request) *HandlerError {
-	client, err := client.GetMongoClient()
-	if err != nil {
-		logger.Error("[GetServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	vars := mux.Vars(r)
-	requestId := vars["requestId"]
-	sr, err := database.NewServiceRequest(client).GetById(requestId)
-	w.Header().Set("Content-Type", "application/json")
-	if err != nil {
-		logger.Error("[GetServiceRequest] Unable to retrieve service request", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	logger.Info("[GetServiceRequest] Successfully retrieved service request", map[string]interface{}{"sr": sr})
-	json.NewEncoder(w).Encode(sr)
-	w.WriteHeader(http.StatusOK)
-	return nil
+func handleGetServiceRequest(client *mongo.Client) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		requestId := vars["requestId"]
+		sr, err := database.NewServiceRequest(client).GetById(requestId)
+		if err != nil {
+			logger.Error("[GetServiceRequest] Unable to retrieve service request", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+		}
+		logger.Info("[GetServiceRequest] Successfully retrieved service request", map[string]interface{}{"sr": sr})
+		encode(w, r, http.StatusOK, sr)
+	})
 }
 
 func CreateServiceRequest(w http.ResponseWriter, r *http.Request) *HandlerError {
