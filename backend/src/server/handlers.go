@@ -168,26 +168,22 @@ func handleUpdateServiceRequest(client *mongo.Client) http.Handler {
 	})
 }
 
-func StartServiceRequest(w http.ResponseWriter, r *http.Request) *HandlerError {
-	vars := mux.Vars(r)
-	requestId := vars["requestId"]
-	client, err := client.GetMongoClient()
-	if err != nil {
-		logger.Error("[StartServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	srm, err := database.NewServiceRequest(client).GetById(requestId)
-	if err != nil {
-		logger.Error("[StartServiceRequest] Unable retrieve service request", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	if srm.Status != models.NotStarted {
-		logger.Error("[StartServiceRequest] Service request has already been started", nil)
-		return NewHandlerError(ErrServiceRequestAlreadyStarted, http.StatusBadRequest)
-	}
-	event.FireAsync(events.NewNewServiceRequestEvent(srm))
-	w.WriteHeader(http.StatusOK)
-	return nil
+func handleStartServiceRequest(client *mongo.Client) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		requestId := vars["requestId"]
+		srm, err := database.NewServiceRequest(client).GetById(requestId)
+		if err != nil {
+			logger.Error("[StartServiceRequest] Unable retrieve service request", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+		}
+		if srm.Status != models.NotStarted {
+			logger.Error("[StartServiceRequest] Service request has already been started", nil)
+			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrServiceRequestAlreadyStarted, http.StatusBadRequest))
+		}
+		event.FireAsync(events.NewNewServiceRequestEvent(srm))
+		encode[any](w, r, http.StatusOK, nil)
+	})
 }
 
 func CreatePipeline(w http.ResponseWriter, r *http.Request) *HandlerError {
