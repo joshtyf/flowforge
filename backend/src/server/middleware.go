@@ -35,9 +35,10 @@ func IsAuthenticated(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 		accessToken := strings.TrimSpace(strings.Replace(r.Header.Get("Authorization"), "Bearer", "", 1))
-
 		authToken := &oauth2.Token{AccessToken: accessToken}
+
 		if accessToken == "" {
+			logger.Error("[Authorization] Bearer token not found", nil)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrBearerTokenNotFound, http.StatusUnauthorized))
 			return
 		}
