@@ -252,24 +252,19 @@ func handleCreatePipeline(client *mongo.Client) http.Handler {
 	})
 }
 
-func GetPipeline(w http.ResponseWriter, r *http.Request) *HandlerError {
-	client, err := client.GetMongoClient()
-	if err != nil {
-		logger.Error("[GetPipeline] Unable to get mongo client", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	vars := mux.Vars(r)
-	pipelineId := vars["pipelineId"]
-	pipeline, err := database.NewPipeline(client).GetById(pipelineId)
-	if err != nil {
-		logger.Error("[GetPipeline] Unable to get pipeline", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	logger.Info("[GetPipeline] Successfully retrieved pipeline", map[string]interface{}{"pipeline": pipeline})
-	w.WriteHeader(http.StatusOK)
-	w.Header().Add("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(pipeline)
-	return nil
+func handleGetPipeline(client *mongo.Client) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		pipelineId := vars["pipelineId"]
+		pipeline, err := database.NewPipeline(client).GetById(pipelineId)
+		if err != nil {
+			logger.Error("[GetPipeline] Unable to get pipeline", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[GetPipeline] Successfully retrieved pipeline", map[string]interface{}{"pipeline": pipeline})
+		encode(w, r, http.StatusOK, pipeline)
+	})
 }
 
 func GetAllPipelines(w http.ResponseWriter, r *http.Request) *HandlerError {
