@@ -81,34 +81,27 @@ func handleGetServiceRequest(client *mongo.Client) http.Handler {
 	})
 }
 
-func CreateServiceRequest(w http.ResponseWriter, r *http.Request) *HandlerError {
-	client, err := client.GetMongoClient()
-	if err != nil {
-		logger.Error("[CreateServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	srm := &models.ServiceRequestModel{
-		CreatedOn:   time.Now(),
-		LastUpdated: time.Now(),
-		Status:      models.Pending,
-	}
-	err = json.NewDecoder(r.Body).Decode(srm)
-	w.Header().Set("Content-Type", "application/json")
-	if err != nil {
-		logger.Error("[CreateServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	res, err := database.NewServiceRequest(client).Create(srm)
-	if err != nil {
-		logger.Error("[CreateServiceRequest] Error creating service request", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	logger.Info("[CreateServiceRequest] Successfully created service request", map[string]interface{}{"sr": srm})
-	insertedId, _ := res.InsertedID.(primitive.ObjectID)
-	srm.Id = insertedId
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(srm)
-	return nil
+func handleCreateServiceRequest(client *mongo.Client) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		srm, err := decode[models.ServiceRequestModel](r)
+		if err != nil {
+			logger.Error("[CreateServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrJsonParseError, http.StatusBadRequest))
+		}
+		srm.CreatedOn = time.Now()
+		srm.LastUpdated = time.Now()
+		srm.Status = models.Pending
+
+		res, err := database.NewServiceRequest(client).Create(&srm)
+		if err != nil {
+			logger.Error("[CreateServiceRequest] Error creating service request", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+		}
+		logger.Info("[CreateServiceRequest] Successfully created service request", map[string]interface{}{"sr": srm})
+		insertedId, _ := res.InsertedID.(primitive.ObjectID)
+		srm.Id = insertedId
+		encode(w, r, http.StatusCreated, srm)
+	})
 }
 
 func CancelStartedServiceRequest(w http.ResponseWriter, r *http.Request) *HandlerError {
