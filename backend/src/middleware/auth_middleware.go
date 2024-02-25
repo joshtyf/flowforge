@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"os"
 
@@ -32,7 +31,7 @@ func IsAuthenticated(next http.Handler) http.Handler {
 
 		authToken := &oauth2.Token{AccessToken: accessToken}
 		if accessToken == "" {
-			authError := &api.HandlerError{Error: errors.New("authorization token missing"), Code: http.StatusUnauthorized}
+			authError := &api.HandlerError{Message: "authorization token missing", Code: http.StatusUnauthorized}
 			w.WriteHeader(authError.Code)
 			json.NewEncoder(w).Encode(authError)
 			return
@@ -41,7 +40,7 @@ func IsAuthenticated(next http.Handler) http.Handler {
 		auth, err := authenticator.New()
 		if err != nil {
 			logger.Error("[Authorization] Failed to initialize authenticator", map[string]interface{}{"err": err})
-			authError := &api.HandlerError{Error: api.ErrInternalServerError, Code: http.StatusInternalServerError}
+			authError := &api.HandlerError{Message: api.ErrInternalServerError.Error(), Code: http.StatusInternalServerError}
 			w.WriteHeader(authError.Code)
 			json.NewEncoder(w).Encode(authError)
 			return
@@ -50,7 +49,7 @@ func IsAuthenticated(next http.Handler) http.Handler {
 		idToken, err := auth.VerifyIDToken(r.Context(), authToken)
 		if err != nil {
 			logger.Error("[Authorization] Unable to verify token", map[string]interface{}{"err": err})
-			authError := &api.HandlerError{Error: errors.New("unable to verify token"), Code: http.StatusUnauthorized}
+			authError := &api.HandlerError{Message: "unable to verify token", Code: http.StatusUnauthorized}
 			w.WriteHeader(authError.Code)
 			json.NewEncoder(w).Encode(authError)
 			return
@@ -59,7 +58,7 @@ func IsAuthenticated(next http.Handler) http.Handler {
 		err = idToken.Claims(&profile)
 		if err != nil {
 			logger.Error("[Authorization] Unable retrieve profile", map[string]interface{}{"err": err})
-			authError := &api.HandlerError{Error: errors.New("unable to retrieve profile"), Code: http.StatusInternalServerError}
+			authError := &api.HandlerError{Message: "unable to retrieve profile", Code: http.StatusInternalServerError}
 			w.WriteHeader(authError.Code)
 			json.NewEncoder(w).Encode(authError)
 			return
@@ -70,7 +69,7 @@ func IsAuthenticated(next http.Handler) http.Handler {
 		err = session.Save(r, w)
 		if err != nil {
 			logger.Error("[Authorization] Unable save session", map[string]interface{}{"err": err})
-			authError := &api.HandlerError{Error: errors.New("unable to save session"), Code: http.StatusInternalServerError}
+			authError := &api.HandlerError{Message: "unable to save session", Code: http.StatusInternalServerError}
 			w.WriteHeader(authError.Code)
 			json.NewEncoder(w).Encode(authError)
 			return
