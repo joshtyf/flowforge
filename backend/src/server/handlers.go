@@ -8,7 +8,6 @@ import (
 	"github.com/gookit/event"
 	"github.com/gorilla/mux"
 	"github.com/joshtyf/flowforge/src/database"
-	"github.com/joshtyf/flowforge/src/database/client"
 	"github.com/joshtyf/flowforge/src/database/models"
 	"github.com/joshtyf/flowforge/src/events"
 	"github.com/joshtyf/flowforge/src/logger"
@@ -267,22 +266,17 @@ func handleGetPipeline(client *mongo.Client) http.Handler {
 	})
 }
 
-func GetAllPipelines(w http.ResponseWriter, r *http.Request) *HandlerError {
-	client, err := client.GetMongoClient()
-	if err != nil {
-		logger.Error("[GetAllPipelines] Unable to get mongo client", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	pipelines, err := database.NewPipeline(client).GetAll()
-	if err != nil {
-		logger.Error("[GetAllPipelines] Unable to get pipelines", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	logger.Info("[GetAllPipelines] Successfully retrieved pipelines", map[string]interface{}{"count": len(pipelines)})
-	w.WriteHeader(http.StatusOK)
-	w.Header().Add("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(pipelines)
-	return nil
+func handleGetAllPipelines(client *mongo.Client) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		pipelines, err := database.NewPipeline(client).GetAll()
+		if err != nil {
+			logger.Error("[GetAllPipelines] Unable to get pipelines", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[GetAllPipelines] Successfully retrieved pipelines", map[string]interface{}{"count": len(pipelines)})
+		encode(w, r, http.StatusOK, pipelines)
+	})
 }
 
 /////////////////// Helper Functions ///////////////////
