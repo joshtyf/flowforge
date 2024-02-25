@@ -186,6 +186,48 @@ func handleStartServiceRequest(client *mongo.Client) http.Handler {
 	})
 }
 
+func handleApproveServiceRequest(client *mongo.Client) http.Handler {
+	type requestBody struct {
+		StepName string `json:"step_name"`
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		params := mux.Vars(r)
+		serviceRequestId := params["requestId"]
+		serviceRequest, err := database.NewServiceRequest(client).GetById(serviceRequestId)
+		if err != nil {
+			logger.Error("[ApproveServiceRequest] Unable to get service request", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+		}
+		body, err := decode[requestBody](r)
+		if err != nil {
+			logger.Error("[ApproveServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		pipeline, err := database.NewPipeline(client).GetById(serviceRequest.PipelineId)
+		if err != nil {
+			logger.Error("[ApproveServiceRequest] Unable to get pipeline", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		waitForApprovalStep := pipeline.GetPipelineStep(body.StepName)
+
+		if waitForApprovalStep == nil {
+			logger.Error("[ApproveServiceRequest] Unable to get wait for approval step", map[string]interface{}{"step": body.StepName})
+			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		if waitForApprovalStep.StepType != models.WaitForApprovalStep {
+			logger.Error("[ApproveServiceRequest] Step is not a wait for approval step", map[string]interface{}{"step": body.StepName})
+			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrWrongStepType, http.StatusBadRequest))
+			return
+		}
+		// TODO: figure out how to pass the step result prior to the approval to the next step
+		event.FireAsync(events.NewStepCompletedEvent(waitForApprovalStep, serviceRequest, nil, nil))
+		encode[any](w, r, http.StatusOK, nil)
+	})
+}
+
 func CreatePipeline(w http.ResponseWriter, r *http.Request) *HandlerError {
 	pipeline := &models.PipelineModel{
 		CreatedOn: time.Now(),
@@ -250,47 +292,6 @@ func GetAllPipelines(w http.ResponseWriter, r *http.Request) *HandlerError {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(pipelines)
-	return nil
-}
-
-func ApproveServiceRequest(w http.ResponseWriter, r *http.Request) *HandlerError {
-	params := mux.Vars(r)
-	serviceRequestId := params["requestId"]
-	client, err := client.GetMongoClient()
-	if err != nil {
-		logger.Error("[ApproveServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	serviceRequest, err := database.NewServiceRequest(client).GetById(serviceRequestId)
-	if err != nil {
-		logger.Error("[ApproveServiceRequest] Unable to get service request", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	requestBody := struct {
-		StepName string `json:"step_name"`
-	}{}
-	err = json.NewDecoder(r.Body).Decode(&requestBody)
-	if err != nil {
-		logger.Error("[ApproveServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrJsonParseError, http.StatusBadRequest)
-	}
-	pipeline, err := database.NewPipeline(client).GetById(serviceRequest.PipelineId)
-	if err != nil {
-		logger.Error("[ApproveServiceRequest] Unable to get pipeline", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	waitForApprovalStep := pipeline.GetPipelineStep(requestBody.StepName)
-
-	if waitForApprovalStep == nil {
-		logger.Error("[ApproveServiceRequest] Unable to get wait for approval step", map[string]interface{}{"step": requestBody.StepName})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	if waitForApprovalStep.StepType != models.WaitForApprovalStep {
-		logger.Error("[ApproveServiceRequest] Step is not a wait for approval step", map[string]interface{}{"step": requestBody.StepName})
-		return NewHandlerError(ErrWrongStepType, http.StatusBadRequest)
-	}
-	// TODO: figure out how to pass the step result prior to the approval to the next step
-	event.FireAsync(events.NewStepCompletedEvent(waitForApprovalStep, serviceRequest, nil, nil))
 	return nil
 }
 
