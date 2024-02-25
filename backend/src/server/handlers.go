@@ -19,7 +19,7 @@ type HandlerError struct {
 	Code    int    `json:"code"`
 }
 
-func NewHandlerError(err error, code int) *HandlerError {
+func newHandlerError(err error, code int) *HandlerError {
 	return &HandlerError{Message: err.Error(), Code: code}
 }
 
@@ -29,7 +29,7 @@ func handleHealthCheck() http.Handler {
 			encode(w, r, http.StatusOK, []byte("Server working!"))
 			return
 		}
-		encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+		encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 	})
 }
 
@@ -38,7 +38,7 @@ func handleGetAllServiceRequest(client *mongo.Client) http.Handler {
 		allsr, err := database.NewServiceRequest(client).GetAll()
 		if err != nil {
 			logger.Error("[GetAllServiceRequest] Error retrieving all service request", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		logger.Info("[GetAllServiceRequest] Successfully retrieved service requests", map[string]interface{}{"count": len(allsr)})
@@ -53,7 +53,7 @@ func handleGetServiceRequest(client *mongo.Client) http.Handler {
 		sr, err := database.NewServiceRequest(client).GetById(requestId)
 		if err != nil {
 			logger.Error("[GetServiceRequest] Unable to retrieve service request", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		logger.Info("[GetServiceRequest] Successfully retrieved service request", map[string]interface{}{"sr": sr})
@@ -66,7 +66,7 @@ func handleCreateServiceRequest(client *mongo.Client) http.Handler {
 		srm, err := decode[models.ServiceRequestModel](r)
 		if err != nil {
 			logger.Error("[CreateServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
 		srm.CreatedOn = time.Now()
@@ -76,7 +76,7 @@ func handleCreateServiceRequest(client *mongo.Client) http.Handler {
 		res, err := database.NewServiceRequest(client).Create(&srm)
 		if err != nil {
 			logger.Error("[CreateServiceRequest] Error creating service request", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		logger.Info("[CreateServiceRequest] Successfully created service request", map[string]interface{}{"sr": srm})
@@ -93,19 +93,19 @@ func handleCancelStartedServiceRequest(client *mongo.Client) http.Handler {
 		sr, err := database.NewServiceRequest(client).GetById(requestId)
 		if err != nil {
 			logger.Error("[CancelStartedServiceRequest] Error getting service request", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		status := sr.Status
 		if status != models.Pending && status != models.Running {
 			logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has been completed", nil)
-			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrServiceRequestAlreadyCompleted, http.StatusBadRequest))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestAlreadyCompleted, http.StatusBadRequest))
 			return
 		}
 
 		if status == models.NotStarted {
 			logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has not been started", nil)
-			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrServiceRequestNotStarted, http.StatusBadRequest))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestNotStarted, http.StatusBadRequest))
 			return
 		}
 
@@ -116,7 +116,7 @@ func handleCancelStartedServiceRequest(client *mongo.Client) http.Handler {
 		// TODO: discuss how to handle this error
 		if err != nil {
 			logger.Error("[CancelStartedServiceRequest] Unable to update service request status", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 
@@ -130,7 +130,7 @@ func handleUpdateServiceRequest(client *mongo.Client) http.Handler {
 		srm, err := decode[models.ServiceRequestModel](r)
 		if err != nil {
 			logger.Error("[UpdateServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
 		vars := mux.Vars(r)
@@ -138,19 +138,19 @@ func handleUpdateServiceRequest(client *mongo.Client) http.Handler {
 		sr, err := database.NewServiceRequest(client).GetById(requestId)
 		if err != nil {
 			logger.Error("[UpdateServiceRequest] Error getting service request", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		status := sr.Status
 		if status != models.NotStarted {
 			logger.Error("[UpdateServiceRequest] Unable to update service request as service request has been started", nil)
-			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrServiceRequestAlreadyStarted, http.StatusBadRequest))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestAlreadyStarted, http.StatusBadRequest))
 			return
 		}
 		res, err := database.NewServiceRequest(client).UpdateById(requestId, &srm)
 		if err != nil {
 			logger.Error("[UpdateServiceRequest] Error updating service request", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		logger.Info("[UpdateServiceRequest] Successfully updated service request", map[string]interface{}{"count": res.ModifiedCount})
@@ -165,12 +165,12 @@ func handleStartServiceRequest(client *mongo.Client) http.Handler {
 		srm, err := database.NewServiceRequest(client).GetById(requestId)
 		if err != nil {
 			logger.Error("[StartServiceRequest] Unable retrieve service request", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		if srm.Status != models.NotStarted {
 			logger.Error("[StartServiceRequest] Service request has already been started", nil)
-			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrServiceRequestAlreadyStarted, http.StatusBadRequest))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestAlreadyStarted, http.StatusBadRequest))
 			return
 		}
 		event.FireAsync(events.NewNewServiceRequestEvent(srm))
@@ -188,31 +188,31 @@ func handleApproveServiceRequest(client *mongo.Client) http.Handler {
 		serviceRequest, err := database.NewServiceRequest(client).GetById(serviceRequestId)
 		if err != nil {
 			logger.Error("[ApproveServiceRequest] Unable to get service request", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		body, err := decode[requestBody](r)
 		if err != nil {
 			logger.Error("[ApproveServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
 		pipeline, err := database.NewPipeline(client).GetById(serviceRequest.PipelineId)
 		if err != nil {
 			logger.Error("[ApproveServiceRequest] Unable to get pipeline", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		waitForApprovalStep := pipeline.GetPipelineStep(body.StepName)
 
 		if waitForApprovalStep == nil {
 			logger.Error("[ApproveServiceRequest] Unable to get wait for approval step", map[string]interface{}{"step": body.StepName})
-			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		if waitForApprovalStep.StepType != models.WaitForApprovalStep {
 			logger.Error("[ApproveServiceRequest] Step is not a wait for approval step", map[string]interface{}{"step": body.StepName})
-			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrWrongStepType, http.StatusBadRequest))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrWrongStepType, http.StatusBadRequest))
 			return
 		}
 		// TODO: figure out how to pass the step result prior to the approval to the next step
@@ -226,7 +226,7 @@ func handleCreatePipeline(client *mongo.Client) http.Handler {
 		pipeline, err := decode[models.PipelineModel](r)
 		if err != nil {
 			logger.Error("[CreatePipeline] Unable to parse json request body", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
 
@@ -235,7 +235,7 @@ func handleCreatePipeline(client *mongo.Client) http.Handler {
 		res, err := database.NewPipeline(client).Create(&pipeline)
 		if err != nil {
 			logger.Error("[CreatePipeline] Unable to create pipeline", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrPipelineCreateFail, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrPipelineCreateFail, http.StatusInternalServerError))
 			return
 		}
 		insertedId, _ := res.InsertedID.(primitive.ObjectID)
@@ -252,7 +252,7 @@ func handleGetPipeline(client *mongo.Client) http.Handler {
 		pipeline, err := database.NewPipeline(client).GetById(pipelineId)
 		if err != nil {
 			logger.Error("[GetPipeline] Unable to get pipeline", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		logger.Info("[GetPipeline] Successfully retrieved pipeline", map[string]interface{}{"pipeline": pipeline})
@@ -265,7 +265,7 @@ func handleGetAllPipelines(client *mongo.Client) http.Handler {
 		pipelines, err := database.NewPipeline(client).GetAll()
 		if err != nil {
 			logger.Error("[GetAllPipelines] Unable to get pipelines", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		logger.Info("[GetAllPipelines] Successfully retrieved pipelines", map[string]interface{}{"count": len(pipelines)})
