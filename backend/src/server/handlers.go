@@ -60,6 +60,7 @@ func handleGetAllServiceRequest(client *mongo.Client) http.Handler {
 		if err != nil {
 			logger.Error("[GetAllServiceRequest] Error retrieving all service request", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
 		}
 		logger.Info("[GetAllServiceRequest] Successfully retrieved service requests", map[string]interface{}{"count": len(allsr)})
 		encode(w, r, http.StatusOK, allsr)
@@ -74,6 +75,7 @@ func handleGetServiceRequest(client *mongo.Client) http.Handler {
 		if err != nil {
 			logger.Error("[GetServiceRequest] Unable to retrieve service request", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
 		}
 		logger.Info("[GetServiceRequest] Successfully retrieved service request", map[string]interface{}{"sr": sr})
 		encode(w, r, http.StatusOK, sr)
@@ -86,6 +88,7 @@ func handleCreateServiceRequest(client *mongo.Client) http.Handler {
 		if err != nil {
 			logger.Error("[CreateServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
 		}
 		srm.CreatedOn = time.Now()
 		srm.LastUpdated = time.Now()
@@ -95,6 +98,7 @@ func handleCreateServiceRequest(client *mongo.Client) http.Handler {
 		if err != nil {
 			logger.Error("[CreateServiceRequest] Error creating service request", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
 		}
 		logger.Info("[CreateServiceRequest] Successfully created service request", map[string]interface{}{"sr": srm})
 		insertedId, _ := res.InsertedID.(primitive.ObjectID)
@@ -111,16 +115,19 @@ func handleCancelStartedServiceRequest(client *mongo.Client) http.Handler {
 		if err != nil {
 			logger.Error("[CancelStartedServiceRequest] Error getting service request", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
 		}
 		status := sr.Status
 		if status != models.Pending && status != models.Running {
 			logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has been completed", nil)
 			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrServiceRequestAlreadyCompleted, http.StatusBadRequest))
+			return
 		}
 
 		if status == models.NotStarted {
 			logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has not been started", nil)
 			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrServiceRequestNotStarted, http.StatusBadRequest))
+			return
 		}
 
 		// TODO: implement cancellation of sr
@@ -131,6 +138,7 @@ func handleCancelStartedServiceRequest(client *mongo.Client) http.Handler {
 		if err != nil {
 			logger.Error("[CancelStartedServiceRequest] Unable to update service request status", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
 		}
 
 		logger.Info("[CancelStartedServiceRequest] Successfully canceled started service request", nil)
@@ -144,6 +152,7 @@ func handleUpdateServiceRequest(client *mongo.Client) http.Handler {
 		if err != nil {
 			logger.Error("[UpdateServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
 		}
 		vars := mux.Vars(r)
 		requestId := vars["requestId"]
@@ -151,16 +160,19 @@ func handleUpdateServiceRequest(client *mongo.Client) http.Handler {
 		if err != nil {
 			logger.Error("[UpdateServiceRequest] Error getting service request", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
 		}
 		status := sr.Status
 		if status != models.NotStarted {
 			logger.Error("[UpdateServiceRequest] Unable to update service request as service request has been started", nil)
 			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrServiceRequestAlreadyStarted, http.StatusBadRequest))
+			return
 		}
 		res, err := database.NewServiceRequest(client).UpdateById(requestId, &srm)
 		if err != nil {
 			logger.Error("[UpdateServiceRequest] Error updating service request", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
 		}
 		logger.Info("[UpdateServiceRequest] Successfully updated service request", map[string]interface{}{"count": res.ModifiedCount})
 		encode[any](w, r, http.StatusOK, nil)
@@ -175,10 +187,12 @@ func handleStartServiceRequest(client *mongo.Client) http.Handler {
 		if err != nil {
 			logger.Error("[StartServiceRequest] Unable retrieve service request", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
 		}
 		if srm.Status != models.NotStarted {
 			logger.Error("[StartServiceRequest] Service request has already been started", nil)
 			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrServiceRequestAlreadyStarted, http.StatusBadRequest))
+			return
 		}
 		event.FireAsync(events.NewNewServiceRequestEvent(srm))
 		encode[any](w, r, http.StatusOK, nil)
@@ -196,6 +210,7 @@ func handleApproveServiceRequest(client *mongo.Client) http.Handler {
 		if err != nil {
 			logger.Error("[ApproveServiceRequest] Unable to get service request", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
 		}
 		body, err := decode[requestBody](r)
 		if err != nil {
