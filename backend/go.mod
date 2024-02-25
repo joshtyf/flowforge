@@ -6,7 +6,6 @@ require (
 	github.com/gookit/event v1.1.1
 	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.8.1
-	github.com/lib/pq v1.10.9
 	go.mongodb.org/mongo-driver v1.13.1
 )
 

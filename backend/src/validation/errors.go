@@ -17,7 +17,7 @@ func NewInvalidStepTypeError(stepName, receivedStepType string) *InvalidStepType
 }
 
 func (e *InvalidStepTypeError) Error() string {
-	return fmt.Sprintf("invalid step type for step %s: %s", e.stepName, e.receivedStepType)
+	return fmt.Sprintf("invalid step type for step '%s': '%s'", e.stepName, e.receivedStepType)
 }
 
 type MissingRequiredFieldError struct {
@@ -31,7 +31,7 @@ func NewMissingRequiredFieldError(fieldName string) *MissingRequiredFieldError {
 }
 
 func (e *MissingRequiredFieldError) Error() string {
-	return fmt.Sprintf("missing required field: %s", e.fieldName)
+	return fmt.Sprintf("missing required field: '%s'", e.fieldName)
 }
 
 type ZeroStepsError struct{}
@@ -57,7 +57,7 @@ func NewNoStepNameFoundError(fieldName, receivedStepName string) *NoStepNameFoun
 }
 
 func (e *NoStepNameFoundError) Error() string {
-	return fmt.Sprintf("no step name '%s' found for field %s", e.receivedStepName, e.fieldName)
+	return fmt.Sprintf("no step name '%s' found for field '%s'", e.receivedStepName, e.fieldName)
 }
 
 type NoNextStepError struct {
@@ -71,7 +71,7 @@ func NewNoNextStepError(stepName string) *NoNextStepError {
 }
 
 func (e *NoNextStepError) Error() string {
-	return fmt.Sprintf("non-terminal step %s must define next step", e.stepName)
+	return fmt.Sprintf("non-terminal step '%s' must define next step", e.stepName)
 }
 
 type DuplicateStepNameError struct {
@@ -85,7 +85,7 @@ func NewDuplicateStepNameError(stepName string) *DuplicateStepNameError {
 }
 
 func (e *DuplicateStepNameError) Error() string {
-	return fmt.Sprintf("duplicate step name found: %s", e.stepName)
+	return fmt.Sprintf("duplicate step name found: '%s'", e.stepName)
 }
 
 type InvalidStepReferenceError struct {
@@ -105,7 +105,7 @@ func NewInvalidStepReferenceError(firstStepName, firstStepNextStepRef, secondSte
 }
 
 func (e *InvalidStepReferenceError) Error() string {
-	return fmt.Sprintf("step %s references step %s as next step, but step %s references step %s as previous step",
+	return fmt.Sprintf("step '%s' references step '%s' as next step, but step '%s' references step '%s' as previous step",
 		e.firstStepName, e.firstStepNextStepRef, e.secondStepName, e.secondStepPrevStepRef)
 }
 
@@ -120,7 +120,7 @@ func NewFirstStepContainsPrevStepError(stepName string) *FirstStepContainsPrevSt
 }
 
 func (e *FirstStepContainsPrevStepError) Error() string {
-	return fmt.Sprintf("first step %s cannot contain prev step", e.stepName)
+	return fmt.Sprintf("first step '%s' cannot contain prev step", e.stepName)
 }
 
 type InvalidFirstStepReference struct {
@@ -150,5 +150,5 @@ func NewCircularReferenceError(startStepName, endStepName string) *CircularRefer
 }
 
 func (e *CircularReferenceError) Error() string {
-	return fmt.Sprintf("circular reference detected between steps %s and %s", e.startStepName, e.endStepName)
+	return fmt.Sprintf("circular reference detected between steps '%s' and '%s'", e.startStepName, e.endStepName)
 }
