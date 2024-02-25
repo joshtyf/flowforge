@@ -20,7 +20,7 @@ func validateCreatePipelineRequest(next http.Handler) http.Handler {
 		err = validation.ValidatePipeline(&pipeline)
 		if err != nil {
 			logger.Error("[ValidateCreatePipelineRequest] Error validating pipeline", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusBadRequest, err)
+			encode(w, r, http.StatusBadRequest, NewHandlerError(err, http.StatusBadRequest))
 			return
 		}
 
