@@ -139,39 +139,33 @@ func handleCancelStartedServiceRequest(client *mongo.Client) http.Handler {
 	})
 }
 
-func UpdateServiceRequest(w http.ResponseWriter, r *http.Request) *HandlerError {
-	client, err := client.GetMongoClient()
-	if err != nil {
-		logger.Error("[UpdateServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	srm := &models.ServiceRequestModel{}
-	err = json.NewDecoder(r.Body).Decode(srm)
-	w.Header().Set("Content-Type", "application/json")
-	if err != nil {
-		logger.Error("[UpdateServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrJsonParseError, http.StatusBadRequest)
-	}
-	vars := mux.Vars(r)
-	requestId := vars["requestId"]
-	sr, err := database.NewServiceRequest(client).GetById(requestId)
-	if err != nil {
-		logger.Error("[UpdateServiceRequest] Error getting service request", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	status := sr.Status
-	if status != models.NotStarted {
-		logger.Error("[UpdateServiceRequest] Unable to update service request as service request has been started", nil)
-		return NewHandlerError(ErrServiceRequestAlreadyStarted, http.StatusBadRequest)
-	}
-	res, err := database.NewServiceRequest(client).UpdateById(requestId, srm)
-	if err != nil {
-		logger.Error("[UpdateServiceRequest] Error updating service request", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	logger.Info("[UpdateServiceRequest] Successfully updated service request", map[string]interface{}{"count": res.ModifiedCount})
-	w.WriteHeader(http.StatusOK)
-	return nil
+func handleUpdateServiceRequest(client *mongo.Client) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		srm, err := decode[models.ServiceRequestModel](r)
+		if err != nil {
+			logger.Error("[UpdateServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrJsonParseError, http.StatusBadRequest))
+		}
+		vars := mux.Vars(r)
+		requestId := vars["requestId"]
+		sr, err := database.NewServiceRequest(client).GetById(requestId)
+		if err != nil {
+			logger.Error("[UpdateServiceRequest] Error getting service request", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+		}
+		status := sr.Status
+		if status != models.NotStarted {
+			logger.Error("[UpdateServiceRequest] Unable to update service request as service request has been started", nil)
+			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrServiceRequestAlreadyStarted, http.StatusBadRequest))
+		}
+		res, err := database.NewServiceRequest(client).UpdateById(requestId, &srm)
+		if err != nil {
+			logger.Error("[UpdateServiceRequest] Error updating service request", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+		}
+		logger.Info("[UpdateServiceRequest] Successfully updated service request", map[string]interface{}{"count": res.ModifiedCount})
+		encode[any](w, r, http.StatusOK, nil)
+	})
 }
 
 func StartServiceRequest(w http.ResponseWriter, r *http.Request) *HandlerError {
