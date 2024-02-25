@@ -228,33 +228,28 @@ func handleApproveServiceRequest(client *mongo.Client) http.Handler {
 	})
 }
 
-func CreatePipeline(w http.ResponseWriter, r *http.Request) *HandlerError {
-	pipeline := &models.PipelineModel{
-		CreatedOn: time.Now(),
-		Version:   1,
-	}
-	err := json.NewDecoder(r.Body).Decode(pipeline)
-	if err != nil {
-		logger.Error("[CreatePipeline] Unable to parse json request body", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrJsonParseError, http.StatusBadRequest)
-	}
-	client, err := client.GetMongoClient()
-	if err != nil {
-		logger.Error("[CreatePipeline] Unable to get mongo client", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	res, err := database.NewPipeline(client).Create(pipeline)
-	if err != nil {
-		logger.Error("[CreatePipeline] Unable to create pipeline", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrPipelineCreateFail, http.StatusInternalServerError)
-	}
-	insertedId, _ := res.InsertedID.(primitive.ObjectID)
-	pipeline.Id = insertedId
-	logger.Info("[CreatePipeline] Successfully created pipeline", map[string]interface{}{"pipeline": pipeline})
-	w.WriteHeader(http.StatusCreated)
-	w.Header().Add("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(pipeline)
-	return nil
+func handleCreatePipeline(client *mongo.Client) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		pipeline, err := decode[models.PipelineModel](r)
+		if err != nil {
+			logger.Error("[CreatePipeline] Unable to parse json request body", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+
+		pipeline.CreatedOn = time.Now()
+		pipeline.Version = 1
+		res, err := database.NewPipeline(client).Create(&pipeline)
+		if err != nil {
+			logger.Error("[CreatePipeline] Unable to create pipeline", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrPipelineCreateFail, http.StatusInternalServerError))
+			return
+		}
+		insertedId, _ := res.InsertedID.(primitive.ObjectID)
+		pipeline.Id = insertedId
+		logger.Info("[CreatePipeline] Successfully created pipeline", map[string]interface{}{"pipeline": pipeline})
+		encode(w, r, http.StatusCreated, pipeline)
+	})
 }
 
 func GetPipeline(w http.ResponseWriter, r *http.Request) *HandlerError {
