@@ -104,44 +104,39 @@ func handleCreateServiceRequest(client *mongo.Client) http.Handler {
 	})
 }
 
-func CancelStartedServiceRequest(w http.ResponseWriter, r *http.Request) *HandlerError {
-	client, err := client.GetMongoClient()
-	if err != nil {
-		logger.Error("[CancelStartedServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	vars := mux.Vars(r)
-	requestId := vars["requestId"]
-	sr, err := database.NewServiceRequest(client).GetById(requestId)
-	if err != nil {
-		logger.Error("[CancelStartedServiceRequest] Error getting service request", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	status := sr.Status
-	w.Header().Set("Content-Type", "application/json")
-	if status != models.Pending && status != models.Running {
-		logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has been completed", nil)
-		return NewHandlerError(ErrServiceRequestAlreadyCompleted, http.StatusBadRequest)
-	}
+func handleCancelStartedServiceRequest(client *mongo.Client) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		requestId := vars["requestId"]
+		sr, err := database.NewServiceRequest(client).GetById(requestId)
+		if err != nil {
+			logger.Error("[CancelStartedServiceRequest] Error getting service request", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+		}
+		status := sr.Status
+		if status != models.Pending && status != models.Running {
+			logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has been completed", nil)
+			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrServiceRequestAlreadyCompleted, http.StatusBadRequest))
+		}
 
-	if status == models.NotStarted {
-		logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has not been started", nil)
-		return NewHandlerError(ErrServiceRequestNotStarted, http.StatusBadRequest)
-	}
+		if status == models.NotStarted {
+			logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has not been started", nil)
+			encode(w, r, http.StatusBadRequest, NewHandlerError(ErrServiceRequestNotStarted, http.StatusBadRequest))
+		}
 
-	// TODO: implement cancellation of sr
+		// TODO: implement cancellation of sr
 
-	err = database.NewServiceRequest(client).UpdateStatus(requestId, models.Canceled)
+		err = database.NewServiceRequest(client).UpdateStatus(requestId, models.Canceled)
 
-	// TODO: discuss how to handle this error
-	if err != nil {
-		logger.Error("[CancelStartedServiceRequest] Unable to update service request status", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
+		// TODO: discuss how to handle this error
+		if err != nil {
+			logger.Error("[CancelStartedServiceRequest] Unable to update service request status", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+		}
 
-	logger.Info("[CancelStartedServiceRequest] Successfully canceled started service request", nil)
-	w.WriteHeader(http.StatusOK)
-	return nil
+		logger.Info("[CancelStartedServiceRequest] Successfully canceled started service request", nil)
+		encode[any](w, r, http.StatusOK, nil)
+	})
 }
 
 func UpdateServiceRequest(w http.ResponseWriter, r *http.Request) *HandlerError {
