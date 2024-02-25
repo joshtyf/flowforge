@@ -13,6 +13,7 @@ import (
 	"github.com/joshtyf/flowforge/src/events"
 	"github.com/joshtyf/flowforge/src/logger"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type HandlerError struct {
@@ -54,22 +55,16 @@ func handleHealthCheck() http.Handler {
 	})
 }
 
-func GetAllServiceRequest(w http.ResponseWriter, r *http.Request) *HandlerError {
-	client, err := client.GetMongoClient()
-	if err != nil {
-		logger.Error("[GetAllServiceRequest] Unable to get mongo client", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	allsr, err := database.NewServiceRequest(client).GetAll()
-	if err != nil {
-		logger.Error("[GetAllServiceRequest] Error retrieving all service request", map[string]interface{}{"err": err})
-		return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
-	}
-	logger.Info("[GetAllServiceRequest] Successfully retrieved service requests", map[string]interface{}{"count": len(allsr)})
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(allsr)
-	w.WriteHeader(http.StatusOK)
-	return nil
+func handleGetAllServiceRequest(client *mongo.Client) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		allsr, err := database.NewServiceRequest(client).GetAll()
+		if err != nil {
+			logger.Error("[GetAllServiceRequest] Error retrieving all service request", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+		}
+		logger.Info("[GetAllServiceRequest] Successfully retrieved service requests", map[string]interface{}{"count": len(allsr)})
+		encode(w, r, http.StatusOK, allsr)
+	})
 }
 
 func GetServiceRequest(w http.ResponseWriter, r *http.Request) *HandlerError {
