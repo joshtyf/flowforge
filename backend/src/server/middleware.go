@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/joshtyf/flowforge/src/authenticator"
 	"github.com/joshtyf/flowforge/src/database/models"
@@ -33,7 +34,7 @@ func validateCreatePipelineRequest(next http.Handler) http.Handler {
 func IsAuthenticated(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		accessToken := r.Header.Get("Authorization")
+		accessToken := strings.TrimSpace(strings.Replace(r.Header.Get("Authorization"), "Bearer", "", 1))
 
 		authToken := &oauth2.Token{AccessToken: accessToken}
 		if accessToken == "" {
