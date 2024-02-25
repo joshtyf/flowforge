@@ -22,3 +22,8 @@ func decode[T any](r *http.Request) (T, error) {
 	}
 	return v, nil
 }
+
+func serverHealthy() bool {
+	// TODO: Include database health check
+	return true
+}

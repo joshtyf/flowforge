@@ -272,11 +272,3 @@ func handleGetAllPipelines(client *mongo.Client) http.Handler {
 		encode(w, r, http.StatusOK, pipelines)
 	})
 }
-
-/////////////////// Helper Functions ///////////////////
-
-func serverHealthy() bool {
-	// TODO: Include database health check
-
-	return true
-}
