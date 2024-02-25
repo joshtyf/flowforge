@@ -35,6 +35,7 @@ func addRoutes(r *mux.Router) {
 func New() http.Handler {
 	router := mux.NewRouter()
 	addRoutes(router)
+	router.Use(IsAuthenticated)
 	handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:3000"}),
 		handlers.AllowedHeaders([]string{
