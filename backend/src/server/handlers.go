@@ -1,7 +1,6 @@
 package server
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
@@ -23,26 +22,6 @@ type HandlerError struct {
 func NewHandlerError(err error, code int) *HandlerError {
 	return &HandlerError{Message: err.Error(), Code: code}
 }
-
-type customHandlerFunc func(http.ResponseWriter, *http.Request) *HandlerError
-
-func NewHandler(handlerFunc customHandlerFunc, mws ...customMiddleWareFunc) http.HandlerFunc {
-	handlerChain := handlerFunc
-	// Build the handler chain
-	for _, mw := range mws {
-		handlerChain = mw(handlerChain)
-	}
-	return func(w http.ResponseWriter, r *http.Request) {
-		err := handlerChain(w, r)
-		if err != nil {
-			w.Header().Add("Content-Type", "application/json")
-			w.WriteHeader(err.Code)
-			json.NewEncoder(w).Encode(err)
-		}
-	}
-}
-
-/////////////////// Handlers ///////////////////
 
 func handleHealthCheck() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -8,8 +8,6 @@ import (
 	"github.com/joshtyf/flowforge/src/validation"
 )
 
-type customMiddleWareFunc func(customHandlerFunc) customHandlerFunc
-
 func validateCreatePipelineRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pipeline, err := decode[models.PipelineModel](r)
