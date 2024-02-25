@@ -1,7 +1,6 @@
 package server
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/joshtyf/flowforge/src/database/models"
@@ -11,16 +10,22 @@ import (
 
 type customMiddleWareFunc func(customHandlerFunc) customHandlerFunc
 
-func ValidateCreatePipelineRequest(nextHandlerFunc customHandlerFunc) customHandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) *HandlerError {
-		pipeline := &models.PipelineModel{}
-		json.NewDecoder(r.Body).Decode(pipeline)
-		err := validation.ValidatePipeline(pipeline)
+func validateCreatePipelineRequest(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		pipeline, err := decode[models.PipelineModel](r)
 		if err != nil {
-			logger.Error("[ValidateCreatePipelineRequest] Error validating pipeline", map[string]interface{}{"err": err})
-			return NewHandlerError(err, http.StatusBadRequest)
+			logger.Error("[ValidateCreatePipelineRequest] Error decoding pipeline from request body", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, err)
+			return
 		}
 
-		return nextHandlerFunc(w, r)
-	}
+		err = validation.ValidatePipeline(&pipeline)
+		if err != nil {
+			logger.Error("[ValidateCreatePipelineRequest] Error validating pipeline", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, err)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
