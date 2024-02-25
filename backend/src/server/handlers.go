@@ -44,14 +44,14 @@ func NewHandler(handlerFunc customHandlerFunc, mws ...customMiddleWareFunc) http
 
 /////////////////// Handlers ///////////////////
 
-func HealthCheck(w http.ResponseWriter, r *http.Request) *HandlerError {
-	if serverHealthy() {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Server working!"))
-		return nil
-	}
-
-	return NewHandlerError(ErrInternalServerError, http.StatusInternalServerError)
+func handleHealthCheck() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if serverHealthy() {
+			encode(w, r, http.StatusOK, []byte("Server working!"))
+			return
+		}
+		encode(w, r, http.StatusInternalServerError, NewHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+	})
 }
 
 func GetAllServiceRequest(w http.ResponseWriter, r *http.Request) *HandlerError {
