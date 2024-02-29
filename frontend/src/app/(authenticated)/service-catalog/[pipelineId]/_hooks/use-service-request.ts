@@ -76,6 +76,7 @@ const useServiceRequest = ({ pipelineId }: UseServiceRequestOptions) => {
           title: "Request Submission Successful",
           description:
             "Please check the dashboard for the status of the request.",
+          variant: "success",
         })
         console.log("Response: ", data)
       })
