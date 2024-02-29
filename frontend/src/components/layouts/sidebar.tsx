@@ -29,7 +29,7 @@ const links: LinkType[] = [
   {
     title: "Service Request Dashboard",
     icon: Workflow,
-    href: "#",
+    href: "/service-request-dashboard",
     variant: "ghost",
   },
   {
