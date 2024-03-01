@@ -13,7 +13,6 @@ var (
 	ErrServiceRequestAlreadyStarted   = errors.New("service request already started")
 	ErrServiceRequestAlreadyCompleted = errors.New("service request already completed")
 
-	ErrBearerTokenNotFound       = errors.New("bearer token not found")
-	ErrUnableToVerifyBearerToken = errors.New("unable to verify token")
-	ErrUnableToRetrieveProfile   = errors.New("unable to retrieve profile")
+	ErrUnableToValidateJWT = errors.New("unable to validate JWT")
+	ErrUnauthorised = errors.New("user does not have required permissions")
 )

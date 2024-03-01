@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 func encode[T any](w http.ResponseWriter, r *http.Request, status int, v T) error {
@@ -26,4 +27,16 @@ func decode[T any](r *http.Request) (T, error) {
 func serverHealthy() bool {
 	// TODO: Include database health check
 	return true
+}
+
+// HasScope checks whether our claims have a specific scope.
+func (c CustomClaims) HasScope(expectedScope string) bool {
+	result := strings.Split(c.Scope, " ")
+	for i := range result {
+		if result[i] == expectedScope {
+			return true
+		}
+	}
+
+	return false
 }

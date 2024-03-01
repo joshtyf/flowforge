@@ -1,14 +1,18 @@
 package server
 
 import (
+	"context"
 	"net/http"
-	"strings"
+	"net/url"
+	"os"
+	"time"
 
-	"github.com/joshtyf/flowforge/src/authenticator"
+	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
+	"github.com/auth0/go-jwt-middleware/v2/jwks"
+	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/joshtyf/flowforge/src/database/models"
 	"github.com/joshtyf/flowforge/src/logger"
 	"github.com/joshtyf/flowforge/src/validation"
-	"golang.org/x/oauth2"
 )
 
 func validateCreatePipelineRequest(next http.Handler) http.Handler {
@@ -31,42 +35,87 @@ func validateCreatePipelineRequest(next http.Handler) http.Handler {
 	})
 }
 
+// CustomClaims contains custom data we want from the token.
+type CustomClaims struct {
+	Scope string `json:"scope"`
+}
+
+// Validate does nothing for this example, but we need
+// it to satisfy validator.CustomClaims interface.
+func (c CustomClaims) Validate(ctx context.Context) error {
+	return nil
+}
+
 func IsAuthenticated(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "application/json")
-		accessToken := strings.TrimSpace(strings.Replace(r.Header.Get("Authorization"), "Bearer", "", 1))
-		authToken := &oauth2.Token{AccessToken: accessToken}
-
-		if accessToken == "" {
-			logger.Error("[Authorization] Bearer token not found", nil)
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrBearerTokenNotFound, http.StatusUnauthorized))
-			return
-		}
-
-		auth, err := authenticator.New()
+		issuerURL, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/")
+		logger.Info(issuerURL.String(), nil)
 		if err != nil {
-			logger.Error("[Authorization] Failed to initialize authenticator", map[string]interface{}{"err": err})
+			logger.Error("[Authentication] Failed to parse the issuer url", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 
-		idToken, err := auth.VerifyIDToken(r.Context(), authToken)
+		provider := jwks.NewCachingProvider(issuerURL, 5*time.Minute)
+
+		jwtValidator, err := validator.New(
+			provider.KeyFunc,
+			validator.RS256,
+			issuerURL.String(),
+			[]string{os.Getenv("AUTH0_AUDIENCE")},
+			validator.WithCustomClaims(
+				func() validator.CustomClaims {
+					return &CustomClaims{}
+				},
+			),
+			validator.WithAllowedClockSkew(time.Minute),
+		)
 		if err != nil {
-			logger.Error("[Authorization] Unable to verify token", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnableToVerifyBearerToken, http.StatusUnauthorized))
+			logger.Error("[Authentication] Failed to set up jwt validator", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 
-		// TODO: Review to see if this fits flow once frontend side of the flow is finalised
-		var profile map[string]interface{}
-		err = idToken.Claims(&profile)
-		if err != nil {
-			logger.Error("[Authorization] Unable retrieve profile", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnableToRetrieveProfile, http.StatusInternalServerError))
-			return
+		errorHandler := func(w http.ResponseWriter, r *http.Request, err error) {
+			logger.Error("[Authentication] Encountered error while validating JWT", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnableToValidateJWT, http.StatusUnauthorized))
 		}
 
-		// Call the next middleware function or final handler
+		middleware := jwtmiddleware.New(
+			jwtValidator.ValidateToken,
+			jwtmiddleware.WithErrorHandler(errorHandler),
+		)
+		logger.Info("Validating", nil)
+		middleware.CheckJWT(next).ServeHTTP(w, r)
+	})
+
+}
+
+// TODO: To be tested once frontend is ready
+func isAuthorisedAdmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		claims := token.CustomClaims.(*CustomClaims)
+		logger.Info(claims.Scope, nil)
+		if !claims.HasScope("admin") {
+			logger.Error("[Authorization] User not authorized admin", nil)
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func isAuthorisedUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger.Info("Authorizing", nil)
+		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		claims := token.CustomClaims.(*CustomClaims)
+		if !claims.HasScope("test") {
+			logger.Error("[Authorization] User not authorized user", nil)
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }
