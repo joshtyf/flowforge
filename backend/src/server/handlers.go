@@ -26,7 +26,7 @@ func newHandlerError(err error, code int) *HandlerError {
 func handleHealthCheck() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if serverHealthy() {
-			encode(w, r, http.StatusOK, []byte("Server working!"))
+			encode(w, r, http.StatusOK, "Server working!")
 			return
 		}
 		encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
