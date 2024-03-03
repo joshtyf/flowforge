@@ -138,6 +138,19 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 		return fmt.Errorf("service request is nil")
 	}
 
+	// Log step completed event
+	serviceRequestEvent := database.NewServiceRequestEvent(srm.psqlClient)
+	err := serviceRequestEvent.Create(&models.ServiceRequestEventModel{
+		EventType:        models.STEP_COMPLETED,
+		ServiceRequestId: serviceRequest.Id.Hex(),
+		StepName:         completedStep.StepName,
+	})
+	if err != nil {
+		// TODO: not sure if we should return here. We need to handle the error better
+		logger.Error("[ServiceRequestManager] Error creating service request event", map[string]interface{}{"err": err})
+		return err
+	}
+
 	if completedStep.IsTerminalStep {
 		err := database.NewServiceRequest(srm.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Success)
 		if err != nil {
