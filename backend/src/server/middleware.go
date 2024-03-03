@@ -46,7 +46,7 @@ func (c CustomClaims) Validate(ctx context.Context) error {
 	return nil
 }
 
-func IsAuthenticated(next http.Handler) http.Handler {
+func isAuthenticated(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		issuerURL, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/")
 		logger.Info(issuerURL.String(), nil)

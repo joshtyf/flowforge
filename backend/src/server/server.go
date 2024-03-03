@@ -15,21 +15,21 @@ func addRoutes(r *mux.Router) {
 	}
 
 	// Health Check
-	r.Handle("/api/healthcheck", handleHealthCheck()).Methods("GET")
+	r.Handle("/api/healthcheck", isAuthenticated(isAuthorisedAdmin(handleHealthCheck()))).Methods("GET")
 
 	// Service Request
-	r.Handle("/api/service_request", handleGetAllServiceRequest(mongoClient)).Methods("GET")
-	r.Handle("/api/service_request/{requestId}", handleGetServiceRequest(mongoClient)).Methods("GET")
-	r.Handle("/api/service_request", handleCreateServiceRequest(mongoClient)).Methods("POST").Headers("Content-Type", "application/json")
-	r.Handle("/api/service_request/{requestId}", handleUpdateServiceRequest(mongoClient)).Methods("PATCH").Headers("Content-Type", "application/json")
-	r.Handle("/api/service_request/{requestId}/cancel", handleCancelStartedServiceRequest(mongoClient)).Methods("GET")
-	r.Handle("/api/service_request/{requestId}/start", handleStartServiceRequest(mongoClient)).Methods("GET")
-	r.Handle("/api/service_request/{requestId}/approve", handleApproveServiceRequest(mongoClient)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request", isAuthenticated(isAuthorisedUser(handleGetAllServiceRequest(mongoClient)))).Methods("GET")
+	r.Handle("/api/service_request/{requestId}", isAuthenticated(isAuthorisedUser(handleGetServiceRequest(mongoClient)))).Methods("GET")
+	r.Handle("/api/service_request", isAuthenticated(isAuthorisedUser(handleCreateServiceRequest(mongoClient)))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/{requestId}", isAuthenticated(isAuthorisedUser(handleUpdateServiceRequest(mongoClient)))).Methods("PATCH").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/{requestId}/cancel", isAuthenticated(isAuthorisedUser(handleCancelStartedServiceRequest(mongoClient)))).Methods("GET")
+	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(isAuthorisedUser(handleStartServiceRequest(mongoClient)))).Methods("GET")
+	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(isAuthorisedAdmin(handleApproveServiceRequest(mongoClient)))).Methods("POST").Headers("Content-Type", "application/json")
 
 	// Pipeline
-	r.Handle("/api/pipeline", handleGetAllPipelines(mongoClient)).Methods("GET")
-	r.Handle("/api/pipeline/{pipelineId}", handleGetPipeline(mongoClient)).Methods("GET")
-	r.Handle("/api/pipeline", validateCreatePipelineRequest(handleCreatePipeline(mongoClient))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedUser(handleGetAllPipelines(mongoClient)))).Methods("GET")
+	r.Handle("/api/pipeline/{pipelineId}", isAuthenticated(isAuthorisedUser(handleGetPipeline(mongoClient)))).Methods("GET")
+	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(validateCreatePipelineRequest(handleCreatePipeline(mongoClient))))).Methods("POST").Headers("Content-Type", "application/json")
 }
 
 func New() http.Handler {
