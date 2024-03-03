@@ -3,10 +3,9 @@
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
-import { Calendar } from "lucide-react"
 import Link from "next/link"
-import StatusBadge from "../../../components/layouts/status-badge"
-import ServiceRequestActions from "./_components/service-request-actions"
+import StatusBadge from "@/components/layouts/status-badge"
+import ApproveServiceRequestActions from "./_components/approve-service-request-actions"
 
 export const columns: ColumnDef<ServiceRequest>[] = [
   {
@@ -42,6 +41,10 @@ export const columns: ColumnDef<ServiceRequest>[] = [
     },
   },
   {
+    accessorKey: "created_by",
+    header: "Created By",
+  },
+  {
     accessorKey: "last_updated",
     header: "Last Updated",
     cell: ({ row }) => {
@@ -56,9 +59,10 @@ export const columns: ColumnDef<ServiceRequest>[] = [
     cell: ({ row }) => {
       const pipelineId: string = row.getValue("pipeline_id")
       return (
-        <ServiceRequestActions
+        <ApproveServiceRequestActions
           pipelineId={pipelineId}
-          onCancelRequest={(pipelineId: string) => {}}
+          approveRequest={(pipelineId: string) => {}}
+          rejectRequest={(pipelineId: string) => {}}
         />
       )
     },

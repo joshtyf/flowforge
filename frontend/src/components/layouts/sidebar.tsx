@@ -39,9 +39,9 @@ const links: LinkType[] = [
     variant: "ghost",
   },
   {
-    title: "Approve Service Requests",
+    title: "Pending Service Requests",
     icon: CheckCircle,
-    href: "/approve-service-requests",
+    href: "/pending-service-requests",
     variant: "ghost",
   },
 ]

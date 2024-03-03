@@ -24,6 +24,8 @@ type ServiceRequest = {
   pipeline_version: string
   status: ServiceRequestStatus
   created_on: string
+  // TODO: Make field mandatory once accounts are tag to service request
+  created_by?: string
   last_updated: string
   remarks: string
   form_data: ServiceRequestForm
