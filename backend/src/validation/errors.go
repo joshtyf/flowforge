@@ -2,6 +2,7 @@ package validation
 
 import (
 	"fmt"
+	"strings"
 )
 
 type InvalidStepTypeError struct {
@@ -151,4 +152,36 @@ func NewCircularReferenceError(startStepName, endStepName string) *CircularRefer
 
 func (e *CircularReferenceError) Error() string {
 	return fmt.Sprintf("circular reference detected between steps '%s' and '%s'", e.startStepName, e.endStepName)
+}
+
+type InvalidFormDataTypeError struct {
+	fieldName    string
+	expectedType string
+}
+
+func NewInvalidFormDataTypeError(fieldName, expectedType string) *InvalidFormDataTypeError {
+	return &InvalidFormDataTypeError{
+		fieldName:    fieldName,
+		expectedType: expectedType,
+	}
+}
+
+func (e *InvalidFormDataTypeError) Error() string {
+	return fmt.Sprintf("data provided for '%s' is not of type '%s'", e.fieldName, e.expectedType)
+}
+
+type InvalidSelectedFormDataError struct {
+	expectedValues []string
+	receivedValue  string
+}
+
+func NewInvalidSelectedFormDataError(expectedValues []string, receivedValue string) *InvalidSelectedFormDataError {
+	return &InvalidSelectedFormDataError{
+		expectedValues: expectedValues,
+		receivedValue:  receivedValue,
+	}
+}
+
+func (e *InvalidSelectedFormDataError) Error() string {
+	return fmt.Sprintf("expected selected value to be one of '%s', got '%s' instead", strings.Join(e.expectedValues, ","), e.receivedValue)
 }
