@@ -51,3 +51,27 @@ func TestStringSliceEqual(t *testing.T) {
 		})
 	}
 }
+
+func TestStringInSlice(t *testing.T) {
+	testCases := []struct {
+		s        string
+		sl       []string
+		expected bool
+	}{
+		{"a", []string{"a", "b", "c"}, true},
+		{"b", []string{"a", "b", "c"}, true},
+		{"c", []string{"a", "b", "c"}, true},
+		{"d", []string{"a", "b", "c"}, false},
+		{"", []string{"a", "b", "c"}, false},
+		{"", []string{}, false},
+		{"a", []string{}, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run("", func(t *testing.T) {
+			if StringInSlice(tc.s, tc.sl) != tc.expected {
+				t.Errorf("Expected: %v, Got: %v", tc.expected, !tc.expected)
+			}
+		})
+	}
+}
