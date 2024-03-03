@@ -29,7 +29,7 @@ export default function ApproveServiceRequestActions({
         <DropdownMenuItem>
           <Button
             variant="ghost"
-            className="text-success"
+            className="text-green-700"
             onClick={() => approveRequest(pipelineId)}
           >
             Approve
@@ -39,7 +39,7 @@ export default function ApproveServiceRequestActions({
           {/* TODO: Add on click logic*/}
           <Button
             variant="ghost"
-            className="text-destructive"
+            className="text-red-700"
             onClick={() => rejectRequest(pipelineId)}
           >
             Reject
