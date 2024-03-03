@@ -81,22 +81,13 @@ func (srm *ExecutionManager) handleNewServiceRequestEvent(e event.Event) error {
 		return fmt.Errorf("no executor found for first step")
 	}
 
-	// TODO: Need to handle both database queries as a transaction
+	// Update the service request status to running
 	err = database.NewServiceRequest(srm.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Running)
 	if err != nil {
 		logger.Error("[ServiceRequestManager] Error updating service request status", map[string]interface{}{"err": err})
 		return err
 	}
-	serviceRequestEvent := database.NewServiceRequestEvent(srm.psqlClient)
-	err = serviceRequestEvent.Create(&models.ServiceRequestEventModel{
-		EventType:        models.STEP_STARTED,
-		ServiceRequestId: serviceRequest.Id.Hex(),
-		StepName:         firstStep.StepName,
-	})
-	if err != nil {
-		logger.Error("[ServiceRequestManager] Error creating service request event", map[string]interface{}{"err": err})
-		return err
-	}
+
 	err = srm.execute(serviceRequest, firstStep, currExecutor)
 	return err
 }
@@ -111,8 +102,19 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 		util.StepKey,
 		step,
 	)
+	// Log step started event
+	serviceRequestEvent := database.NewServiceRequestEvent(srm.psqlClient)
+	err := serviceRequestEvent.Create(&models.ServiceRequestEventModel{
+		EventType:        models.STEP_STARTED,
+		ServiceRequestId: serviceRequest.Id.Hex(),
+		StepName:         step.StepName,
+	})
+	if err != nil {
+		logger.Error("[ServiceRequestManager] Error creating service request event", map[string]interface{}{"err": err})
+		return err
+	}
 	// Execute the current step
-	_, err := (*executor).execute(executeCtx)
+	_, err = (*executor).execute(executeCtx)
 	if err != nil {
 		logger.Error("[ServiceRequestManager] Error executing step", map[string]interface{}{"step": (*executor).getStepType(), "err": err})
 		// TODO: Handle error
