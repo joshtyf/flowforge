@@ -5,7 +5,7 @@ import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
 import StatusBadge from "@/components/layouts/status-badge"
-import ApproveServiceRequestActions from "./_components/approve-service-request-actions"
+import ApproveServiceRequestActions from "./_components/pending-service-request-actions"
 
 export const pendingServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
   {
