@@ -20,9 +20,10 @@ services:
       - be
     build:
       context: backend
-    env_file: .env
     environment:
       - MONGO_URI=${MONGO_URI}
+      - AUTH0_DOMAIN=${AUTH0_DOMAIN}
+      - AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
 
   postgres:
     profiles:
