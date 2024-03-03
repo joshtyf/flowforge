@@ -12,6 +12,7 @@ type ServiceRequestForm = {
 enum ServiceRequestStatus {
   NOT_STARTED = "Not Started",
   PENDING = "Pending",
+  REJECTED = "Rejected",
   RUNNING = "Running",
   SUCCESS = "Success",
   FAILURE = "Failure",
