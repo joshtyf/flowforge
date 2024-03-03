@@ -5,9 +5,8 @@ import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
 import StatusBadge from "@/components/layouts/status-badge"
-import ApproveServiceRequestActions from "./_components/approve-service-request-actions"
 
-export const pendingServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
+export const approvedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
   {
     accessorKey: "status",
     header: "Status",
@@ -51,20 +50,6 @@ export const pendingServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
       const dateIsoString: string = row.getValue("last_updated")
       const dateObject = new Date(dateIsoString)
       return formatTimeDifference(dateObject)
-    },
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => {
-      const pipelineId: string = row.getValue("pipeline_id")
-      return (
-        <ApproveServiceRequestActions
-          pipelineId={pipelineId}
-          approveRequest={(pipelineId: string) => {}}
-          rejectRequest={(pipelineId: string) => {}}
-        />
-      )
     },
   },
 ]
