@@ -85,7 +85,6 @@ func isAuthenticated(next http.Handler) http.Handler {
 			jwtValidator.ValidateToken,
 			jwtmiddleware.WithErrorHandler(errorHandler),
 		)
-		logger.Info("Validating", nil)
 		middleware.CheckJWT(next).ServeHTTP(w, r)
 	})
 
@@ -96,7 +95,6 @@ func isAuthorisedAdmin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 		claims := token.CustomClaims.(*CustomClaims)
-		logger.Info(claims.Scope, nil)
 		if !claims.HasScope("admin") {
 			logger.Error("[Authorization] User not authorized admin", nil)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
@@ -108,7 +106,6 @@ func isAuthorisedAdmin(next http.Handler) http.Handler {
 
 func isAuthorisedUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger.Info("Authorizing", nil)
 		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 		claims := token.CustomClaims.(*CustomClaims)
 		if !claims.HasScope("test") {
