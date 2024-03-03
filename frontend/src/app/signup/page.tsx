@@ -2,9 +2,9 @@ import Link from "next/link";
 import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import SignupForm from "../components/form/SignupForm";
-import PageLayout from "../components/layout/PageLayout";
-import InputField from "../components/ui/InputField";
+import SignupForm from "../components/form/signupForm";
+import PageLayout from "../components/layout/pageLayout";
+import InputField from "../components/ui/inputField";
 
 export default function SignupPage() {
   const [loading, setLoading] = useState(false);
