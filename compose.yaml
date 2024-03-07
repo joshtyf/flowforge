@@ -22,6 +22,7 @@ services:
       context: backend
     environment:
       - MONGO_URI=${MONGO_URI}
+      - POSTGRES_URI=${POSTGRES_URI}
       - AUTH0_DOMAIN=${AUTH0_DOMAIN}
       - AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
 
