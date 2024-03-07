@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 16.1
--- Dumped by pg_dump version 16.1 (Homebrew)
+-- Dumped by pg_dump version 16.2 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -21,25 +21,26 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: service_request_actions; Type: TABLE; Schema: public; Owner: postgres
+-- Name: service_request_event; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE public.service_request_actions (
-    action_id integer NOT NULL,
-    step_name character varying(50) NOT NULL,
-    action_name character varying(50) NOT NULL,
-    approved_by character varying(50),
+CREATE TABLE public.service_request_event (
+    event_id integer NOT NULL,
+    event_type character varying NOT NULL,
+    service_request_id character varying NOT NULL,
+    step_name character varying NOT NULL,
+    approved_by character varying,
     created_at timestamp without time zone DEFAULT now()
 );
 
 
-ALTER TABLE public.service_request_actions OWNER TO postgres;
+ALTER TABLE public.service_request_event OWNER TO postgres;
 
 --
--- Name: service_request_actions_action_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: service_request_events_event_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE public.service_request_actions_action_id_seq
+CREATE SEQUENCE public.service_request_events_event_id_seq
     AS integer
     START WITH 1
     INCREMENT BY 1
@@ -48,28 +49,28 @@ CREATE SEQUENCE public.service_request_actions_action_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.service_request_actions_action_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.service_request_events_event_id_seq OWNER TO postgres;
 
 --
--- Name: service_request_actions_action_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: service_request_events_event_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
-ALTER SEQUENCE public.service_request_actions_action_id_seq OWNED BY public.service_request_actions.action_id;
-
-
---
--- Name: service_request_actions action_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.service_request_actions ALTER COLUMN action_id SET DEFAULT nextval('public.service_request_actions_action_id_seq'::regclass);
+ALTER SEQUENCE public.service_request_events_event_id_seq OWNED BY public.service_request_event.event_id;
 
 
 --
--- Name: service_request_actions service_request_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: service_request_event event_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.service_request_actions
-    ADD CONSTRAINT service_request_actions_pkey PRIMARY KEY (action_id);
+ALTER TABLE ONLY public.service_request_event ALTER COLUMN event_id SET DEFAULT nextval('public.service_request_events_event_id_seq'::regclass);
+
+
+--
+-- Name: service_request_event service_request_events_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.service_request_event
+    ADD CONSTRAINT service_request_events_pkey PRIMARY KEY (event_id);
 
 
 --

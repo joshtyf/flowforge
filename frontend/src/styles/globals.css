@@ -35,8 +35,8 @@
 
     --ring: 215 20.2% 65.1%;
 
-    --success: 130, 80%, 60%;
-    --success-foreground: 0, 0%, 20%;
+    --success: 131.9, 54.26%, 43.73%;
+    --success-foreground: 0 25% 90%;
 
     --radius: 0.5rem;
   }
@@ -73,8 +73,8 @@
 
     --ring: 217.2 32.6% 17.5%;
 
-    --success: 130, 80%, 40%;
-    --success-foreground: 0, 0%, 80%;
+    --success: 131.9, 54.26%, 43.73%;
+    --success-foreground: 0 85.7% 97.3%;
   }
 }
 

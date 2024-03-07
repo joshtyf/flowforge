@@ -136,6 +136,7 @@ const useCreateService = ({ router }: UseCreateServiceProps) => {
         toast({
           title: "Service Creation Successful",
           description: "Redirecting to service catalog...",
+          variant: "success",
         })
         setSubmitted(true)
         setTimeout(() => router.push("/service-catalog"), 1500)

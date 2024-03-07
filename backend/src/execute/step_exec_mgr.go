@@ -2,6 +2,7 @@ package execute
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/gookit/event"
@@ -16,6 +17,7 @@ import (
 
 type ExecutionManager struct {
 	mongoClient *mongo.Client
+	psqlClient  *sql.DB
 	executors   map[models.PipelineStepType]*stepExecutor
 }
 
@@ -32,9 +34,14 @@ func NewStepExecutionManager(configs ...ExecutionManagerConfig) *ExecutionManage
 	if err != nil {
 		logger.Error("[ServiceRequestManager] Error getting mongo client", map[string]interface{}{"err": err})
 	}
+	psqlClient, err := client.GetPsqlClient()
+	if err != nil {
+		logger.Error("[ServiceRequestManager] Error getting psql client", map[string]interface{}{"err": err})
+	}
 	srm := &ExecutionManager{
 		executors:   map[models.PipelineStepType]*stepExecutor{},
 		mongoClient: mongoClient,
+		psqlClient:  psqlClient,
 	}
 	for _, c := range configs {
 		c(srm)
@@ -74,11 +81,13 @@ func (srm *ExecutionManager) handleNewServiceRequestEvent(e event.Event) error {
 		return fmt.Errorf("no executor found for first step")
 	}
 
+	// Update the service request status to running
 	err = database.NewServiceRequest(srm.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Running)
 	if err != nil {
 		logger.Error("[ServiceRequestManager] Error updating service request status", map[string]interface{}{"err": err})
 		return err
 	}
+
 	err = srm.execute(serviceRequest, firstStep, currExecutor)
 	return err
 }
@@ -93,8 +102,19 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 		util.StepKey,
 		step,
 	)
+	// Log step started event
+	serviceRequestEvent := database.NewServiceRequestEvent(srm.psqlClient)
+	err := serviceRequestEvent.Create(&models.ServiceRequestEventModel{
+		EventType:        models.STEP_STARTED,
+		ServiceRequestId: serviceRequest.Id.Hex(),
+		StepName:         step.StepName,
+	})
+	if err != nil {
+		logger.Error("[ServiceRequestManager] Error creating service request event", map[string]interface{}{"err": err})
+		return err
+	}
 	// Execute the current step
-	_, err := (*executor).execute(executeCtx)
+	_, err = (*executor).execute(executeCtx)
 	if err != nil {
 		logger.Error("[ServiceRequestManager] Error executing step", map[string]interface{}{"step": (*executor).getStepType(), "err": err})
 		// TODO: Handle error
@@ -116,6 +136,19 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 	if serviceRequest == nil {
 		logger.Error("[ServiceRequestManager] Service request is nil", nil)
 		return fmt.Errorf("service request is nil")
+	}
+
+	// Log step completed event
+	serviceRequestEvent := database.NewServiceRequestEvent(srm.psqlClient)
+	err := serviceRequestEvent.Create(&models.ServiceRequestEventModel{
+		EventType:        models.STEP_COMPLETED,
+		ServiceRequestId: serviceRequest.Id.Hex(),
+		StepName:         completedStep.StepName,
+	})
+	if err != nil {
+		// TODO: not sure if we should return here. We need to handle the error better
+		logger.Error("[ServiceRequestManager] Error creating service request event", map[string]interface{}{"err": err})
+		return err
 	}
 
 	if completedStep.IsTerminalStep {

@@ -8,6 +8,7 @@ type FormComponent = {
 type FormInput = FormComponent & {
   minLength?: number
   type: "input"
+  placeholder?: string
 }
 
 type FormComponentWithOptions = FormComponent & {
