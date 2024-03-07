@@ -37,7 +37,7 @@ func validateCreatePipelineRequest(next http.Handler) http.Handler {
 
 // CustomClaims contains custom data we want from the token.
 type CustomClaims struct {
-	Scope string `json:"scope"`
+	Permissions string `json:"permissions"`
 }
 
 // Validate does nothing for this example, but we need
@@ -95,21 +95,8 @@ func isAuthorisedAdmin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 		claims := token.CustomClaims.(*CustomClaims)
-		if !claims.HasScope("admin") {
+		if !claims.HasPermission("approve:pipeline_step") {
 			logger.Error("[Authorization] User not authorized admin", nil)
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
-}
-
-func isAuthorisedUser(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
-		claims := token.CustomClaims.(*CustomClaims)
-		if !claims.HasScope("test") {
-			logger.Error("[Authorization] User not authorized user", nil)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}

@@ -29,11 +29,12 @@ func serverHealthy() bool {
 	return true
 }
 
-// HasScope checks whether our claims have a specific scope.
-func (c CustomClaims) HasScope(expectedScope string) bool {
-	result := strings.Split(c.Scope, " ")
+// HasPermission checks whether our claims have a specific permission.
+// In our case, since we are using this to check if user is admin, will be checking for approve:pipeline_step permission
+func (c CustomClaims) HasPermission(expectedPermission string) bool {
+	result := strings.Split(c.Permissions, ",")
 	for i := range result {
-		if result[i] == expectedScope {
+		if result[i] == expectedPermission {
 			return true
 		}
 	}
