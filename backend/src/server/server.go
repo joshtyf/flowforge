@@ -15,7 +15,7 @@ func addRoutes(r *mux.Router) {
 	}
 
 	// Health Check
-	r.Handle("/api/healthcheck", isAuthenticated(isAuthorisedAdmin(handleHealthCheck()))).Methods("GET")
+	r.Handle("/api/healthcheck", handleHealthCheck()).Methods("GET")
 
 	// Service Request
 	r.Handle("/api/service_request", isAuthenticated(handleGetAllServiceRequest(mongoClient))).Methods("GET")
@@ -27,8 +27,8 @@ func addRoutes(r *mux.Router) {
 	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(isAuthorisedAdmin(handleApproveServiceRequest(mongoClient)))).Methods("POST").Headers("Content-Type", "application/json")
 
 	// Pipeline
-	r.Handle("/api/pipeline", isAuthenticated(handleGetAllPipelines(mongoClient))).Methods("GET")
-	r.Handle("/api/pipeline/{pipelineId}", isAuthenticated(handleGetPipeline(mongoClient))).Methods("GET")
+	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(handleGetAllPipelines(mongoClient)))).Methods("GET")
+	r.Handle("/api/pipeline/{pipelineId}", isAuthenticated(isAuthorisedAdmin(handleGetPipeline(mongoClient)))).Methods("GET")
 	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(validateCreatePipelineRequest(handleCreatePipeline(mongoClient))))).Methods("POST").Headers("Content-Type", "application/json")
 }
 

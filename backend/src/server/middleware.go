@@ -40,8 +40,6 @@ type CustomClaims struct {
 	Permissions string `json:"permissions"`
 }
 
-// Validate does nothing for this example, but we need
-// it to satisfy validator.CustomClaims interface.
 func (c CustomClaims) Validate(ctx context.Context) error {
 	return nil
 }
@@ -49,7 +47,6 @@ func (c CustomClaims) Validate(ctx context.Context) error {
 func isAuthenticated(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		issuerURL, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/")
-		logger.Info(issuerURL.String(), nil)
 		if err != nil {
 			logger.Error("[Authentication] Failed to parse the issuer url", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
