@@ -71,7 +71,7 @@ func handleCreateServiceRequest(client *mongo.Client) http.Handler {
 		}
 		srm.CreatedOn = time.Now()
 		srm.LastUpdated = time.Now()
-		srm.Status = models.Pending
+		srm.Status = models.NotStarted
 
 		res, err := database.NewServiceRequest(client).Create(&srm)
 		if err != nil {
