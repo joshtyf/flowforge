@@ -1,8 +1,8 @@
 "use client"
 
+import { setCookie } from "cookies-next"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
-import { setCookie } from "cookies-next"
 
 export default function LoginCallbackPage() {
   const router = useRouter()

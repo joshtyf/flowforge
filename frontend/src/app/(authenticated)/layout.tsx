@@ -4,9 +4,9 @@ import Navbar from "@/components/layouts/navbar"
 import Sidebar from "@/components/layouts/sidebar"
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { getCookie } from "cookies-next"
 import { useRouter } from "next/navigation"
 import { ReactNode, useEffect, useState } from "react"
-import { getCookie } from "cookies-next"
 
 interface AuthenticatedLayoutProps {
   children: ReactNode
