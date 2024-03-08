@@ -85,6 +85,30 @@ ALTER TABLE public.user OWNER TO postgres;
 ALTER TABLE ONLY public.user
     ADD CONSTRAINT user_pkey PRIMARY KEY (user_id);
 
+
+CREATE TABLE public.organisation (
+    org_id character varying NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp without time zone DEFAULT now()
+)
+
+ALTER TABLE public.organisation OWNER TO postgres;
+
+ALTER TABLE ONLY public.organisation
+    ADD CONSTRAINT organisation_pkey PRIMARY KEY (org_id);
+
+CREATE TABLE public.membership (
+    user_id character varying NOT NULL,
+    org_id character varying NOT NULL,
+    joined_at timestamp without time zone DEFAULT now()
+)
+
+ALTER TABLE public.membership OWNER TO postgres;
+
+ALTER TABLE ONLY public.membership
+    ADD CONSTRAINT membership_fkey FOREIGN KEY (user_id) REFERENCES public.user (user_id),
+    ADD CONSTRAINT membership_fkey FOREIGN KEY (org_id) REFERENCES public.organisation (org_id);
+
 --
 -- PostgreSQL database dump complete
 --
