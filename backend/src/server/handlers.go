@@ -1,6 +1,7 @@
 package server
 
 import (
+	"database/sql"
 	"net/http"
 	"time"
 
@@ -270,5 +271,25 @@ func handleGetAllPipelines(client *mongo.Client) http.Handler {
 		}
 		logger.Info("[GetAllPipelines] Successfully retrieved pipelines", map[string]interface{}{"count": len(pipelines)})
 		encode(w, r, http.StatusOK, pipelines)
+	})
+}
+
+func handleCreateUser(client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		um, err := decode[models.UserModel](r)
+		if err != nil {
+			logger.Error("[CreateUser] Unable to parse json request body", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		um.CreatedOn = time.Now()
+		user, err := database.NewUser(client).Create(&um)
+		if err != nil {
+			logger.Error("[CreateUser] Unable to create user", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrUserCreateFail, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[GetAllPipelines] Successfully created user/User exists", map[string]interface{}{"user": user})
+		encode(w, r, http.StatusCreated, user)
 	})
 }

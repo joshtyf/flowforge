@@ -73,6 +73,18 @@ ALTER TABLE ONLY public.service_request_event
     ADD CONSTRAINT service_request_events_pkey PRIMARY KEY (event_id);
 
 
+CREATE TABLE public.user (
+    user_id character varying NOT NULL,
+    name character varying NOT NULL,
+    connection_type character varying NOT NULL,
+    created_at timestamp without time zone DEFAULT now()
+);
+
+ALTER TABLE public.user OWNER TO postgres;
+
+ALTER TABLE ONLY public.user
+    ADD CONSTRAINT user_pkey PRIMARY KEY (user_id);
+
 --
 -- PostgreSQL database dump complete
 --
