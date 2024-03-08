@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
@@ -42,6 +43,19 @@ type CustomClaims struct {
 
 func (c CustomClaims) Validate(ctx context.Context) error {
 	return nil
+}
+
+// HasPermission checks whether our claims have a specific permission.
+// In our case, since we are using this to check if user is admin, will be checking for approve:pipeline_step permission
+func (c CustomClaims) HasPermission(expectedPermission string) bool {
+	result := strings.Split(c.Permissions, ",")
+	for i := range result {
+		if result[i] == expectedPermission {
+			return true
+		}
+	}
+
+	return false
 }
 
 func isAuthenticated(next http.Handler) http.Handler {
