@@ -12,4 +12,7 @@ var (
 	ErrServiceRequestNotStarted       = errors.New("service request not started")
 	ErrServiceRequestAlreadyStarted   = errors.New("service request already started")
 	ErrServiceRequestAlreadyCompleted = errors.New("service request already completed")
+
+	ErrUnableToValidateJWT = errors.New("unable to validate JWT")
+	ErrUnauthorised = errors.New("user does not have required permissions")
 )
