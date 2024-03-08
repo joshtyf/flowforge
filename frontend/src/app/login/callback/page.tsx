@@ -9,7 +9,7 @@ export default function LoginCallbackPage() {
   const TIMEOUT_DURATION = 5
 
   useEffect(() => {
-    const interval = setTimeout(() => {
+    const timeout = setTimeout(() => {
       console.log("redirecting")
       router.replace("/")
     }, TIMEOUT_DURATION * 1000)
@@ -20,7 +20,7 @@ export default function LoginCallbackPage() {
     const tokenType = search.get("token_type")
     setCookie("loggedIn", "true")
 
-    return () => clearTimeout(interval)
+    return () => clearTimeout(timeout)
   }, [router])
   return <div>Successfully logged in! Redirecting in {TIMEOUT_DURATION}s</div>
 }
