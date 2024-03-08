@@ -3,12 +3,10 @@
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
-import { Calendar } from "lucide-react"
 import Link from "next/link"
-import StatusBadge from "../../../components/layouts/status-badge"
-import ServiceRequestActions from "./_components/service-request-actions"
+import StatusBadge from "@/components/layouts/status-badge"
 
-export const columns: ColumnDef<ServiceRequest>[] = [
+export const rejectedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
   {
     accessorKey: "status",
     header: "Status",
@@ -42,25 +40,16 @@ export const columns: ColumnDef<ServiceRequest>[] = [
     },
   },
   {
+    accessorKey: "created_by",
+    header: "Created By",
+  },
+  {
     accessorKey: "last_updated",
     header: "Last Updated",
     cell: ({ row }) => {
       const dateIsoString: string = row.getValue("last_updated")
       const dateObject = new Date(dateIsoString)
       return formatTimeDifference(dateObject)
-    },
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => {
-      const pipelineId: string = row.getValue("pipeline_id")
-      return (
-        <ServiceRequestActions
-          pipelineId={pipelineId}
-          onCancelRequest={(pipelineId: string) => {}}
-        />
-      )
     },
   },
 ]

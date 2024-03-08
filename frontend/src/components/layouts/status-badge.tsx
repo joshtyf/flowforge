@@ -9,6 +9,7 @@ import {
   CircleOff,
   Moon,
   XCircle,
+  XOctagon,
 } from "lucide-react"
 
 const statusBadgeVariant = cva("rounded-lg border text-sm font-medium", {
@@ -16,6 +17,7 @@ const statusBadgeVariant = cva("rounded-lg border text-sm font-medium", {
     status: {
       [ServiceRequestStatus.NOT_STARTED]: " text-slate-500 border-slate-300",
       [ServiceRequestStatus.PENDING]: "text-yellow-500 border-yellow-300",
+      [ServiceRequestStatus.REJECTED]: "text-red-800 border-yellow-800",
       [ServiceRequestStatus.RUNNING]: "text-blue-500 border-blue-300",
       [ServiceRequestStatus.SUCCESS]: "text-green-500 border-green-300",
       [ServiceRequestStatus.FAILURE]: "text-red-500 border-red-300",
@@ -37,6 +39,8 @@ const StatusIcon = ({ status }: { status: ServiceRequestStatus }) => {
       return <Moon />
     case ServiceRequestStatus.PENDING:
       return <CircleEllipsis />
+    case ServiceRequestStatus.REJECTED:
+      return <XOctagon />
     case ServiceRequestStatus.RUNNING:
       return <CircleDotDashed className="animate-spin-slow" />
     case ServiceRequestStatus.SUCCESS:

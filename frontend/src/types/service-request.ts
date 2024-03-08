@@ -12,6 +12,7 @@ type ServiceRequestForm = {
 enum ServiceRequestStatus {
   NOT_STARTED = "Not Started",
   PENDING = "Pending",
+  REJECTED = "Rejected",
   RUNNING = "Running",
   SUCCESS = "Success",
   FAILURE = "Failure",
@@ -24,6 +25,8 @@ type ServiceRequest = {
   pipeline_version: string
   status: ServiceRequestStatus
   created_on: string
+  // TODO: Make field mandatory once accounts are tag to service request
+  created_by?: string
   last_updated: string
   remarks: string
   form_data: ServiceRequestForm
