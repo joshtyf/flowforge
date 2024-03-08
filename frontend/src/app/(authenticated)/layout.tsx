@@ -3,12 +3,11 @@
 import Navbar from "@/components/layouts/navbar"
 import Sidebar from "@/components/layouts/sidebar"
 import { Toaster } from "@/components/ui/toaster"
-import React, { ReactNode, useState } from "react"
-import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-} from "@tanstack/react-query"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { useRouter } from "next/navigation"
+import { ReactNode, useEffect, useState } from "react"
+import { getCookie } from "cookies-next"
+
 interface AuthenticatedLayoutProps {
   children: ReactNode
 }
@@ -19,6 +18,14 @@ export default function AuthenticatedLayout({
   const queryClient = new QueryClient()
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+
+  const router = useRouter()
+  const isLoggedIn = getCookie("loggedIn") === "true" ? true : false
+  useEffect(() => {
+    if (!isLoggedIn) {
+      router.push("/login")
+    }
+  }, [isLoggedIn, router])
 
   const toggleSidebar = () => {
     setIsSidebarOpen((isSidebarOpen) => !isSidebarOpen)
