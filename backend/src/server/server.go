@@ -14,6 +14,11 @@ func addRoutes(r *mux.Router) {
 		panic(err)
 	}
 
+	psqlClient, err := client.GetPsqlClient()
+	if err != nil {
+		panic(err)
+	}
+
 	// Health Check
 	r.Handle("/api/healthcheck", handleHealthCheck()).Methods("GET")
 
@@ -30,6 +35,9 @@ func addRoutes(r *mux.Router) {
 	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(handleGetAllPipelines(mongoClient)))).Methods("GET")
 	r.Handle("/api/pipeline/{pipelineId}", isAuthenticated(isAuthorisedAdmin(handleGetPipeline(mongoClient)))).Methods("GET")
 	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(validateCreatePipelineRequest(handleCreatePipeline(mongoClient))))).Methods("POST").Headers("Content-Type", "application/json")
+
+	// User
+	r.Handle("api/user", isAuthenticated(handleCreateUser(psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
 }
 
 func New() http.Handler {
