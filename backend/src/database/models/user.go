@@ -5,11 +5,11 @@ import (
 )
 
 type UserModel struct {
-	Id             string              `json:"user_id"`
-	Name           string              `json:"name"`
-	ConnectionType string              `json:"connection"`
-	Organisations  []OrganisationModel `json:"organisations,omitempty"`
-	CreatedOn      time.Time           `json:"created_on"`
+	Id             string               `json:"user_id"`
+	Name           string               `json:"name"`
+	ConnectionType string               `json:"connection"`
+	Organisations  []*OrganisationModel `json:"organisations,omitempty"`
+	CreatedOn      time.Time            `json:"created_on"`
 }
 
 type OrganisationModel struct {

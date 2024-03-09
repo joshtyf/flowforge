@@ -275,6 +275,7 @@ func handleGetAllPipelines(client *mongo.Client) http.Handler {
 	})
 }
 
+// NOTE: handler and data functions used in here are subjected to change depending on if frontend is able to validate that user has been previously registered in auth0
 func handleCreateUser(client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		um, err := decode[models.UserModel](r)
@@ -290,6 +291,15 @@ func handleCreateUser(client *sql.DB) http.Handler {
 			return
 		}
 		logger.Info("[CreateUser] Successfully created user/User exists", map[string]interface{}{"user": user})
+
+		orgs, err := database.NewUser(client).GetUserOrganisations(user.Id)
+		if err != nil {
+			logger.Error("[CreateUser] Unable to retrieve user orgs", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationRetrieve, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[CreateUser] Successfully retrieved user organisations", map[string]interface{}{"orgs": orgs})
+		user.Organisations = orgs
 		encode(w, r, http.StatusCreated, user)
 	})
 }
@@ -349,5 +359,29 @@ func handleGetServiceRequestsByOrganisation(client *mongo.Client) http.Handler {
 		}
 		logger.Info("[GetAllServiceRequest] Successfully retrieved service requests", map[string]interface{}{"count": len(allsr)})
 		encode(w, r, http.StatusOK, allsr)
+	})
+}
+
+func handleGetUserById(client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		user_id := vars["userId"]
+		user, err := database.NewUser(client).GetUserById(user_id)
+		if err != nil {
+			logger.Error("[GetUserById] Unable to retrieve user", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserRetrieve, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[GetUserById] Successfully retrieved user exists", map[string]interface{}{"user": user})
+
+		orgs, err := database.NewUser(client).GetUserOrganisations(user.Id)
+		if err != nil {
+			logger.Error("[GetUserById] Unable to retrieve user orgs", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationRetrieve, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[GetUserById] Successfully retrieved user organisations", map[string]interface{}{"orgs": orgs})
+		user.Organisations = orgs
+		encode(w, r, http.StatusCreated, user)
 	})
 }
