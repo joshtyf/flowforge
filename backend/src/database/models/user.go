@@ -5,8 +5,22 @@ import (
 )
 
 type UserModel struct {
-	Id             string    `json:"user_id,omitempty"`
-	Name           string    `json:"name,omitempty"`
-	ConnectionType string    `json:"connection,omitempty"`
-	CreatedOn      time.Time `json:"created_on"`
+	Id             string              `json:"user_id"`
+	Name           string              `json:"name"`
+	ConnectionType string              `json:"connection"`
+	Organisations  []OrganisationModel `json:"organisations,omitempty"`
+	CreatedOn      time.Time           `json:"created_on"`
+}
+
+type OrganisationModel struct {
+	Id        int       `json:"org_id"`
+	Name      string    `json:"name"`
+	CreatedBy string    `json:"created_by"`
+	CreatedOn time.Time `json:"created_on"`
+}
+
+type MembershipModel struct {
+	UserId   string    `json:"user_id"`
+	OrgId    int       `json:"org_id"`
+	JoinedOn time.Time `json:"joined_on"`
 }

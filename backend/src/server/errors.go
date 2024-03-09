@@ -14,7 +14,9 @@ var (
 	ErrServiceRequestAlreadyCompleted = errors.New("service request already completed")
 
 	ErrUnableToValidateJWT = errors.New("unable to validate JWT")
-	ErrUnauthorised = errors.New("user does not have required permissions")
-	
-	ErrUserCreateFail = errors.New("failed to create user")
+	ErrUnauthorised        = errors.New("user does not have required permissions")
+
+	ErrUserCreateFail         = errors.New("failed to create user")
+	ErrOrganisationCreateFail = errors.New("failed to create organisation")
+	ErrMembershipCreateFail   = errors.New("failed to create membership")
 )

@@ -37,7 +37,9 @@ func addRoutes(r *mux.Router) {
 	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(validateCreatePipelineRequest(handleCreatePipeline(mongoClient))))).Methods("POST").Headers("Content-Type", "application/json")
 
 	// User
-	r.Handle("api/user", isAuthenticated(handleCreateUser(psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/user", isAuthenticated(handleCreateUser(psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/organisation", isAuthenticated(handleCreateOrganisation(psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/membership", isAuthenticated(handleCreateMembership(psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
 }
 
 func New() http.Handler {

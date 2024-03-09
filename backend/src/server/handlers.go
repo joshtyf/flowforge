@@ -282,14 +282,51 @@ func handleCreateUser(client *sql.DB) http.Handler {
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
-		um.CreatedOn = time.Now()
-		user, err := database.NewUser(client).Create(&um)
+		user, err := database.NewUser(client).CreateUser(&um)
 		if err != nil {
 			logger.Error("[CreateUser] Unable to create user", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusBadRequest, newHandlerError(ErrUserCreateFail, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserCreateFail, http.StatusInternalServerError))
 			return
 		}
-		logger.Info("[GetAllPipelines] Successfully created user/User exists", map[string]interface{}{"user": user})
+		logger.Info("[CreateUser] Successfully created user/User exists", map[string]interface{}{"user": user})
 		encode(w, r, http.StatusCreated, user)
+	})
+}
+
+func handleCreateOrganisation(client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		om, err := decode[models.OrganisationModel](r)
+		if err != nil {
+			logger.Error("[CreateOrganisation] Unable to parse json request body", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		org, err := database.NewUser(client).CreateOrganisation(r.Context(), &om)
+		if err != nil {
+			logger.Error("[CreateOrganisation] Unable to create organisation", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationCreateFail, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[CreateOrganisation] Successfully created organisation", map[string]interface{}{"org": org})
+		encode(w, r, http.StatusCreated, org)
+	})
+}
+
+func handleCreateMembership(client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mm, err := decode[models.MembershipModel](r)
+		if err != nil {
+			logger.Error("[CreateMembership] Unable to parse json request body", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		membership, err := database.NewUser(client).CreateMembership(&mm)
+		if err != nil {
+			logger.Error("[CreateMembership] Unable to create membership", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipCreateFail, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[CreateMembership] Successfully created membership", map[string]interface{}{"membership": membership})
+		encode(w, r, http.StatusCreated, membership)
 	})
 }

@@ -88,13 +88,15 @@ ALTER TABLE ONLY public.user
 CREATE TABLE public.organisation (
     org_id integer NOT NULL,
     name character varying NOT NULL,
+    created_by character varying NOT NULL,
     created_at timestamp without time zone DEFAULT now()
-)
+);
 
 ALTER TABLE public.organisation OWNER TO postgres;
 
 ALTER TABLE ONLY public.organisation
-    ADD CONSTRAINT organisation_pkey PRIMARY KEY (org_id);
+    ADD CONSTRAINT organisation_pkey PRIMARY KEY (org_id),
+    ADD CONSTRAINT organisation_user_fkey FOREIGN KEY (created_by) REFERENCES public.user (user_id);
 
 CREATE SEQUENCE public.organisation_org_id_seq
     AS integer
@@ -107,17 +109,21 @@ CREATE SEQUENCE public.organisation_org_id_seq
 
 ALTER SEQUENCE public.organisation_org_id_seq OWNER TO postgres;
 
+ALTER SEQUENCE public.organisation_org_id_seq OWNED BY public.organisation.org_id;
+
+ALTER TABLE ONLY public.organisation ALTER COLUMN org_id SET DEFAULT nextval('public.organisation_org_id_seq'::regclass);
+
 CREATE TABLE public.membership (
     user_id character varying NOT NULL,
     org_id integer NOT NULL,
     joined_at timestamp without time zone DEFAULT now()
-)
+);
 
 ALTER TABLE public.membership OWNER TO postgres;
 
 ALTER TABLE ONLY public.membership
-    ADD CONSTRAINT membership_fkey FOREIGN KEY (user_id) REFERENCES public.user (user_id),
-    ADD CONSTRAINT membership_fkey FOREIGN KEY (org_id) REFERENCES public.organisation (org_id);
+    ADD CONSTRAINT membership_user_fkey FOREIGN KEY (user_id) REFERENCES public.user (user_id),
+    ADD CONSTRAINT membership_org_fkey FOREIGN KEY (org_id) REFERENCES public.organisation (org_id);
 
 --
 -- PostgreSQL database dump complete
