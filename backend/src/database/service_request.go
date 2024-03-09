@@ -75,3 +75,17 @@ func (sr *ServiceRequest) UpdateStatus(id string, status models.ServiceRequestSt
 		context.Background(), bson.M{"_id": objectId}, bson.M{"$set": bson.M{"status": status}})
 	return err
 }
+
+func (sr *ServiceRequest) GetServiceRequestsByOrgId(orgId int) ([]*models.ServiceRequestModel, error) {
+	result, err := sr.c.Database(DatabaseName).Collection("service_requests").Find(context.Background(), bson.M{"org_id": orgId})
+	if err != nil {
+		return nil, err
+	}
+	srms := []*models.ServiceRequestModel{}
+	for result.Next(context.Background()) {
+		srm := &models.ServiceRequestModel{}
+		result.Decode(srm)
+		srms = append(srms, srm)
+	}
+	return srms, nil
+}

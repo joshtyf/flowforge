@@ -29,8 +29,8 @@ func (u *User) CreateUser(user *models.UserModel) (*models.UserModel, error) {
 	return user, nil
 }
 
-func (u *User) CreateOrganisation(ctx context.Context, org *models.OrganisationModel) (*models.OrganisationModel, error) {
-	tx, err := u.c.BeginTx(ctx, nil)
+func (u *User) CreateOrganisation(org *models.OrganisationModel) (*models.OrganisationModel, error) {
+	tx, err := u.c.BeginTx(context.Background(), nil)
 	if err != nil {
 		return nil, err
 	}

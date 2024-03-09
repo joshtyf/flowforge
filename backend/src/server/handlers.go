@@ -3,6 +3,7 @@ package server
 import (
 	"database/sql"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gookit/event"
@@ -301,7 +302,7 @@ func handleCreateOrganisation(client *sql.DB) http.Handler {
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
-		org, err := database.NewUser(client).CreateOrganisation(r.Context(), &om)
+		org, err := database.NewUser(client).CreateOrganisation(&om)
 		if err != nil {
 			logger.Error("[CreateOrganisation] Unable to create organisation", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationCreateFail, http.StatusInternalServerError))
@@ -328,5 +329,25 @@ func handleCreateMembership(client *sql.DB) http.Handler {
 		}
 		logger.Info("[CreateMembership] Successfully created membership", map[string]interface{}{"membership": membership})
 		encode(w, r, http.StatusCreated, membership)
+	})
+}
+
+func handleGetServiceRequestsByOrganisation(client *mongo.Client) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		orgId, err := strconv.Atoi(vars["organisationId"])
+		if err != nil {
+			logger.Error("[GetServiceRequestsByOrganisation] Error converting organisation id to int", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
+			return
+		}
+		allsr, err := database.NewServiceRequest(client).GetServiceRequestsByOrgId(orgId)
+		if err != nil {
+			logger.Error("[GetServiceRequestsByOrganisation] Error retrieving all service request", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[GetAllServiceRequest] Successfully retrieved service requests", map[string]interface{}{"count": len(allsr)})
+		encode(w, r, http.StatusOK, allsr)
 	})
 }

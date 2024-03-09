@@ -18,5 +18,6 @@ var (
 
 	ErrUserCreateFail         = errors.New("failed to create user")
 	ErrOrganisationCreateFail = errors.New("failed to create organisation")
+	ErrInvalidOrganisationId  = errors.New("invalid organisation id")
 	ErrMembershipCreateFail   = errors.New("failed to create membership")
 )
