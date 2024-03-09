@@ -74,7 +74,7 @@ ALTER TABLE ONLY public.service_request_event
 
 
 CREATE TABLE public.user (
-    user_id character varying NOT NULL,
+    user_id integer NOT NULL,
     name character varying NOT NULL,
     connection_type character varying NOT NULL,
     created_at timestamp without time zone DEFAULT now()
@@ -85,9 +85,19 @@ ALTER TABLE public.user OWNER TO postgres;
 ALTER TABLE ONLY public.user
     ADD CONSTRAINT user_pkey PRIMARY KEY (user_id);
 
+CREATE SEQUENCE public.user_user_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.user_user_id_seq OWNER TO postgres;
 
 CREATE TABLE public.organisation (
-    org_id character varying NOT NULL,
+    org_id integer NOT NULL,
     name character varying NOT NULL,
     created_at timestamp without time zone DEFAULT now()
 )
@@ -96,6 +106,17 @@ ALTER TABLE public.organisation OWNER TO postgres;
 
 ALTER TABLE ONLY public.organisation
     ADD CONSTRAINT organisation_pkey PRIMARY KEY (org_id);
+
+CREATE SEQUENCE public.organisation_org_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.organisation_org_id_seq OWNER TO postgres;
 
 CREATE TABLE public.membership (
     user_id character varying NOT NULL,
