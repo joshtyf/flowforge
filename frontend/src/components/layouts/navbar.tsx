@@ -11,7 +11,11 @@ import {
 import Link from "next/link"
 import { getAuth0LogoutLink } from "@/lib/auth0"
 
-const UserActionsDropdown = () => (
+interface UserActionsDropdownProps {
+  username: string
+}
+
+const UserActionsDropdown = ({ username }: UserActionsDropdownProps) => (
   <DropdownMenu>
     <DropdownMenuTrigger asChild>
       <Button
@@ -20,7 +24,7 @@ const UserActionsDropdown = () => (
         variant="ghost"
       >
         <LucideUser className="mr-2" />
-        <p>User</p>
+        <p>{username}</p>
         <ChevronDown className="ml-2" />
       </Button>
     </DropdownMenuTrigger>
@@ -44,9 +48,10 @@ const UserActionsDropdown = () => (
 
 interface NavbarProps {
   toggleSidebar: () => void
+  username: string
 }
 
-export default function Navbar({ toggleSidebar }: NavbarProps) {
+export default function Navbar({ toggleSidebar, username }: NavbarProps) {
   return (
     <div className="flex-col  md:flex">
       <div className="flex h-16 border-b items-center px-4">
@@ -54,7 +59,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
           <Menu />
         </Button>
         <div className="ml-auto w-1/10">
-          <UserActionsDropdown />
+          <UserActionsDropdown username={username} />
         </div>
       </div>
     </div>
