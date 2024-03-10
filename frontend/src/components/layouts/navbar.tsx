@@ -8,6 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import Link from "next/link"
+import { getAuth0LogoutLink } from "@/lib/auth0"
 
 const UserActionsDropdown = () => (
   <DropdownMenu>
@@ -25,13 +27,15 @@ const UserActionsDropdown = () => (
     <DropdownMenuContent>
       <DropdownMenuGroup>
         <DropdownMenuItem>
-          <Button
-            data-testid="logout-button"
-            className="hover:text-primary hover:bg-transparent"
-            variant="ghost"
-          >
-            <p>Logout</p>
-          </Button>
+          <Link href={getAuth0LogoutLink()}>
+            <Button
+              data-testid="logout-button"
+              className="hover:text-primary hover:bg-transparent"
+              variant="ghost"
+            >
+              <p>Logout</p>
+            </Button>
+          </Link>
         </DropdownMenuItem>
       </DropdownMenuGroup>
     </DropdownMenuContent>

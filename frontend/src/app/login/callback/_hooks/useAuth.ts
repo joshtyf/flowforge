@@ -1,18 +1,19 @@
 import { setCookie } from "cookies-next"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
-const TIMEOUT_DURATION = 5
 
 interface UseAuthenticationOptions {
-  timeout?: number
+  timeoutDuration?: number
 }
 
-const useAuthentication = ({ timeout = 5 }: UseAuthenticationOptions) => {
+const useAuthentication = ({
+  timeoutDuration = 5,
+}: UseAuthenticationOptions) => {
   const router = useRouter()
   useEffect(() => {
     const timeout = setTimeout(() => {
       router.replace("/")
-    }, TIMEOUT_DURATION * 1000)
+    }, timeoutDuration * 1000)
     const hash = window.location.hash.substring(1)
     const search = new URLSearchParams(hash)
     const accessToken = search.get("access_token")
@@ -24,7 +25,7 @@ const useAuthentication = ({ timeout = 5 }: UseAuthenticationOptions) => {
     })
 
     return () => clearTimeout(timeout)
-  }, [router])
+  }, [router, timeoutDuration])
   return {}
 }
 
