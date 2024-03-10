@@ -6,7 +6,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { getCookie } from "cookies-next"
 import { useRouter } from "next/navigation"
-import { ReactNode, useEffect, useState } from "react"
+import { ReactNode, useEffect, useMemo, useState } from "react"
 
 interface AuthenticatedLayoutProps {
   children: ReactNode
@@ -20,7 +20,10 @@ export default function AuthenticatedLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
   const router = useRouter()
-  const isLoggedIn = getCookie("loggedIn") === "true" ? true : false
+  const isLoggedIn = useMemo(
+    () => (getCookie("access_token") ? true : false),
+    []
+  )
   useEffect(() => {
     if (!isLoggedIn) {
       router.push("/login")

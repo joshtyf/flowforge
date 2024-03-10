@@ -11,15 +11,17 @@ const useAuthentication = ({ timeout = 5 }: UseAuthenticationOptions) => {
   const router = useRouter()
   useEffect(() => {
     const timeout = setTimeout(() => {
-      console.log("redirecting")
       router.replace("/")
     }, TIMEOUT_DURATION * 1000)
     const hash = window.location.hash.substring(1)
     const search = new URLSearchParams(hash)
     const accessToken = search.get("access_token")
-    const expiresIn = search.get("expires_in")
-    const tokenType = search.get("token_type")
+    // Set default to 7200 seconds (2 hours)
+    const expiresIn: string = search.get("expires_in") ?? "7200"
     setCookie("loggedIn", "true")
+    setCookie("access_token", accessToken, {
+      maxAge: Number(expiresIn),
+    })
 
     return () => clearTimeout(timeout)
   }, [router])
