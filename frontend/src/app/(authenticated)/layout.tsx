@@ -7,7 +7,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { getCookie } from "cookies-next"
 import { useRouter } from "next/navigation"
 import { ReactNode, useEffect, useMemo, useState } from "react"
-import useUserProfile from "./_hooks/use-user-profile"
+import { UserProfile } from "@/types/user-profile"
+import { getUserProfile } from "@/lib/auth0"
 
 interface AuthenticatedLayoutProps {
   children: ReactNode
@@ -20,6 +21,7 @@ export default function AuthenticatedLayout({
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [render, setRender] = useState(false)
+  const [userProfile, setUserProfile] = useState<UserProfile>({})
   const toggleSidebar = () => {
     setIsSidebarOpen((isSidebarOpen) => !isSidebarOpen)
   }
@@ -32,14 +34,16 @@ export default function AuthenticatedLayout({
     if (!isLoggedIn) {
       router.push("/login")
     } else {
+      // TODO: Extract to use context to store user profile
+      getUserProfile(getCookie("access_token") as string).then(
+        (userProfile) => {
+          setUserProfile(userProfile)
+        }
+      )
       // To resolve Hydration UI mismatch issue
       setRender(true)
     }
-  }, [isLoggedIn, router])
-
-  const { userProfile } = useUserProfile({
-    accessToken: getCookie("access_token") as string,
-  })
+  }, [isLoggedIn, router, setUserProfile])
 
   return (
     <QueryClientProvider client={queryClient}>
