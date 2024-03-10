@@ -5,15 +5,15 @@ interface LoginLayoutProps {
 }
 export default function LoginLayout({ children }: LoginLayoutProps) {
   return (
-    <div className="flex flex-col justify-center items-center">
-      <span className="my-4 flex space-x-2 items-center">
+    <div className="flex flex-col justify-center items-center min-h-[100vh]">
+      <span className="my-4 flex space-x-4 items-center">
         <img
           src={"/flowforge.png"}
           width="30"
           height="30"
           alt="flowforge icon"
         />
-        <p className="text-xl">Welcome to Flowforge</p>
+        <h1 className="text-3xl">Welcome to Flowforge</h1>
       </span>
       {children}
     </div>
