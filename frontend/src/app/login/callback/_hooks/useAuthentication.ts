@@ -1,5 +1,5 @@
 import { setCookie } from "cookies-next"
-import { useRouter } from "next/router"
+import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 const TIMEOUT_DURATION = 5
 
