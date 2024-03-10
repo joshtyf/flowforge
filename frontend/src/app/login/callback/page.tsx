@@ -1,6 +1,6 @@
 "use client"
 
-import useAuth from "./_hooks/useAuth"
+import useAuth from "./_hooks/use-auth"
 
 export default function LoginCallbackPage() {
   const TIMEOUT_DURATION = 5
