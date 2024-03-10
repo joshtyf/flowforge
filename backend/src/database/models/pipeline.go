@@ -6,6 +6,28 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type FormFieldType string
+
+const (
+	TextField     FormFieldType = "TEXT"
+	DropdownField FormFieldType = "DROPDOWN"
+	OptionField   FormFieldType = "OPTION"
+	CheckboxField FormFieldType = "CHECKBOX"
+)
+
+type FormField struct {
+	Name        string        `bson:"name" json:"name"`
+	Type        FormFieldType `bson:"type" json:"type"`
+	IsRequired  bool          `bson:"is_required" json:"is_required"`
+	Placeholder string        `bson:"placeholder" json:"placeholder"`
+	Description string        `bson:"description" json:"description"`
+	Values      []string      `bson:"values" json:"values"`
+}
+
+type Form struct {
+	Fields []FormField `bson:"fields" json:"fields"`
+}
+
 type PipelineStepType string
 
 const (
@@ -41,6 +63,7 @@ type PipelineModel struct {
 	FirstStepName string              `bson:"first_step_name" json:"first_step_name"`
 	Steps         []PipelineStepModel `bson:"steps" json:"steps"`
 	CreatedOn     time.Time           `bson:"created_on" json:"created_on"`
+	Form          Form                `bson:"form" json:"form"`
 }
 
 func (p *PipelineModel) GetPipelineStep(name string) *PipelineStepModel {

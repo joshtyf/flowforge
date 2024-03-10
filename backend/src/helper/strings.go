@@ -31,3 +31,12 @@ func StringSliceEqual(a, b []string) bool {
 
 	return true
 }
+
+func StringInSlice(s string, sl []string) bool {
+	for _, v := range sl {
+		if v == s {
+			return true
+		}
+	}
+	return false
+}
