@@ -25,6 +25,15 @@ services:
       - POSTGRES_URI=${POSTGRES_URI}
       - AUTH0_DOMAIN=${AUTH0_DOMAIN}
       - AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/healthcheck"]
+      interval: 5s
+      retries: 3
 
   postgres:
     profiles:
@@ -40,6 +49,10 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_USER=postgres
       - POSTGRES_DB=flowforge_db
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      retries: 3
 
   mongo:
     profiles:
@@ -53,6 +66,10 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
       - MONGO_INITDB_DATABASE=flowforge_db
+    healthcheck:
+      test: ["CMD", "mongosh", "-u", "root", "-p", "${MONGO_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping')", "--quiet"]
+      interval: 5s
+      retries: 3
 
   mongo_seed:
     profiles:
