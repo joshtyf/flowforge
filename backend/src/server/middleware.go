@@ -59,6 +59,12 @@ func (c CustomClaims) HasPermission(expectedPermission string) bool {
 }
 
 func isAuthenticated(next http.Handler) http.Handler {
+	// TODO: implement a proper flag pattern
+	env := os.Getenv("ENV")
+	if env == "dev" {
+		logger.Info("[Authentication] Skipping authentication in dev environment", nil)
+		return next
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		issuerURL, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/")
 		if err != nil {
@@ -103,6 +109,11 @@ func isAuthenticated(next http.Handler) http.Handler {
 
 // TODO: To be tested once frontend is ready
 func isAuthorisedAdmin(next http.Handler) http.Handler {
+	env := os.Getenv("ENV")
+	if env == "dev" {
+		logger.Info("[Authorization] Skipping admin check in dev environment", nil)
+		return next
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 		claims := token.CustomClaims.(*CustomClaims)
