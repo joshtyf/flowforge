@@ -12,39 +12,78 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
+import { formatDateString, formatTimeDifference } from "@/lib/utils"
+import Link from "next/link"
 
 interface ServiceRequestDetailsProps {
   serviceRequest: ServiceRequest
 }
 
 function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
+  const {
+    pipeline_id: pipelineId,
+    pipeline_version: pipelineVersion,
+    created_by: createdBy = "",
+    created_on: createdOn = "",
+    last_updated: lastUpdated = "",
+    remarks,
+    steps,
+  } = serviceRequest
   return (
-    <div className="flex w-full h-full justify-center items-center">
-      Service Request Details
+    <div className="grid grid-cols-2 gap-4">
+      <div className="col-span-2">
+        <Label className="text-muted-foreground">Pipeline Id</Label>
+        <Link
+          href={`/service-catalog/${pipelineId}`}
+          className="hover:underline hover:text-blue-500"
+        >
+          <p>{pipelineId}</p>
+        </Link>
+      </div>
+      <div>
+        <Label className="text-muted-foreground">Pipeline Version</Label>
+        <p>{[pipelineVersion]}</p>
+      </div>
+      <div>
+        <Label className="text-muted-foreground">Created By</Label>
+        <p>{createdBy}</p>
+      </div>
+      <div>
+        <Label className="text-muted-foreground">Created on</Label>
+        <p>{formatDateString(new Date(createdOn))}</p>
+      </div>
+      <div>
+        <Label className="text-muted-foreground">Last Updated</Label>
+        <p>{formatTimeDifference(new Date(lastUpdated))}</p>
+      </div>
+      <div className="col-span-2">
+        <Label className="text-muted-foreground">Remarks</Label>
+        <p>{remarks}</p>
+      </div>
+      <div className="col-span-2">
+        <Label className="text-muted-foreground">Steps</Label>
+      </div>
     </div>
   )
 }
 
 interface ServiceRequestDetailsDialogProps {
   serviceRequest: ServiceRequest
-  children: React.ReactNode
+  //   children: React.ReactNode
+  open: boolean
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export default function ServiceRequestDetailsDialog({
   serviceRequest,
-  children,
+  open,
+  setOpen,
 }: ServiceRequestDetailsDialogProps) {
-  const [open, setOpen] = useState(false)
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{`${serviceRequest.form_data.name} Details`}</DialogTitle>
-          <DialogDescription>
-            More details regarding Service Request
-          </DialogDescription>
         </DialogHeader>
         <ServiceRequestDetails serviceRequest={serviceRequest} />
       </DialogContent>

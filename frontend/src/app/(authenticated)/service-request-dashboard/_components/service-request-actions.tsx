@@ -19,6 +19,8 @@ export default function ServiceRequestActions({
   serviceRequest,
   onCancelRequest,
 }: ServiceRequestActionsProps) {
+  const [openDialog, setOpenDialog] = useState(false)
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -28,16 +30,13 @@ export default function ServiceRequestActions({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         {/* TODO: Add more actions for requests*/}
-        <ServiceRequestDetailsDialog serviceRequest={serviceRequest}>
-          <DropdownMenuItem
-            onSelect={(event) => {
-              // Prevent default to allow for persistent dialog
-              event.preventDefault()
-            }}
-          >
-            <Button variant="ghost">View Details</Button>
-          </DropdownMenuItem>
-        </ServiceRequestDetailsDialog>
+        <DropdownMenuItem
+          onClick={(event) => {
+            setOpenDialog(true)
+          }}
+        >
+          <Button variant="ghost">View Details</Button>
+        </DropdownMenuItem>
 
         <DropdownMenuItem>
           {/* TODO: Add on click logic*/}
@@ -49,6 +48,11 @@ export default function ServiceRequestActions({
           </Button>
         </DropdownMenuItem>
       </DropdownMenuContent>
+      <ServiceRequestDetailsDialog
+        open={openDialog}
+        setOpen={setOpenDialog}
+        serviceRequest={serviceRequest}
+      />
     </DropdownMenu>
   )
 }
