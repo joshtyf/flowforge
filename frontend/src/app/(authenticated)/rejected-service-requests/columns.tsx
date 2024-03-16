@@ -1,10 +1,10 @@
 "use client"
 
+import { StatusBadge } from "@/components/layouts/status-badge"
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
-import StatusBadge from "@/components/layouts/status-badge"
 
 export const rejectedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
   {

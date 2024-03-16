@@ -4,8 +4,8 @@ import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
-import StatusBadge from "../../../components/layouts/status-badge"
 import ServiceRequestActions from "./_components/service-request-actions"
+import { StatusBadge } from "@/components/layouts/status-badge"
 
 export const columns: ColumnDef<ServiceRequest>[] = [
   {

@@ -20,6 +20,7 @@ const statusBadgeVariant = cva("rounded-lg border text-sm font-medium", {
       [ServiceRequestStatus.REJECTED]: "text-red-800 border-yellow-800",
       [ServiceRequestStatus.RUNNING]: "text-blue-500 border-blue-300",
       [ServiceRequestStatus.SUCCESS]: "text-green-500 border-green-300",
+      [ServiceRequestStatus.COMPLETED]: "text-green-500 border-green-300",
       [ServiceRequestStatus.FAILURE]: "text-red-500 border-red-300",
       [ServiceRequestStatus.CANCELLED]: "text-orange-500 border-orange-300",
     },
@@ -33,7 +34,7 @@ type StatusBadgeProps = {
   status: ServiceRequestStatus
 }
 
-const StatusIcon = ({ status }: { status: ServiceRequestStatus }) => {
+export const StatusIcon = ({ status }: { status: ServiceRequestStatus }) => {
   switch (status) {
     case ServiceRequestStatus.NOT_STARTED:
       return <Moon />
@@ -44,6 +45,7 @@ const StatusIcon = ({ status }: { status: ServiceRequestStatus }) => {
     case ServiceRequestStatus.RUNNING:
       return <CircleDotDashed className="animate-spin-slow" />
     case ServiceRequestStatus.SUCCESS:
+    case ServiceRequestStatus.COMPLETED:
       return <CheckCircle2 />
     case ServiceRequestStatus.FAILURE:
       return <AlertCircle />
@@ -54,7 +56,7 @@ const StatusIcon = ({ status }: { status: ServiceRequestStatus }) => {
   }
 }
 
-export default function StatusBadge({ status }: StatusBadgeProps) {
+export function StatusBadge({ status }: StatusBadgeProps) {
   return (
     <div
       className={cn(
