@@ -26,13 +26,6 @@ func (u *User) CreateUser(user *models.UserModel) (*models.UserModel, error) {
 	return user, nil
 }
 
-func (u *User) CreateMembership(membership *models.MembershipModel) (*models.MembershipModel, error) {
-	if err := u.c.QueryRow(CreateMembershipStatement, membership.UserId, membership.OrgId).Scan(&membership.JoinedOn); err != nil {
-		return nil, err
-	}
-	return membership, nil
-}
-
 func (u *User) GetUserById(user_id string) (*models.UserModel, error) {
 	um := &models.UserModel{}
 	if err := u.c.QueryRow(SelectUserByIdStatement, user_id).Scan(&um.Id, &um.Name, &um.ConnectionType, &um.CreatedOn); err != nil {

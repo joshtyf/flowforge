@@ -11,9 +11,3 @@ type UserModel struct {
 	Organisations  []*OrganisationModel `json:"organisations,omitempty"`
 	CreatedOn      time.Time            `json:"created_on"`
 }
-
-type MembershipModel struct {
-	UserId   string    `json:"user_id"`
-	OrgId    int       `json:"org_id"`
-	JoinedOn time.Time `json:"joined_on"`
-}

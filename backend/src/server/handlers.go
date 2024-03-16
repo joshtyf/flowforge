@@ -331,7 +331,7 @@ func handleCreateMembership(client *sql.DB) http.Handler {
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
-		membership, err := database.NewUser(client).CreateMembership(&mm)
+		membership, err := database.NewMembership(client).Create(&mm)
 		if err != nil {
 			logger.Error("[CreateMembership] Unable to create membership", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipCreateFail, http.StatusInternalServerError))
