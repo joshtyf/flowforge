@@ -3,10 +3,8 @@ package database
 import (
 	"context"
 	"database/sql"
-	"errors"
 
 	"github.com/joshtyf/flowforge/src/database/models"
-	"github.com/joshtyf/flowforge/src/logger"
 )
 
 type User struct {
@@ -15,13 +13,6 @@ type User struct {
 
 func NewUser(c *sql.DB) *User {
 	return &User{c: c}
-}
-
-func txnRollback(tx *sql.Tx) {
-	err := tx.Rollback()
-	if !errors.Is(err, sql.ErrTxDone) {
-		logger.Error("[Rollback] Error on rollback", map[string]interface{}{"err": err})
-	}
 }
 
 func (u *User) CreateUser(user *models.UserModel) (*models.UserModel, error) {

@@ -1,5 +1,12 @@
 package database
 
+import (
+	"database/sql"
+	"errors"
+
+	"github.com/joshtyf/flowforge/src/logger"
+)
+
 var (
 
 	// User
@@ -25,3 +32,10 @@ var (
 	CreateMembershipStatement = `INSERT INTO public."membership" (user_id, org_id) 
 								  VALUES ($1, $2) RETURNING joined_at`
 )
+
+func txnRollback(tx *sql.Tx) {
+	err := tx.Rollback()
+	if !errors.Is(err, sql.ErrTxDone) {
+		logger.Error("[Rollback] Error on rollback", map[string]interface{}{"err": err})
+	}
+}
