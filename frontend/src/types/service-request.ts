@@ -17,11 +17,12 @@ enum ServiceRequestStatus {
   SUCCESS = "Success",
   FAILURE = "Failure",
   CANCELLED = "Canceled",
+  COMPLETED = "Completed",
 }
 
 type ServiceRequestStep = {
   name: string
-  type: string
+  type?: string
   next?: string
   start?: boolean
   end?: boolean
@@ -39,11 +40,10 @@ type ServiceRequest = {
   last_updated: string
   remarks: string
   form_data: ServiceRequestForm
-  steps?: {
-    [key: string]: ServiceRequestStep
-  }
+  steps?: ServiceRequestStep[]
+  currentStep?: ServiceRequestStep
 }
 
-export type { ServiceRequestForm, ServiceRequest }
+export type { ServiceRequestForm, ServiceRequestStep, ServiceRequest }
 
 export { ServiceRequestStatus }

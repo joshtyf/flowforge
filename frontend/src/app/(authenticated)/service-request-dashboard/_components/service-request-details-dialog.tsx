@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import Link from "next/link"
+import Stepper from "./stepper"
 
 interface ServiceRequestDetailsProps {
   serviceRequest: ServiceRequest
@@ -62,6 +63,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
       </div>
       <div className="col-span-2">
         <Label className="text-muted-foreground">Steps</Label>
+        <Stepper steps={steps} />
       </div>
     </div>
   )
