@@ -5,15 +5,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { ServiceRequest } from "@/types/service-request"
 import { MoreHorizontal } from "lucide-react"
+import ServiceRequestDetailsDialog from "./service-request-details-dialog"
+import { useState } from "react"
 
 interface ServiceRequestActionsProps {
-  pipelineId: string
+  serviceRequest: ServiceRequest
   onCancelRequest: (pipelineId: string) => void
 }
 
 export default function ServiceRequestActions({
-  pipelineId,
+  serviceRequest,
   onCancelRequest,
 }: ServiceRequestActionsProps) {
   return (
@@ -25,13 +28,23 @@ export default function ServiceRequestActions({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         {/* TODO: Add more actions for requests*/}
-        <DropdownMenuItem>
-          {/* TODO: Add modal open on click*/}
-          <Button variant="ghost">View Details</Button>
-        </DropdownMenuItem>
+        <ServiceRequestDetailsDialog serviceRequest={serviceRequest}>
+          <DropdownMenuItem
+            onSelect={(event) => {
+              // Prevent default to allow for persistent dialog
+              event.preventDefault()
+            }}
+          >
+            <Button variant="ghost">View Details</Button>
+          </DropdownMenuItem>
+        </ServiceRequestDetailsDialog>
+
         <DropdownMenuItem>
           {/* TODO: Add on click logic*/}
-          <Button variant="ghost" onClick={() => onCancelRequest(pipelineId)}>
+          <Button
+            variant="ghost"
+            onClick={() => onCancelRequest(serviceRequest.pipeline_id)}
+          >
             Cancel Request
           </Button>
         </DropdownMenuItem>

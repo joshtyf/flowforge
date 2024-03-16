@@ -3,7 +3,6 @@
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
-import { Calendar } from "lucide-react"
 import Link from "next/link"
 import StatusBadge from "../../../components/layouts/status-badge"
 import ServiceRequestActions from "./_components/service-request-actions"
@@ -54,10 +53,10 @@ export const columns: ColumnDef<ServiceRequest>[] = [
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
-      const pipelineId: string = row.getValue("pipeline_id")
+      const serviceRequest: ServiceRequest = row.original
       return (
         <ServiceRequestActions
-          pipelineId={pipelineId}
+          serviceRequest={serviceRequest}
           onCancelRequest={(pipelineId: string) => {}}
         />
       )

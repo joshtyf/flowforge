@@ -19,6 +19,15 @@ enum ServiceRequestStatus {
   CANCELLED = "Canceled",
 }
 
+type ServiceRequestStep = {
+  name: string
+  type: string
+  next?: string
+  start?: boolean
+  end?: boolean
+  status: ServiceRequestStatus
+}
+
 type ServiceRequest = {
   id: string
   pipeline_id: string
@@ -30,6 +39,9 @@ type ServiceRequest = {
   last_updated: string
   remarks: string
   form_data: ServiceRequestForm
+  steps?: {
+    [key: string]: ServiceRequestStep
+  }
 }
 
 export type { ServiceRequestForm, ServiceRequest }
