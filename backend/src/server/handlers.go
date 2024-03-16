@@ -50,18 +50,45 @@ func handleGetAllServiceRequest(client *mongo.Client) http.Handler {
 	})
 }
 
-func handleGetServiceRequest(client *mongo.Client) http.Handler {
+func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
+	type ResponseBodySteps struct {
+		Name      string           `json:"name"`
+		Status    models.EventType `json:"status"`
+		UpdatedAt time.Time        `json:"updated_at"`
+	}
+	type ResponseBody struct {
+		ServiceRequest *models.ServiceRequestModel `json:"service_request"`
+		Steps          []ResponseBodySteps         `json:"steps"`
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		requestId := vars["requestId"]
-		sr, err := database.NewServiceRequest(client).GetById(requestId)
+		sr, err := database.NewServiceRequest(mongoClient).GetById(requestId)
 		if err != nil {
 			logger.Error("[GetServiceRequest] Unable to retrieve service request", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		logger.Info("[GetServiceRequest] Successfully retrieved service request", map[string]interface{}{"sr": sr})
-		encode(w, r, http.StatusOK, sr)
+		sre, err := database.NewServiceRequestEvent(psqlClient).GetStepsLatestEvent(requestId)
+		if err != nil {
+			logger.Error("[GetServiceRequest] Unable to retrieve latest service request events", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		steps := make([]ResponseBodySteps, 0, len(sre))
+		for _, event := range sre {
+			steps = append(steps, ResponseBodySteps{
+				Name:      event.StepName,
+				Status:    event.EventType,
+				UpdatedAt: event.CreatedAt,
+			})
+		}
+		response := ResponseBody{
+			ServiceRequest: sr,
+			Steps:          steps,
+		}
+		logger.Info("[GetServiceRequest] Successfully retrieved service request", map[string]interface{}{"response": response})
+		encode(w, r, http.StatusOK, response)
 	})
 }
 
