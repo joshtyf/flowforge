@@ -8,6 +8,7 @@ var (
 	ErrJsonParseError      = errors.New("unable to parse json request body")
 
 	ErrPipelineCreateFail = errors.New("failed to create pipeline")
+	ErrInvalidPipelineId  = errors.New("invalid pipeline id")
 
 	ErrServiceRequestNotStarted       = errors.New("service request not started")
 	ErrServiceRequestAlreadyStarted   = errors.New("service request already started")
