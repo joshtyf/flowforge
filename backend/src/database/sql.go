@@ -17,7 +17,7 @@ var (
 								FROM public."user" 
 								WHERE user_id = $1`
 
-	CheckUserExistsStatement = `SELECT created_at 
+	CheckUserExistsStatement = `SELECT * 
 								FROM public."user" 
 								WHERE user_id = $1`
 

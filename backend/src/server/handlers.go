@@ -276,31 +276,32 @@ func handleGetAllPipelines(client *mongo.Client) http.Handler {
 }
 
 // NOTE: handler and data functions used in here are subjected to change depending on if frontend is able to validate that user has been previously registered in auth0
-func handleCreateUser(client *sql.DB) http.Handler {
+func handleUserLogin(client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		um, err := decode[models.UserModel](r)
 		if err != nil {
-			logger.Error("[CreateUser] Unable to parse json request body", map[string]interface{}{"err": err})
+			logger.Error("[UserLogin] Unable to parse json request body", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
-		user, err := database.NewUser(client).CreateUser(&um)
-		if err != nil {
-			logger.Error("[CreateUser] Unable to create user", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserCreateFail, http.StatusInternalServerError))
+		_, err = database.NewUser(client).GetUserById(um.Id)
+		if err != nil && err != sql.ErrNoRows {
+			logger.Error("[UserLogin] Error querying user table using user_id", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
+		} else if err == sql.ErrNoRows {
+			user, err := database.NewUser(client).CreateUser(&um)
+			if err != nil {
+				logger.Error("[UserLogin] Unable to create user", map[string]interface{}{"err": err})
+				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserCreateFail, http.StatusInternalServerError))
+				return
+			}
+			logger.Info("[UserLogin] Successfully created user", map[string]interface{}{"user": user})
+			logger.Info("[UserLogin] Successfully logged in user", nil)
+			encode[any](w, r, http.StatusCreated, nil)
 		}
-		logger.Info("[CreateUser] Successfully created user/User exists", map[string]interface{}{"user": user})
-
-		orgs, err := database.NewOrganization(client).GetAllOrgsById(user.Id)
-		if err != nil {
-			logger.Error("[CreateUser] Unable to retrieve user orgs", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationRetrieve, http.StatusInternalServerError))
-			return
-		}
-		logger.Info("[CreateUser] Successfully retrieved user organisations", map[string]interface{}{"orgs": orgs})
-		user.Organisations = orgs
-		encode(w, r, http.StatusCreated, user)
+		logger.Info("[UserLogin] Successfully logged in user", nil)
+		encode[any](w, r, http.StatusOK, nil)
 	})
 }
 

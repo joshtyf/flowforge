@@ -15,13 +15,8 @@ func NewUser(c *sql.DB) *User {
 }
 
 func (u *User) CreateUser(user *models.UserModel) (*models.UserModel, error) {
-	err := u.c.QueryRow(CheckUserExistsStatement, user.Id).Scan(&user.CreatedOn)
-	if err != nil && err != sql.ErrNoRows {
+	if err := u.c.QueryRow(CreateUserStatement, user.Id, user.Name, user.ConnectionType).Scan(&user.CreatedOn); err != nil {
 		return nil, err
-	} else if err == sql.ErrNoRows {
-		if err = u.c.QueryRow(CreateUserStatement, user.Id, user.Name, user.ConnectionType).Scan(&user.CreatedOn); err != nil {
-			return nil, err
-		}
 	}
 	return user, nil
 }
