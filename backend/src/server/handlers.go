@@ -292,7 +292,7 @@ func handleCreateUser(client *sql.DB) http.Handler {
 		}
 		logger.Info("[CreateUser] Successfully created user/User exists", map[string]interface{}{"user": user})
 
-		orgs, err := database.NewUser(client).GetUserOrganisations(user.Id)
+		orgs, err := database.NewOrganization(client).GetAllOrgsById(user.Id)
 		if err != nil {
 			logger.Error("[CreateUser] Unable to retrieve user orgs", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationRetrieve, http.StatusInternalServerError))
@@ -312,7 +312,7 @@ func handleCreateOrganisation(client *sql.DB) http.Handler {
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
-		org, err := database.NewUser(client).CreateOrganisation(&om)
+		org, err := database.NewOrganization(client).Create(&om)
 		if err != nil {
 			logger.Error("[CreateOrganisation] Unable to create organisation", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationCreateFail, http.StatusInternalServerError))
@@ -374,7 +374,7 @@ func handleGetUserById(client *sql.DB) http.Handler {
 		}
 		logger.Info("[GetUserById] Successfully retrieved user exists", map[string]interface{}{"user": user})
 
-		orgs, err := database.NewUser(client).GetUserOrganisations(user.Id)
+		orgs, err := database.NewOrganization(client).GetAllOrgsById(user.Id)
 		if err != nil {
 			logger.Error("[GetUserById] Unable to retrieve user orgs", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationRetrieve, http.StatusInternalServerError))

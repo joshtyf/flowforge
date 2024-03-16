@@ -22,10 +22,10 @@ var (
 								WHERE user_id = $1`
 
 	// Organisation
-	CreateOrganisationStatement = `INSERT INTO public."organisation" (name, owner) 
+	CreateOrganizationStatement = `INSERT INTO public."organization" (name, owner) 
 									VALUES ($1, $2) RETURNING org_id`
 
-	SelectOrganisationsStatement = `SELECT o.* FROM public."organisation" o
+	SelectOrganizationsStatement = `SELECT o.* FROM public."organization" o
 									INNER JOIN public."membership" m
 									ON o.org_id = m.org_id
 									WHERE user_id = $1`
