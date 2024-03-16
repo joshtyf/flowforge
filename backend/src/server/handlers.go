@@ -92,7 +92,7 @@ func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http
 	})
 }
 
-func handleCreateServiceRequest(client *mongo.Client, psqlClient *sql.DB) http.Handler {
+func handleCreateServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srm, err := decode[models.ServiceRequestModel](r)
 		if err != nil {
@@ -101,7 +101,7 @@ func handleCreateServiceRequest(client *mongo.Client, psqlClient *sql.DB) http.H
 			return
 		}
 
-		pipeline, err := database.NewPipeline(client).GetById(srm.PipelineId)
+		pipeline, err := database.NewPipeline(mongoClient).GetById(srm.PipelineId)
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			logger.Error("[CreateServiceRequest] Invalid pipeline id, no matching pipeline found", map[string]interface{}{"pipelineId": srm.PipelineId})
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidPipelineId, http.StatusBadRequest))
@@ -116,7 +116,7 @@ func handleCreateServiceRequest(client *mongo.Client, psqlClient *sql.DB) http.H
 		srm.LastUpdated = time.Now()
 		srm.Status = models.NotStarted
 
-		res, err := database.NewServiceRequest(client).Create(&srm)
+		res, err := database.NewServiceRequest(mongoClient).Create(&srm)
 		if err != nil {
 			logger.Error("[CreateServiceRequest] Error creating service request", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
