@@ -15,7 +15,7 @@ type UserModel struct {
 type OrganisationModel struct {
 	Id        int       `json:"org_id"`
 	Name      string    `json:"name"`
-	CreatedBy string    `json:"created_by"`
+	Owner     string    `json:"owner"`
 	CreatedOn time.Time `json:"created_on"`
 }
 

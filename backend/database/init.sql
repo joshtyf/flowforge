@@ -88,7 +88,7 @@ ALTER TABLE ONLY public.user
 CREATE TABLE public.organisation (
     org_id integer NOT NULL,
     name character varying NOT NULL,
-    created_by character varying NOT NULL,
+    owner character varying NOT NULL,
     created_at timestamp without time zone DEFAULT now()
 );
 
@@ -96,7 +96,7 @@ ALTER TABLE public.organisation OWNER TO postgres;
 
 ALTER TABLE ONLY public.organisation
     ADD CONSTRAINT organisation_pkey PRIMARY KEY (org_id),
-    ADD CONSTRAINT organisation_user_fkey FOREIGN KEY (created_by) REFERENCES public.user (user_id);
+    ADD CONSTRAINT organisation_user_fkey FOREIGN KEY (owner) REFERENCES public.user (user_id);
 
 CREATE SEQUENCE public.organisation_org_id_seq
     AS integer
