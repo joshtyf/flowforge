@@ -38,7 +38,7 @@ func (u *Organization) Create(org *models.OrganisationModel) (*models.Organisati
 	return org, nil
 }
 
-func (u *Organization) GetAllOrgsById(user_id string) ([]*models.OrganisationModel, error) {
+func (u *Organization) GetAllOrgsByUserId(user_id string) ([]*models.OrganisationModel, error) {
 	rows, err := u.c.Query(SelectOrganizationsStatement, user_id)
 	if err != nil {
 		return nil, err

@@ -375,7 +375,7 @@ func handleGetUserById(client *sql.DB) http.Handler {
 		}
 		logger.Info("[GetUserById] Successfully retrieved user exists", map[string]interface{}{"user": user})
 
-		orgs, err := database.NewOrganization(client).GetAllOrgsById(user.Id)
+		orgs, err := database.NewOrganization(client).GetAllOrgsByUserId(user.Id)
 		if err != nil {
 			logger.Error("[GetUserById] Unable to retrieve user orgs", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationRetrieve, http.StatusInternalServerError))
