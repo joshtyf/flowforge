@@ -23,11 +23,11 @@ func (u *Organization) Create(org *models.OrganisationModel) (*models.Organisati
 
 	defer txnRollback(tx)
 
-	if err := tx.QueryRow(CreateOrganizationStatement, org.Name, org.Owner).Scan(&org.Id, &org.CreatedOn); err != nil {
+	if err := tx.QueryRow(CreateOrganizationStatement, org.Name, org.Owner).Scan(&org.OrgId, &org.CreatedOn); err != nil {
 		return nil, err
 	}
 
-	if _, err := tx.Exec(CreateMembershipStatement, org.Owner, org.Id); err != nil {
+	if _, err := tx.Exec(CreateMembershipStatement, org.Owner, org.OrgId); err != nil {
 		return nil, err
 	}
 
@@ -48,7 +48,7 @@ func (u *Organization) GetAllOrgsByUserId(user_id string) ([]*models.Organisatio
 	oms := []*models.OrganisationModel{}
 	for rows.Next() {
 		om := &models.OrganisationModel{}
-		if err := rows.Scan(&om.Id, &om.Name, &om.Owner, &om.CreatedOn); err != nil {
+		if err := rows.Scan(&om.OrgId, &om.Name, &om.Owner, &om.CreatedOn); err != nil {
 			return nil, err
 		}
 		oms = append(oms, om)

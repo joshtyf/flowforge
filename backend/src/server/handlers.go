@@ -284,7 +284,7 @@ func handleUserLogin(client *sql.DB) http.Handler {
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
-		_, err = database.NewUser(client).GetUserById(um.Id)
+		_, err = database.NewUser(client).GetUserById(um.UserId)
 		if err != nil && err != sql.ErrNoRows {
 			logger.Error("[UserLogin] Error querying user table using user_id", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
@@ -375,7 +375,7 @@ func handleGetUserById(client *sql.DB) http.Handler {
 		}
 		logger.Info("[GetUserById] Successfully retrieved user exists", map[string]interface{}{"user": user})
 
-		orgs, err := database.NewOrganization(client).GetAllOrgsByUserId(user.Id)
+		orgs, err := database.NewOrganization(client).GetAllOrgsByUserId(user.UserId)
 		if err != nil {
 			logger.Error("[GetUserById] Unable to retrieve user orgs", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationRetrieve, http.StatusInternalServerError))
