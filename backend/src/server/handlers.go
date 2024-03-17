@@ -1,7 +1,10 @@
 package server
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gookit/event"
@@ -271,5 +274,117 @@ func handleGetAllPipelines(client *mongo.Client) http.Handler {
 		}
 		logger.Info("[GetAllPipelines] Successfully retrieved pipelines", map[string]interface{}{"count": len(pipelines)})
 		encode(w, r, http.StatusOK, pipelines)
+	})
+}
+
+// NOTE: handler and data functions used in here are subjected to change depending on if frontend is able to validate that user has been previously registered in auth0
+func handleUserLogin(client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		um, err := decode[models.UserModel](r)
+		if err != nil {
+			logger.Error("[UserLogin] Unable to parse json request body", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		_, err = database.NewUser(client).GetUserById(um.UserId)
+		if errors.Is(err, sql.ErrNoRows) {
+			user, err := database.NewUser(client).CreateUser(&um)
+			if err != nil {
+				logger.Error("[UserLogin] Unable to create user", map[string]interface{}{"err": err})
+				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserCreateFail, http.StatusInternalServerError))
+				return
+			}
+			logger.Info("[UserLogin] Successfully created user", map[string]interface{}{"user": user})
+			encode[any](w, r, http.StatusCreated, nil)
+			return
+		} else if err != nil {
+			logger.Error("[UserLogin] Error querying user table using user_id", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[UserLogin] Successfully logged in user", nil)
+		encode[any](w, r, http.StatusOK, nil)
+	})
+}
+
+func handleCreateOrganisation(client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		om, err := decode[models.OrganisationModel](r)
+		if err != nil {
+			logger.Error("[CreateOrganisation] Unable to parse json request body", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		org, err := database.NewOrganization(client).Create(&om)
+		if err != nil {
+			logger.Error("[CreateOrganisation] Unable to create organisation", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationCreateFail, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[CreateOrganisation] Successfully created organisation", map[string]interface{}{"org": org})
+		encode(w, r, http.StatusCreated, org)
+	})
+}
+
+func handleCreateMembership(client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mm, err := decode[models.MembershipModel](r)
+		if err != nil {
+			logger.Error("[CreateMembership] Unable to parse json request body", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		membership, err := database.NewMembership(client).Create(&mm)
+		if err != nil {
+			logger.Error("[CreateMembership] Unable to create membership", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipCreateFail, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[CreateMembership] Successfully created membership", map[string]interface{}{"membership": membership})
+		encode(w, r, http.StatusCreated, membership)
+	})
+}
+
+func handleGetServiceRequestsByOrganisation(client *mongo.Client) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		orgId, err := strconv.Atoi(vars["organisationId"])
+		if err != nil {
+			logger.Error("[GetServiceRequestsByOrganisation] Error converting organisation id to int", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
+			return
+		}
+		allsr, err := database.NewServiceRequest(client).GetServiceRequestsByOrgId(orgId)
+		if err != nil {
+			logger.Error("[GetServiceRequestsByOrganisation] Error retrieving all service request", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[GetAllServiceRequest] Successfully retrieved service requests", map[string]interface{}{"count": len(allsr)})
+		encode(w, r, http.StatusOK, allsr)
+	})
+}
+
+func handleGetUserById(client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		user_id := vars["userId"]
+		user, err := database.NewUser(client).GetUserById(user_id)
+		if err != nil {
+			logger.Error("[GetUserById] Unable to retrieve user", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserRetrieve, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[GetUserById] Successfully retrieved user exists", map[string]interface{}{"user": user})
+
+		orgs, err := database.NewOrganization(client).GetAllOrgsByUserId(user.UserId)
+		if err != nil {
+			logger.Error("[GetUserById] Unable to retrieve user orgs", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationRetrieve, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[GetUserById] Successfully retrieved user organisations", map[string]interface{}{"orgs": orgs})
+		user.Organisations = orgs
+		encode(w, r, http.StatusCreated, user)
 	})
 }

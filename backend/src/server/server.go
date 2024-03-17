@@ -14,11 +14,17 @@ func addRoutes(r *mux.Router) {
 		panic(err)
 	}
 
+	psqlClient, err := client.GetPsqlClient()
+	if err != nil {
+		panic(err)
+	}
+
 	// Health Check
 	r.Handle("/api/healthcheck", handleHealthCheck()).Methods("GET")
 
 	// Service Request
 	r.Handle("/api/service_request", isAuthenticated(handleGetAllServiceRequest(mongoClient))).Methods("GET")
+	r.Handle("/api/service_request/{organisationId}", isAuthenticated(handleGetServiceRequestsByOrganisation(mongoClient))).Methods("GET")
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(handleGetServiceRequest(mongoClient))).Methods("GET")
 	r.Handle("/api/service_request", isAuthenticated(handleCreateServiceRequest(mongoClient))).Methods("POST").Headers("Content-Type", "application/json")
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(handleUpdateServiceRequest(mongoClient))).Methods("PATCH").Headers("Content-Type", "application/json")
@@ -30,6 +36,12 @@ func addRoutes(r *mux.Router) {
 	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(handleGetAllPipelines(mongoClient)))).Methods("GET")
 	r.Handle("/api/pipeline/{pipelineId}", isAuthenticated(isAuthorisedAdmin(handleGetPipeline(mongoClient)))).Methods("GET")
 	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(validateCreatePipelineRequest(handleCreatePipeline(mongoClient))))).Methods("POST").Headers("Content-Type", "application/json")
+
+	// User
+	r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(psqlClient))).Methods("Get")
+	r.Handle("/api/login", isAuthenticated(handleUserLogin(psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/organisation", isAuthenticated(handleCreateOrganisation(psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/membership", isAuthenticated(handleCreateMembership(psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
 }
 
 func New() http.Handler {

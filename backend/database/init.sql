@@ -73,6 +73,58 @@ ALTER TABLE ONLY public.service_request_event
     ADD CONSTRAINT service_request_events_pkey PRIMARY KEY (event_id);
 
 
+CREATE TABLE public.user (
+    user_id character varying NOT NULL,
+    name character varying NOT NULL,
+    identity_provider character varying NOT NULL,
+    created_on timestamp without time zone DEFAULT now()
+);
+
+ALTER TABLE public.user OWNER TO postgres;
+
+ALTER TABLE ONLY public.user
+    ADD CONSTRAINT user_pkey PRIMARY KEY (user_id);
+
+CREATE TABLE public.organization (
+    org_id integer NOT NULL,
+    name character varying NOT NULL,
+    owner character varying NOT NULL,
+    created_on timestamp without time zone DEFAULT now()
+);
+
+ALTER TABLE public.organization OWNER TO postgres;
+
+ALTER TABLE ONLY public.organization
+    ADD CONSTRAINT organization_pkey PRIMARY KEY (org_id),
+    ADD CONSTRAINT organization_user_fkey FOREIGN KEY (owner) REFERENCES public.user (user_id);
+
+CREATE SEQUENCE public.organization_org_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.organization_org_id_seq OWNER TO postgres;
+
+ALTER SEQUENCE public.organization_org_id_seq OWNED BY public.organization.org_id;
+
+ALTER TABLE ONLY public.organization ALTER COLUMN org_id SET DEFAULT nextval('public.organization_org_id_seq'::regclass);
+
+CREATE TABLE public.membership (
+    user_id character varying NOT NULL,
+    org_id integer NOT NULL,
+    joined_on timestamp without time zone DEFAULT now()
+);
+
+ALTER TABLE public.membership OWNER TO postgres;
+
+ALTER TABLE ONLY public.membership
+    ADD CONSTRAINT membership_user_fkey FOREIGN KEY (user_id) REFERENCES public.user (user_id),
+    ADD CONSTRAINT membership_org_fkey FOREIGN KEY (org_id) REFERENCES public.organization (org_id);
+
 --
 -- PostgreSQL database dump complete
 --
