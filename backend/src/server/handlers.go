@@ -2,6 +2,7 @@ package server
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -285,11 +286,7 @@ func handleUserLogin(client *sql.DB) http.Handler {
 			return
 		}
 		_, err = database.NewUser(client).GetUserById(um.UserId)
-		if err != nil && err != sql.ErrNoRows {
-			logger.Error("[UserLogin] Error querying user table using user_id", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
-			return
-		} else if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			user, err := database.NewUser(client).CreateUser(&um)
 			if err != nil {
 				logger.Error("[UserLogin] Unable to create user", map[string]interface{}{"err": err})
@@ -297,8 +294,12 @@ func handleUserLogin(client *sql.DB) http.Handler {
 				return
 			}
 			logger.Info("[UserLogin] Successfully created user", map[string]interface{}{"user": user})
-			logger.Info("[UserLogin] Successfully logged in user", nil)
 			encode[any](w, r, http.StatusCreated, nil)
+			return
+		} else if err != nil {
+			logger.Error("[UserLogin] Error querying user table using user_id", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
 		}
 		logger.Info("[UserLogin] Successfully logged in user", nil)
 		encode[any](w, r, http.StatusOK, nil)
