@@ -23,7 +23,7 @@ func (u *Organization) Create(org *models.OrganisationModel) (*models.Organisati
 
 	defer txnRollback(tx)
 
-	if err := tx.QueryRow(CreateOrganizationStatement, org.Name, org.Owner).Scan(&org.Id); err != nil {
+	if err := tx.QueryRow(CreateOrganizationStatement, org.Name, org.Owner).Scan(&org.Id, &org.CreatedOn); err != nil {
 		return nil, err
 	}
 

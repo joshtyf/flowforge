@@ -11,9 +11,9 @@ var (
 
 	// User
 	CreateUserStatement = `INSERT INTO public."user" (user_id, name, connection_type) 
-								VALUES ($1, $2, $3) RETURNING created_at`
+								VALUES ($1, $2, $3) RETURNING created_on`
 
-	SelectUserByIdStatement = `SELECT user_id, name, connection_type, created_at 
+	SelectUserByIdStatement = `SELECT user_id, name, connection_type, created_on 
 								FROM public."user" 
 								WHERE user_id = $1`
 
@@ -23,7 +23,7 @@ var (
 
 	// Organisation
 	CreateOrganizationStatement = `INSERT INTO public."organization" (name, owner) 
-									VALUES ($1, $2) RETURNING org_id`
+									VALUES ($1, $2) RETURNING org_id, created_on`
 
 	SelectOrganizationsStatement = `SELECT o.* FROM public."organization" o
 									INNER JOIN public."membership" m
@@ -32,7 +32,7 @@ var (
 
 	// Membership
 	CreateMembershipStatement = `INSERT INTO public."membership" (user_id, org_id) 
-								  VALUES ($1, $2) RETURNING joined_at`
+								  VALUES ($1, $2) RETURNING joined_on`
 )
 
 func txnRollback(tx *sql.Tx) {
