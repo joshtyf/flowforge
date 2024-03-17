@@ -76,7 +76,7 @@ ALTER TABLE ONLY public.service_request_event
 CREATE TABLE public.user (
     user_id character varying NOT NULL,
     name character varying NOT NULL,
-    connection_type character varying NOT NULL,
+    identity_provider character varying NOT NULL,
     created_on timestamp without time zone DEFAULT now()
 );
 

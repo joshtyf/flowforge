@@ -5,9 +5,9 @@ import (
 )
 
 type UserModel struct {
-	UserId         string               `json:"user_id"`
-	Name           string               `json:"name"`
-	ConnectionType string               `json:"connection"`
-	Organisations  []*OrganisationModel `json:"organisations,omitempty"`
-	CreatedOn      time.Time            `json:"created_on"`
+	UserId           string               `json:"user_id"`
+	Name             string               `json:"name"`
+	IdentityProvider string               `json:"identity_provider"`
+	Organisations    []*OrganisationModel `json:"organisations,omitempty"`
+	CreatedOn        time.Time            `json:"created_on"`
 }

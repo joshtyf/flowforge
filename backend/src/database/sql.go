@@ -10,10 +10,10 @@ import (
 var (
 
 	// User
-	CreateUserStatement = `INSERT INTO public."user" (user_id, name, connection_type) 
+	CreateUserStatement = `INSERT INTO public."user" (user_id, name, identity_provider) 
 								VALUES ($1, $2, $3) RETURNING created_on`
 
-	SelectUserByIdStatement = `SELECT user_id, name, connection_type, created_on 
+	SelectUserByIdStatement = `SELECT user_id, name, identity_provider, created_on 
 								FROM public."user" 
 								WHERE user_id = $1`
 
