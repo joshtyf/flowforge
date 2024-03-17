@@ -26,6 +26,7 @@ func newHandlerError(err error, code int) *HandlerError {
 func handleHealthCheck() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if serverHealthy() {
+			logger.Info("[HealthCheck] Server working!", nil)
 			encode(w, r, http.StatusOK, "Server working!")
 			return
 		}
