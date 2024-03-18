@@ -52,9 +52,10 @@ func handleGetAllServiceRequest(client *mongo.Client) http.Handler {
 
 func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
 	type ResponseBodySteps struct {
-		Name      string           `json:"name"`
-		Status    models.EventType `json:"status"`
-		UpdatedAt time.Time        `json:"updated_at"`
+		Name       string           `json:"name"`
+		Status     models.EventType `json:"status"`
+		UpdatedAt  time.Time        `json:"updated_at"`
+		ApprovedBy string           `json:"approved_by"`
 	}
 	type ResponseBody struct {
 		ServiceRequest *models.ServiceRequestModel `json:"service_request"`
@@ -78,9 +79,10 @@ func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http
 		steps := make([]ResponseBodySteps, 0, len(sre))
 		for _, event := range sre {
 			steps = append(steps, ResponseBodySteps{
-				Name:      event.StepName,
-				Status:    event.EventType,
-				UpdatedAt: event.CreatedAt,
+				Name:       event.StepName,
+				Status:     event.EventType,
+				UpdatedAt:  event.CreatedAt,
+				ApprovedBy: event.ApprovedBy,
 			})
 		}
 		response := ResponseBody{
