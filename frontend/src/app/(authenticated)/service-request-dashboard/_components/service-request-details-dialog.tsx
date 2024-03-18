@@ -30,7 +30,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
     steps,
   } = serviceRequest
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-2 gap-5">
       <div className="col-span-2">
         <Label className="text-muted-foreground">Pipeline Id</Label>
         <Link
@@ -49,6 +49,12 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
         <Label className="text-muted-foreground">Created By</Label>
         <p>{createdBy}</p>
       </div>
+      {steps?.some((step) => step.name === "Approval") && (
+        <div>
+          <Label className="text-muted-foreground">Approved By</Label>
+          <p>{"-"}</p>
+        </div>
+      )}
       <div>
         <Label className="text-muted-foreground">Created on</Label>
         <p>{formatDateString(new Date(createdOn))}</p>
@@ -57,6 +63,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
         <Label className="text-muted-foreground">Last Updated</Label>
         <p>{formatTimeDifference(new Date(lastUpdated))}</p>
       </div>
+
       <div className="col-span-2">
         <Label className="text-muted-foreground">Remarks</Label>
         <p>{remarks}</p>

@@ -27,7 +27,7 @@ function Step({ name, status }: StepProps) {
     [&:not(:last-child):after]:relative 
     [&:not(:last-child):after]:top-[1rem] 
     [&:not(:last-child):after]:left-[3.2rem]
-    [&:not(:last-child):after]:w-[3rem]
+    [&:not(:last-child):after]:w-[3.5rem]
     [&:not(:last-child):after]:h-[2px] 
     ${status === ServiceRequestStatus.COMPLETED ? "[&:not(:last-child):after]:bg-green-300" : "[&:not(:last-child):after]:bg-gray-300"}
     [&:not(:last-child):after]:-order-1`}
