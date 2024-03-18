@@ -15,6 +15,7 @@ import { useState } from "react"
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import Link from "next/link"
 import Stepper from "./stepper"
+import { ExternalLink } from "lucide-react"
 
 interface ServiceRequestDetailsProps {
   serviceRequest: ServiceRequest
@@ -36,9 +37,10 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
         <Label className="text-muted-foreground">Pipeline Id</Label>
         <Link
           href={`/service-catalog/${pipelineId}`}
-          className="hover:underline hover:text-blue-500"
+          className="hover:underline hover:text-blue-500 flex space-x-1"
         >
           <p>{pipelineId}</p>
+          <ExternalLink className="w-5 h-5" />
         </Link>
       </div>
       <div>

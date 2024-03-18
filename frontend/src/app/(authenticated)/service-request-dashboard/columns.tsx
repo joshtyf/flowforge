@@ -6,6 +6,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
 import ServiceRequestActions from "./_components/service-request-actions"
 import { StatusBadge } from "@/components/layouts/status-badge"
+import { ExternalLink } from "lucide-react"
 
 export const columns: ColumnDef<ServiceRequest>[] = [
   {
@@ -24,9 +25,10 @@ export const columns: ColumnDef<ServiceRequest>[] = [
       return (
         <Link
           href={`/service-catalog/${pipelineId}`}
-          className="hover:underline hover:text-blue-500"
+          className="hover:underline hover:text-blue-500 flex space-x-1"
         >
-          {pipelineId}
+          <p>{pipelineId}</p>
+          <ExternalLink className="w-5 h-5" />
         </Link>
       )
     },
