@@ -7,19 +7,23 @@ import {
   ServiceRequestStatus,
   ServiceRequestStep,
 } from "@/types/service-request"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { Button } from "@/components/ui/button"
 
 interface StepProps {
   name: string
   status: ServiceRequestStatus
 }
 
-const STEP_SIZE = 3
-const STEP_SPACING = 0.5
-
 function Step({ name, status }: StepProps) {
   return (
     <li
-      className={`flex flex-col space-y-2 items-center
+      className={`flex flex-col space-y-2 py-2 items-center
     [&:not(:last-child):after]:content-[''] 
     [&:not(:last-child):after]:relative 
     [&:not(:last-child):after]:top-[1rem] 
@@ -40,7 +44,16 @@ function Step({ name, status }: StepProps) {
           "rounded-full"
         )}
       >
-        <StatusIcon status={status} />
+        <TooltipProvider>
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger disabled>
+              <StatusIcon status={status} />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{status}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       <p className="text-sm">{name}</p>
     </li>
