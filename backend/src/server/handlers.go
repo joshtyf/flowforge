@@ -50,22 +50,51 @@ func handleGetAllServiceRequest(client *mongo.Client) http.Handler {
 	})
 }
 
-func handleGetServiceRequest(client *mongo.Client) http.Handler {
+func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
+	type ResponseBodySteps struct {
+		Name       string           `json:"name"`
+		Status     models.EventType `json:"status"`
+		UpdatedAt  time.Time        `json:"updated_at"`
+		ApprovedBy string           `json:"approved_by"`
+	}
+	type ResponseBody struct {
+		ServiceRequest *models.ServiceRequestModel `json:"service_request"`
+		Steps          []ResponseBodySteps         `json:"steps"`
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		requestId := vars["requestId"]
-		sr, err := database.NewServiceRequest(client).GetById(requestId)
+		sr, err := database.NewServiceRequest(mongoClient).GetById(requestId)
 		if err != nil {
 			logger.Error("[GetServiceRequest] Unable to retrieve service request", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		logger.Info("[GetServiceRequest] Successfully retrieved service request", map[string]interface{}{"sr": sr})
-		encode(w, r, http.StatusOK, sr)
+		sre, err := database.NewServiceRequestEvent(psqlClient).GetStepsLatestEvent(requestId)
+		if err != nil {
+			logger.Error("[GetServiceRequest] Unable to retrieve latest service request events", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		steps := make([]ResponseBodySteps, 0, len(sre))
+		for _, event := range sre {
+			steps = append(steps, ResponseBodySteps{
+				Name:       event.StepName,
+				Status:     event.EventType,
+				UpdatedAt:  event.CreatedAt,
+				ApprovedBy: event.ApprovedBy,
+			})
+		}
+		response := ResponseBody{
+			ServiceRequest: sr,
+			Steps:          steps,
+		}
+		logger.Info("[GetServiceRequest] Successfully retrieved service request", map[string]interface{}{"response": response})
+		encode(w, r, http.StatusOK, response)
 	})
 }
 
-func handleCreateServiceRequest(client *mongo.Client) http.Handler {
+func handleCreateServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srm, err := decode[models.ServiceRequestModel](r)
 		if err != nil {
@@ -73,15 +102,40 @@ func handleCreateServiceRequest(client *mongo.Client) http.Handler {
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
+
+		pipeline, err := database.NewPipeline(mongoClient).GetById(srm.PipelineId)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			logger.Error("[CreateServiceRequest] Invalid pipeline id, no matching pipeline found", map[string]interface{}{"pipelineId": srm.PipelineId})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidPipelineId, http.StatusBadRequest))
+			return
+		} else if err != nil {
+			logger.Error("[CreateServiceRequest] Error getting pipeline", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+
 		srm.CreatedOn = time.Now()
 		srm.LastUpdated = time.Now()
 		srm.Status = models.NotStarted
 
-		res, err := database.NewServiceRequest(client).Create(&srm)
+		res, err := database.NewServiceRequest(mongoClient).Create(&srm)
 		if err != nil {
 			logger.Error("[CreateServiceRequest] Error creating service request", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
+		}
+		stepEventDAO := database.NewServiceRequestEvent(psqlClient)
+		for _, step := range pipeline.Steps {
+			err = stepEventDAO.Create(&models.ServiceRequestEventModel{
+				EventType:        models.STEP_NOT_STARTED,
+				ServiceRequestId: res.InsertedID.(primitive.ObjectID).Hex(),
+				StepName:         step.StepName,
+			})
+			if err != nil {
+				logger.Error("[CreateServiceRequest] Error creating step not started event", map[string]interface{}{"err": err})
+				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+				return
+			}
 		}
 		logger.Info("[CreateServiceRequest] Successfully created service request", map[string]interface{}{"sr": srm})
 		insertedId, _ := res.InsertedID.(primitive.ObjectID)

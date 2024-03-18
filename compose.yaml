@@ -21,6 +21,7 @@ services:
     build:
       context: backend
     environment:
+      - ENV=${ENV}
       - MONGO_URI=${MONGO_URI}
       - POSTGRES_URI=${POSTGRES_URI}
       - AUTH0_DOMAIN=${AUTH0_DOMAIN}
