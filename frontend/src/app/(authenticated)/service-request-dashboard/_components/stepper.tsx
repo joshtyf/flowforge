@@ -13,15 +13,18 @@ interface StepProps {
   status: ServiceRequestStatus
 }
 
+const STEP_SIZE = 3
+const STEP_SPACING = 0.5
+
 function Step({ name, status }: StepProps) {
   return (
     <li
-      className={`flex flex-col flex-1 items-center space-y-2 
+      className={`flex flex-col space-y-2 items-center
     [&:not(:last-child):after]:content-[''] 
     [&:not(:last-child):after]:relative 
-    [&:not(:last-child):after]:top-[1.5rem] 
-    [&:not(:last-child):after]:left-[50%]
-    [&:not(:last-child):after]:w-[73%]
+    [&:not(:last-child):after]:top-[1rem] 
+    [&:not(:last-child):after]:left-[3.2rem]
+    [&:not(:last-child):after]:w-[3rem]
     [&:not(:last-child):after]:h-[2px] 
     ${status === ServiceRequestStatus.COMPLETED ? "[&:not(:last-child):after]:bg-green-300" : "[&:not(:last-child):after]:bg-gray-300"}
     [&:not(:last-child):after]:-order-1`}
@@ -29,7 +32,7 @@ function Step({ name, status }: StepProps) {
       {/* TODO: Add tooltip to show status*/}
       <div
         className={cn(
-          `w-[48px] h-[48px] flex justify-center items-center ${statusBadgeVariant(
+          `w-[2rem] h-[2rem] flex justify-center items-center ${statusBadgeVariant(
             {
               status,
             }
@@ -50,10 +53,12 @@ interface StepperProps {
 
 export default function Stepper({ steps }: StepperProps) {
   return (
-    <ol className="flex flex-wrap py-2">
-      {steps?.map((step, index) => (
-        <Step key={index} name={step.name} status={step.status} />
-      ))}
-    </ol>
+    <div className="flex justify-center">
+      <ol className="flex flex-wrap py-2 space-x-[2rem]">
+        {steps?.map((step, index) => (
+          <Step key={index} name={step.name} status={step.status} />
+        ))}
+      </ol>
+    </div>
   )
 }

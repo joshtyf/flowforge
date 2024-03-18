@@ -40,6 +40,22 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
         name: "Create EC2",
         status: ServiceRequestStatus.NOT_STARTED,
       },
+      {
+        name: "Create EC2",
+        status: ServiceRequestStatus.NOT_STARTED,
+      },
+      {
+        name: "Create EC2",
+        status: ServiceRequestStatus.NOT_STARTED,
+      },
+      {
+        name: "Create EC2",
+        status: ServiceRequestStatus.NOT_STARTED,
+      },
+      {
+        name: "Create EC2",
+        status: ServiceRequestStatus.NOT_STARTED,
+      },
     ],
   },
   {

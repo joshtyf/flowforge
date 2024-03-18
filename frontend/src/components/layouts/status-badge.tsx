@@ -52,27 +52,51 @@ type StatusBadgeProps = {
   status: ServiceRequestStatus
 }
 
-export const StatusIcon = ({ status }: { status: ServiceRequestStatus }) => {
+export const StatusIcon = ({
+  status,
+  className,
+}: {
+  status: ServiceRequestStatus
+  className?: string
+}) => {
   switch (status) {
     case ServiceRequestStatus.NOT_STARTED:
-      return <Moon className={statusIconVariant({ status })} />
+      return <Moon className={cn(statusIconVariant({ status }), className)} />
     case ServiceRequestStatus.PENDING:
-      return <CircleEllipsis className={statusIconVariant({ status })} />
+      return (
+        <CircleEllipsis
+          className={cn(statusIconVariant({ status }), className)}
+        />
+      )
     case ServiceRequestStatus.REJECTED:
-      return <XOctagon className={statusIconVariant({ status })} />
+      return (
+        <XOctagon className={cn(statusIconVariant({ status }), className)} />
+      )
     case ServiceRequestStatus.RUNNING:
       return (
         <CircleDotDashed
-          className={cn(statusIconVariant({ status }), "animate-spin-slow")}
+          className={cn(
+            statusIconVariant({ status }),
+            "animate-spin-slow",
+            className
+          )}
         />
       )
     case ServiceRequestStatus.SUCCESS:
     case ServiceRequestStatus.COMPLETED:
-      return <CheckCircle2 className={statusIconVariant({ status })} />
+      return (
+        <CheckCircle2
+          className={cn(statusIconVariant({ status }), className)}
+        />
+      )
     case ServiceRequestStatus.FAILURE:
-      return <AlertCircle className={statusIconVariant({ status })} />
+      return (
+        <AlertCircle className={cn(statusIconVariant({ status }), className)} />
+      )
     case ServiceRequestStatus.CANCELLED:
-      return <XCircle className={statusIconVariant({ status })} />
+      return (
+        <XCircle className={cn(statusIconVariant({ status }), className)} />
+      )
     default:
       break
   }
