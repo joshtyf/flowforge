@@ -51,7 +51,7 @@ func handleGetAllServiceRequest(client *mongo.Client) http.Handler {
 }
 
 func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
-	type ResponseBodySteps struct {
+	type ResponseBodyStep struct {
 		Name         string           `json:"name"`
 		Status       models.EventType `json:"status"`
 		UpdatedAt    time.Time        `json:"updated_at"`
@@ -60,7 +60,7 @@ func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http
 	}
 	type ResponseBody struct {
 		ServiceRequest *models.ServiceRequestModel `json:"service_request"`
-		Steps          []ResponseBodySteps         `json:"steps"`
+		Steps          map[string]ResponseBodyStep `json:"steps"`
 		FirstStepName  string                      `json:"first_step_name"`
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +84,7 @@ func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		steps := make([]ResponseBodySteps, 0, len(sre))
+		steps := make(map[string]ResponseBodyStep, len(sre))
 		for _, event := range sre {
 			step := pipeline.GetPipelineStep(event.StepName)
 			if step == nil {
@@ -92,13 +92,13 @@ func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http
 				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 				return
 			}
-			steps = append(steps, ResponseBodySteps{
+			steps[event.StepName] = ResponseBodyStep{
 				Name:         event.StepName,
 				Status:       event.EventType,
 				UpdatedAt:    event.CreatedAt,
 				ApprovedBy:   event.ApprovedBy,
 				NextStepName: step.NextStepName,
-			})
+			}
 		}
 		response := ResponseBody{
 			ServiceRequest: sr,
