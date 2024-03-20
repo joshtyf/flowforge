@@ -3,12 +3,15 @@ import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { Label } from "@/components/ui/label"
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import Link from "next/link"
@@ -21,7 +24,7 @@ interface ServiceRequestDetailsProps {
 
 function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
   const {
-    pipeline_id: pipelineId,
+    id: serviceRequestId,
     pipeline_version: pipelineVersion,
     created_by: createdBy = "",
     created_on: createdOn = "",
@@ -32,14 +35,26 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
   return (
     <div className="grid grid-cols-2 gap-5">
       <div className="col-span-2">
-        <Label className="text-muted-foreground">Pipeline Id</Label>
-        <Link
-          href={`/service-catalog/${pipelineId}`}
-          className="hover:underline hover:text-blue-500 flex space-x-1"
-        >
-          <p>{pipelineId}</p>
-          <ExternalLink className="w-5 h-5" />
-        </Link>
+        <Label className="text-muted-foreground">Service Request Id</Label>
+        <div>
+          <TooltipProvider>
+            <Tooltip delayDuration={300}>
+              <TooltipTrigger>
+                <Link
+                  // TODO: Insert logs page URL
+                  href={`#`}
+                  className="hover:underline hover:text-blue-500 flex space-x-1"
+                >
+                  <p>{serviceRequestId}</p>
+                  <ExternalLink className="w-5 h-5" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Go to logs</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
       <div>
         <Label className="text-muted-foreground">Pipeline Version</Label>
@@ -63,7 +78,6 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
         <Label className="text-muted-foreground">Last Updated</Label>
         <p>{formatTimeDifference(new Date(lastUpdated))}</p>
       </div>
-
       <div className="col-span-2">
         <Label className="text-muted-foreground">Remarks</Label>
         <p>{remarks}</p>
