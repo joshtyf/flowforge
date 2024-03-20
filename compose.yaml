@@ -33,7 +33,9 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/api/healthcheck"]
-      interval: 5s
+      start_period: 30s
+      start_interval: 5s
+      interval: 60s
       retries: 3
 
   postgres:
@@ -52,7 +54,9 @@ services:
       - POSTGRES_DB=flowforge_db
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 5s
+      start_period: 30s
+      start_interval: 5s
+      interval: 60s
       retries: 3
 
   mongo:
@@ -68,8 +72,10 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
       - MONGO_INITDB_DATABASE=flowforge_db
     healthcheck:
-      test: ["CMD", "mongosh", "-u", "root", "-p", "${MONGO_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping')", "--quiet"]
-      interval: 5s
+      test: ["CMD", "mongosh", "--eval", "'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)'", "--quiet"]
+      start_period: 30s
+      start_interval: 5s
+      interval: 60s
       retries: 3
 
   mongo_seed:
