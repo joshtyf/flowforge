@@ -17,8 +17,8 @@ export const approvedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
     },
   },
   {
-    id: "pipeline_name",
-    header: "Pipeline Name",
+    id: "service_name",
+    header: "Service",
     cell: ({ row }) => {
       const serviceRequest: ServiceRequest = row.original
       return (
