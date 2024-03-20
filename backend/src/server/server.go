@@ -24,6 +24,7 @@ func addRoutes(r *mux.Router) {
 
 	// Service Request
 	r.Handle("/api/service_request", isAuthenticated(handleGetAllServiceRequest(mongoClient))).Methods("GET")
+	// TODO: @Zheng-Zhi-Qiang this route conflicts with `/api/service_request/{requestId}`.
 	// r.Handle("/api/service_request/{organisationId}", isAuthenticated(handleGetServiceRequestsByOrganisation(mongoClient))).Methods("GET")
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(handleGetServiceRequest(mongoClient, psqlClient))).Methods("GET")
 	r.Handle("/api/service_request", isAuthenticated(handleCreateServiceRequest(mongoClient, psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
