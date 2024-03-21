@@ -127,7 +127,7 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 	// Create a log file for the current step
 	f, err := os.OpenFile(
 		fmt.Sprintf("%s/%s/%s", logger.BaseLogDir, serviceRequest.Id.Hex(), step.StepName),
-		os.O_CREATE|os.O_APPEND,
+		os.O_RDWR|os.O_CREATE|os.O_APPEND,
 		0644,
 	)
 	if err != nil {
