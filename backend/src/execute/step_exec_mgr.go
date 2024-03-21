@@ -134,6 +134,11 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 		logger.Error("[ServiceRequestManager] Error opening log file", map[string]interface{}{"err": err})
 		return err
 	}
+	defer func() {
+		if err := f.Close(); err != nil {
+			logger.Error("[ServiceRequestManager] Error closing log file", map[string]interface{}{"err": err})
+		}
+	}()
 	executor_logger := logger.NewExecutorLogger(io.MultiWriter(os.Stdout, f), step.StepName)
 
 	// Execute the current step
