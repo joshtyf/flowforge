@@ -5,17 +5,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { ServiceRequest } from "@/types/service-request"
 import { MoreHorizontal } from "lucide-react"
+import ServiceRequestDetailsDialog from "./service-request-details-dialog"
+import { useState } from "react"
 
 interface ServiceRequestActionsProps {
-  pipelineId: string
+  serviceRequest: ServiceRequest
   onCancelRequest: (pipelineId: string) => void
 }
 
 export default function ServiceRequestActions({
-  pipelineId,
+  serviceRequest,
   onCancelRequest,
 }: ServiceRequestActionsProps) {
+  const [openDialog, setOpenDialog] = useState(false)
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -25,17 +30,29 @@ export default function ServiceRequestActions({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         {/* TODO: Add more actions for requests*/}
-        <DropdownMenuItem>
-          {/* TODO: Add modal open on click*/}
+        <DropdownMenuItem
+          onClick={(event) => {
+            setOpenDialog(true)
+          }}
+        >
           <Button variant="ghost">View Details</Button>
         </DropdownMenuItem>
+
         <DropdownMenuItem>
           {/* TODO: Add on click logic*/}
-          <Button variant="ghost" onClick={() => onCancelRequest(pipelineId)}>
+          <Button
+            variant="ghost"
+            onClick={() => onCancelRequest(serviceRequest.pipeline_id)}
+          >
             Cancel Request
           </Button>
         </DropdownMenuItem>
       </DropdownMenuContent>
+      <ServiceRequestDetailsDialog
+        open={openDialog}
+        setOpen={setOpenDialog}
+        serviceRequest={serviceRequest}
+      />
     </DropdownMenu>
   )
 }

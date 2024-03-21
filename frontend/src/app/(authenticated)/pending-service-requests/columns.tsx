@@ -4,8 +4,9 @@ import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
-import StatusBadge from "@/components/layouts/status-badge"
 import ApproveServiceRequestActions from "./_components/pending-service-request-actions"
+import { StatusBadge } from "@/components/layouts/status-badge"
+import { ExternalLink } from "lucide-react"
 
 export const pendingServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
   {
@@ -17,16 +18,17 @@ export const pendingServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
     },
   },
   {
-    accessorKey: "pipeline_id",
-    header: "Pipeline",
+    id: "service_name",
+    header: "Service",
     cell: ({ row }) => {
-      const pipelineId: string = row.getValue("pipeline_id")
+      const serviceRequest: ServiceRequest = row.original
       return (
         <Link
-          href={`/service-catalog/${pipelineId}`}
-          className="hover:underline hover:text-blue-500"
+          href={`/service-catalog/${serviceRequest.pipeline_id}`}
+          className="hover:underline hover:text-blue-500 flex space-x-2"
         >
-          {pipelineId}
+          <p>{serviceRequest.form_data.name}</p>
+          <ExternalLink className="w-5 h-5" />
         </Link>
       )
     },

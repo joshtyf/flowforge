@@ -13,7 +13,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     form_data: {
       user_id: "1",
       user_name: "Test User",
-      name: "Pipeline 1",
+      name: "Service 1",
       description: "Pipeline 1 description",
     },
   },
@@ -29,7 +29,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     form_data: {
       user_id: "1",
       user_name: "Test User",
-      name: "Pipeline 1",
+      name: "Service 1",
       description: "Pipeline 1 description",
     },
   },
@@ -45,7 +45,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     form_data: {
       user_id: "1",
       user_name: "Test User",
-      name: "Pipeline 1",
+      name: "Service 1",
       description: "Pipeline 1 description",
     },
   },
@@ -61,7 +61,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     form_data: {
       user_id: "1",
       user_name: "Test User",
-      name: "Pipeline 1",
+      name: "Service 1",
       description: "Pipeline 1 description",
     },
   },
@@ -77,7 +77,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     form_data: {
       user_id: "1",
       user_name: "Test User",
-      name: "Pipeline 1",
+      name: "Service 1",
       description: "Pipeline 1 description",
     },
   },
@@ -93,7 +93,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     form_data: {
       user_id: "1",
       user_name: "Test User",
-      name: "Pipeline 1",
+      name: "Service 1",
       description: "Pipeline 1 description",
     },
   },
