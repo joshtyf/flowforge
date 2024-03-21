@@ -92,7 +92,7 @@ func (srm *ExecutionManager) handleNewServiceRequestEvent(e event.Event) error {
 
 	// Create log directory
 	log_dir := fmt.Sprintf("%s/%s", logger.BaseLogDir, serviceRequest.Id.Hex())
-	err = os.Mkdir(log_dir, 0755)
+	err = os.MkdirAll(log_dir, 0755)
 	if err != nil {
 		logger.Error("[ServiceRequestManager] Error creating log folder", map[string]interface{}{"err": err})
 		return err
