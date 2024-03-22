@@ -31,7 +31,7 @@ export default function ServiceRequestActions({
       <DropdownMenuContent align="start">
         {/* TODO: Add more actions for requests*/}
         <DropdownMenuItem
-          onClick={(event) => {
+          onClick={() => {
             setOpenDialog(true)
           }}
         >

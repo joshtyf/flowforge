@@ -7,7 +7,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
 interface ApproveConfirmationDialogProps {
@@ -25,10 +24,10 @@ export function ApproveConfirmationDialog({
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogTitle>Approve Service Request</AlertDialogTitle>
           <AlertDialogDescription>
-            The action cannot be reversed and once approved, the pipeline will
-            start for the user.
+            Are you sure? This action is irreversible and once approved, the
+            pipeline will start for the user.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
