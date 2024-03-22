@@ -6,18 +6,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal } from "lucide-react"
+import { useState } from "react"
+import { ApproveConfirmationDialog } from "./approve-confirmation-dialog"
 
 interface ApproveServiceRequestActionsProps {
-  pipelineId: string
-  approveRequest: (pipelineId: string) => void
-  rejectRequest: (pipelineId: string) => void
+  serviceRequestId: string
+  approveRequest: (serviceRequestId: string) => void
+  rejectRequest: (serviceRequestId: string) => void
 }
 
 export default function ApproveServiceRequestActions({
-  pipelineId,
+  serviceRequestId,
   approveRequest,
   rejectRequest,
 }: ApproveServiceRequestActionsProps) {
+  const [openApproveConfirmationDialog, setOpenApproveConfirmationDialog] =
+    useState(false)
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -30,7 +35,7 @@ export default function ApproveServiceRequestActions({
           <Button
             variant="ghost"
             className="text-green-700 hover:text-green-500"
-            onClick={() => approveRequest(pipelineId)}
+            onClick={() => setOpenApproveConfirmationDialog(true)}
           >
             Approve
           </Button>
@@ -40,12 +45,17 @@ export default function ApproveServiceRequestActions({
           <Button
             variant="ghost"
             className="text-red-700 hover:text-red-500"
-            onClick={() => rejectRequest(pipelineId)}
+            onClick={() => rejectRequest(serviceRequestId)}
           >
             Reject
           </Button>
         </DropdownMenuItem>
       </DropdownMenuContent>
+      <ApproveConfirmationDialog
+        open={openApproveConfirmationDialog}
+        setOpen={setOpenApproveConfirmationDialog}
+        onApprove={() => approveRequest(serviceRequestId)}
+      />
     </DropdownMenu>
   )
 }
