@@ -67,9 +67,10 @@ export const pendingServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
             // TODO: Replace with actual approval action
             console.log("Approve service request for:", serviceRequestId)
           }}
-          rejectRequest={(serviceRequestId: string) => {
+          rejectRequest={(serviceRequestId: string, remarks?: string) => {
             // TODO: Replace with actual rejection action
-            console.log("Reject service request for:", serviceRequestId)
+            console.log("Reject service request for: ", serviceRequestId)
+            console.log("Remarks: ", remarks)
           }}
         />
       )
