@@ -59,12 +59,18 @@ export const pendingServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
-      const pipelineId: string = row.getValue("pipeline_id")
+      const serviceRequestId: string = row.original.id
       return (
         <ApproveServiceRequestActions
-          pipelineId={pipelineId}
-          approveRequest={(pipelineId: string) => {}}
-          rejectRequest={(pipelineId: string) => {}}
+          serviceRequestId={serviceRequestId}
+          approveRequest={(serviceRequestId: string) => {
+            // TODO: Replace with actual approval action
+            console.log("Approve service request for:", serviceRequestId)
+          }}
+          rejectRequest={(serviceRequestId: string) => {
+            // TODO: Replace with actual rejection action
+            console.log("Reject service request for:", serviceRequestId)
+          }}
         />
       )
     },
