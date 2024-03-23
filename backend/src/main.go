@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"net/http"
+	"os"
 
 	"github.com/joshtyf/flowforge/src/database/client"
 	"github.com/joshtyf/flowforge/src/execute"
+	"github.com/joshtyf/flowforge/src/logger"
 	"github.com/joshtyf/flowforge/src/server"
 )
 
@@ -31,7 +33,12 @@ func run() {
 		panic(err)
 	}
 	srm.Start()
-	http.ListenAndServe(":8080", server.New())
+	config := &server.ServerConfig{
+		PsqlClient:   psqlClient,
+		MongoClient:  mongoClient,
+		ServerLogger: logger.NewLogger(os.Stdout),
+	}
+	http.ListenAndServe(":8080", server.New(config))
 }
 
 func main() {

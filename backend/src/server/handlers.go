@@ -26,6 +26,47 @@ func newHandlerError(err error, code int) *HandlerError {
 	return &HandlerError{Message: err.Error(), Code: code}
 }
 
+type ServerHandler struct {
+	logger      *logger.Logger
+	psqlClient  *sql.DB
+	mongoClient *mongo.Client
+}
+
+func NewServerHandler(psqlClient *sql.DB, mongoCLient *mongo.Client, logger *logger.Logger) *ServerHandler {
+	return &ServerHandler{
+		psqlClient:  psqlClient,
+		mongoClient: mongoCLient,
+		logger:      logger,
+	}
+}
+
+func (s *ServerHandler) registerRoutes(r *mux.Router) {
+	// Health Check
+	r.Handle("/api/healthcheck", handleHealthCheck()).Methods("GET")
+
+	// Service Request
+	r.Handle("/api/service_request", isAuthenticated(handleGetAllServiceRequest(s.mongoClient))).Methods("GET")
+	// TODO: @Zheng-Zhi-Qiang this route conflicts with `/api/service_request/{requestId}`.
+	// r.Handle("/api/service_request/{organisationId}", isAuthenticated(handleGetServiceRequestsByOrganisation(mongoClient))).Methods("GET")
+	r.Handle("/api/service_request/{requestId}", isAuthenticated(handleGetServiceRequest(s.mongoClient, s.psqlClient))).Methods("GET")
+	r.Handle("/api/service_request", isAuthenticated(handleCreateServiceRequest(s.mongoClient, s.psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/{requestId}", isAuthenticated(handleUpdateServiceRequest(s.mongoClient))).Methods("PATCH").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/{requestId}/cancel", isAuthenticated(handleCancelStartedServiceRequest(s.mongoClient))).Methods("GET")
+	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(handleStartServiceRequest(s.mongoClient))).Methods("GET")
+	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(isAuthorisedAdmin(handleApproveServiceRequest(s.mongoClient)))).Methods("POST").Headers("Content-Type", "application/json")
+
+	// Pipeline
+	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(handleGetAllPipelines(s.mongoClient)))).Methods("GET")
+	r.Handle("/api/pipeline/{pipelineId}", isAuthenticated(isAuthorisedAdmin(handleGetPipeline(s.mongoClient)))).Methods("GET")
+	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(validateCreatePipelineRequest(handleCreatePipeline(s.mongoClient))))).Methods("POST").Headers("Content-Type", "application/json")
+
+	// User
+	r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.psqlClient))).Methods("Get")
+	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/organisation", isAuthenticated(handleCreateOrganisation(s.psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/membership", isAuthenticated(handleCreateMembership(s.psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+}
+
 func handleHealthCheck() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if serverHealthy() {
