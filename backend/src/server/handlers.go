@@ -51,15 +51,17 @@ func handleGetAllServiceRequest(client *mongo.Client) http.Handler {
 }
 
 func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
-	type ResponseBodySteps struct {
-		Name       string           `json:"name"`
-		Status     models.EventType `json:"status"`
-		UpdatedAt  time.Time        `json:"updated_at"`
-		ApprovedBy string           `json:"approved_by"`
+	type ResponseBodyStep struct {
+		Name         string           `json:"name"`
+		Status       models.EventType `json:"status"`
+		UpdatedAt    time.Time        `json:"updated_at"`
+		ApprovedBy   string           `json:"approved_by"`
+		NextStepName string           `json:"next_step_name"`
 	}
 	type ResponseBody struct {
 		ServiceRequest *models.ServiceRequestModel `json:"service_request"`
-		Steps          []ResponseBodySteps         `json:"steps"`
+		Steps          map[string]ResponseBodyStep `json:"steps"`
+		FirstStepName  string                      `json:"first_step_name"`
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -70,24 +72,38 @@ func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
+		pipeline, err := database.NewPipeline(mongoClient).GetById(sr.PipelineId)
+		if err != nil {
+			logger.Error("[GetServiceRequest] Unable to retrieve pipeline", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
 		sre, err := database.NewServiceRequestEvent(psqlClient).GetStepsLatestEvent(requestId)
 		if err != nil {
 			logger.Error("[GetServiceRequest] Unable to retrieve latest service request events", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		steps := make([]ResponseBodySteps, 0, len(sre))
+		steps := make(map[string]ResponseBodyStep, len(sre))
 		for _, event := range sre {
-			steps = append(steps, ResponseBodySteps{
-				Name:       event.StepName,
-				Status:     event.EventType,
-				UpdatedAt:  event.CreatedAt,
-				ApprovedBy: event.ApprovedBy,
-			})
+			step := pipeline.GetPipelineStep(event.StepName)
+			if step == nil {
+				logger.Error("[GetServiceRequest] Found a step that exists in events log but not in pipeline", map[string]interface{}{"step": event.StepName})
+				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+				return
+			}
+			steps[event.StepName] = ResponseBodyStep{
+				Name:         event.StepName,
+				Status:       event.EventType,
+				UpdatedAt:    event.CreatedAt,
+				ApprovedBy:   event.ApprovedBy,
+				NextStepName: step.NextStepName,
+			}
 		}
 		response := ResponseBody{
 			ServiceRequest: sr,
 			Steps:          steps,
+			FirstStepName:  pipeline.FirstStepName,
 		}
 		logger.Info("[GetServiceRequest] Successfully retrieved service request", map[string]interface{}{"response": response})
 		encode(w, r, http.StatusOK, response)
