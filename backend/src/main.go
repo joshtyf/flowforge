@@ -11,7 +11,7 @@ import (
 	"github.com/joshtyf/flowforge/src/server"
 )
 
-func run() {
+func main() {
 	psqlClient, err := client.GetPsqlClient()
 	if err != nil {
 		panic(err)
@@ -39,8 +39,4 @@ func run() {
 		ServerLogger: logger.NewLogger(os.Stdout),
 	}
 	http.ListenAndServe(":8080", server.New(config))
-}
-
-func main() {
-	run()
 }
