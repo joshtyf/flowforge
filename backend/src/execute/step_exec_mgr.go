@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/gookit/event"
 	"github.com/joshtyf/flowforge/src/database"
@@ -88,6 +90,14 @@ func (srm *ExecutionManager) handleNewServiceRequestEvent(e event.Event) error {
 		return err
 	}
 
+	// Create log directory
+	log_dir := fmt.Sprintf("%s/%s", logger.BaseLogDir, serviceRequest.Id.Hex())
+	err = os.MkdirAll(log_dir, 0755)
+	if err != nil {
+		logger.Error("[ServiceRequestManager] Error creating log folder", map[string]interface{}{"err": err})
+		return err
+	}
+
 	err = srm.execute(serviceRequest, firstStep, currExecutor)
 	return err
 }
@@ -113,8 +123,26 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 		logger.Error("[ServiceRequestManager] Error creating service request event", map[string]interface{}{"err": err})
 		return err
 	}
+
+	// Create a log file for the current step
+	f, err := os.OpenFile(
+		fmt.Sprintf("%s/%s/%s.log", logger.BaseLogDir, serviceRequest.Id.Hex(), step.StepName),
+		os.O_RDWR|os.O_CREATE|os.O_APPEND,
+		0644,
+	)
+	if err != nil {
+		logger.Error("[ServiceRequestManager] Error opening log file", map[string]interface{}{"err": err})
+		return err
+	}
+	defer func() {
+		if err := f.Close(); err != nil {
+			logger.Error("[ServiceRequestManager] Error closing log file", map[string]interface{}{"err": err})
+		}
+	}()
+	executor_logger := logger.NewExecutorLogger(io.MultiWriter(os.Stdout, f), step.StepName)
+
 	// Execute the current step
-	_, err = (*executor).execute(executeCtx)
+	_, err = (*executor).execute(executeCtx, executor_logger)
 	if err != nil {
 		logger.Error("[ServiceRequestManager] Error executing step", map[string]interface{}{"step": (*executor).getStepType(), "err": err})
 		// TODO: Handle error

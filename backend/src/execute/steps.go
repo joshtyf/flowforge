@@ -2,6 +2,7 @@ package execute
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -16,7 +17,7 @@ type stepExecResult struct {
 }
 
 type stepExecutor interface {
-	execute(ctx context.Context) (*stepExecResult, error)
+	execute(context.Context, *logger.ExecutorLogger) (*stepExecResult, error)
 	getStepType() models.PipelineStepType
 }
 
@@ -27,34 +28,32 @@ func NewApiStepExecutor() *apiStepExecutor {
 	return &apiStepExecutor{}
 }
 
-func (e *apiStepExecutor) execute(ctx context.Context) (*stepExecResult, error) {
+func (e *apiStepExecutor) execute(ctx context.Context, l *logger.ExecutorLogger) (*stepExecResult, error) {
 	step, ok := ctx.Value(util.StepKey).(*models.PipelineStepModel)
 	if !ok {
-		logger.Error("[APIStepExecutor] Error getting step from context", nil)
-		return nil, fmt.Errorf("error getting step from context")
+		l.ErrGettingStepFromCtx()
+		return nil, errors.New("error getting step from context")
 	}
 	serviceRequest, ok := ctx.Value(util.ServiceRequestKey).(*models.ServiceRequestModel)
 	if !ok {
-		logger.Error("[APIStepExecutor] Error getting service request from context", nil)
-		return nil, fmt.Errorf("error getting service request from context")
+		l.ErrGettingServiceReqFromCtx()
+		return nil, errors.New("error getting service request from context")
 	}
 	url := step.Parameters["url"]
 	req, err := http.NewRequest("GET", url, nil)
+	l.HttpRequest("GET", url)
 	if err != nil {
-		logger.Error("[APIStepExecutor] Error creating request", map[string]interface{}{"err": err})
 		return nil, err
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		logger.Error("[APIStepExecutor] Error sending request", map[string]interface{}{"err": err})
 		return nil, err
 	}
 	defer resp.Body.Close()
+	l.HttpResponseStatus(resp.StatusCode)
 	if resp.StatusCode != http.StatusOK {
-		logger.Error("[APIStepExecutor] Non-200 response", map[string]interface{}{"status": resp.StatusCode})
-		return nil, fmt.Errorf("Non-200 response")
+		return nil, fmt.Errorf("non-200 response")
 	}
-	logger.Info("[APIStepExecutor] Success", map[string]interface{}{"status": resp.StatusCode})
 	event.FireAsync(events.NewStepCompletedEvent(step, serviceRequest, &stepExecResult{}, nil))
 	return &stepExecResult{}, nil
 }
@@ -70,8 +69,8 @@ func NewWaitForApprovalStepExecutor() *waitForApprovalStepExecutor {
 	return &waitForApprovalStepExecutor{}
 }
 
-func (e *waitForApprovalStepExecutor) execute(ctx context.Context) (*stepExecResult, error) {
-	logger.Info("[WaitForApprovalStepExecutor] Waiting for approval", nil)
+func (e *waitForApprovalStepExecutor) execute(ctx context.Context, l *logger.ExecutorLogger) (*stepExecResult, error) {
+	l.WaitingForApproval()
 	return &stepExecResult{}, nil
 }
 
