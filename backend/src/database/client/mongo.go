@@ -2,9 +2,9 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"os"
 
-	"github.com/joshtyf/flowforge/src/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -15,7 +15,7 @@ func GetMongoClient() (*mongo.Client, error) {
 	if c == nil {
 		uri := os.Getenv("MONGO_URI")
 		if uri == "" {
-			logger.Error("MONGO_URI environment variable not set", nil)
+			return nil, fmt.Errorf("POSTGRES_URI environment variable not set")
 		}
 		client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(uri))
 		if err != nil {

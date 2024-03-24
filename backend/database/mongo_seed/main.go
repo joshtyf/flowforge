@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"time"
 
 	"github.com/joshtyf/flowforge/src/database"
@@ -12,6 +13,7 @@ import (
 
 func main() {
 	c, err := client.GetMongoClient()
+	logger := logger.NewLogger(os.Stdout)
 	if err != nil {
 		panic(err)
 	}
@@ -54,7 +56,7 @@ func main() {
 		panic(err)
 	}
 	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
-		logger.Info("Inserted pipeline", map[string]interface{}{"id": oid.String()})
+		logger.ResourceCreated("pipeline", oid.String())
 	} else {
 		panic("Inserted ID is not an ObjectID")
 	}
@@ -79,7 +81,7 @@ func main() {
 		panic(err)
 	}
 	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
-		logger.Info("Inserted service request", map[string]interface{}{"id": oid.String()})
+		logger.ResourceCreated("service request", oid.String())
 	} else {
 		panic("Inserted ID is not an ObjectID")
 	}

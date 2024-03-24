@@ -2,9 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"errors"
-
-	"github.com/joshtyf/flowforge/src/logger"
 )
 
 var (
@@ -35,9 +32,11 @@ var (
 								  VALUES ($1, $2) RETURNING joined_on`
 )
 
+// TODO: figure out how to log this
 func txnRollback(tx *sql.Tx) {
-	err := tx.Rollback()
-	if !errors.Is(err, sql.ErrTxDone) {
-		logger.Error("[Rollback] Error on rollback", map[string]interface{}{"err": err})
-	}
+	tx.Rollback()
+	// err := tx.Rollback()
+	// if !errors.Is(err, sql.ErrTxDone) {
+	// logger.Error("[Rollback] Error on rollback", map[string]interface{}{"err": err})
+	// }
 }

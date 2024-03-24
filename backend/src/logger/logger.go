@@ -7,43 +7,14 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+
+	"github.com/joshtyf/flowforge/src/database/models"
 )
 
 const (
-	logFormat         = "[%s] %s {%s}"
-	logWithFuncFormat = "[%s] %s: %s" // [MSG_TYPE] FUNC_NAME: MSG
+	logWithFuncFormat = "[%s] %s: %s" // [MSG_TYPE] CALLER_DETAILS: MSG
 	logWithoutFunc    = "[%s] %s"     // [MSG_TYPE] MSG
-
-	shutdownServerMsg = "shutting down server: %s" // shutting down server: REASON
 )
-
-func init() {
-	log.SetFlags(log.LstdFlags)
-}
-
-func Info(msg string, args map[string]interface{}) {
-	argsSlice := make([]string, 0, len(args))
-	for k, v := range args {
-		argsSlice = append(argsSlice, fmt.Sprintf("%s=%v", k, v))
-	}
-	log.Printf(logFormat, "INFO", msg, strings.Join(argsSlice, ", "))
-}
-
-func Error(msg string, args map[string]interface{}) {
-	argsSlice := make([]string, 0, len(args))
-	for k, v := range args {
-		argsSlice = append(argsSlice, fmt.Sprintf("%s=%v", k, v))
-	}
-	log.Printf(logFormat, "ERR", msg, strings.Join(argsSlice, ", "))
-}
-
-func Warn(msg string, args map[string]interface{}) {
-	argsSlice := make([]string, 0, len(args))
-	for k, v := range args {
-		argsSlice = append(argsSlice, fmt.Sprintf("%s=%v", k, v))
-	}
-	log.Printf(logFormat, "WARN", msg, strings.Join(argsSlice, ", "))
-}
 
 type Logger struct {
 	logger *log.Logger
@@ -102,6 +73,98 @@ func (l *Logger) warn(msg string) {
 	l.logger.Printf(logWithoutFunc, "WARN", msg)
 }
 
+func (l *Logger) ErrClaimsMissingPermission(permission string) {
+	l.error(fmt.Sprintf("unauthorized: missing permission %s", permission))
+}
+
+func (l *Logger) ErrEventLogStepMissingInPipeline(stepName string) {
+	l.error(fmt.Sprintf("%s exists in event log but not in pipeline template", stepName))
+}
+
+func (l *Logger) ErrExecutingStep(stepName string, err error) {
+	l.error(fmt.Sprintf("error executing %s: %s", stepName, err))
+}
+
+func (l *Logger) ErrHandlingEvent(err error) {
+	l.error(fmt.Sprintf("error encountered while handling event: %s", err))
+}
+
+func (l *Logger) ErrHandlingRequest(err error) {
+	l.error(fmt.Sprintf("error encountered while handling API request: %s", err))
+}
+
+func (l *Logger) ErrInvalidStepType(expectedStepType, actualStepType models.PipelineStepType) {
+	l.error(fmt.Sprintf("invalid step type: expected %s got %s", expectedStepType, actualStepType))
+}
+
+func (l *Logger) ErrMissingExecutorForStep(stepName string) {
+	l.error(fmt.Sprintf("missing executor for step: %s", stepName))
+}
+
+func (l *Logger) ErrMissingPipelineStep(stepName string) {
+	l.error(fmt.Sprintf("missing pipeline step: %s", stepName))
+}
+
+func (l *Logger) ErrParsingIssuerURL(err error) {
+	l.error(fmt.Sprintf("failed to parse the issuer url: %s", err))
+}
+
+func (l *Logger) ErrParsingJsonRequestBody(err error) {
+	l.error(fmt.Sprintf("failed to parse json request body: %s", err))
+}
+
+func (l *Logger) ErrResourceNotFound(resourceName, resourceId string) {
+	l.error(fmt.Sprintf("%s %s not found", resourceName, resourceId))
+}
+
+func (l *Logger) ErrServiceRequestStatusUpdateFailed(action, serviceRequestId, reason string) {
+	l.error(fmt.Sprintf("failed to %s service request %s: %s", action, serviceRequestId, reason))
+}
+
+func (l *Logger) ErrSettingUpJWTValidator(err error) {
+	l.error(fmt.Sprintf("failed to set up jwt validator: %s", err))
+}
+
+func (l *Logger) ErrValidatingJWT(err error) {
+	l.error(fmt.Sprintf("failed to validate jwt: %s", err))
+}
+
+func (l *Logger) ErrValidatingPipeline(err error) {
+	l.error(fmt.Sprintf("failed to validate pipeline: %s", err))
+}
+
+func (l *Logger) ErrEventMissingData(eventName, data string) {
+	l.error(fmt.Sprintf("event %s missing data: %s", eventName, data))
+}
+
+func (l *Logger) HandleEvent(eventName string) {
+	l.info(fmt.Sprintf("handling event: %s", eventName))
+}
+
+func (l *Logger) ResourceCreated(resourceName, resourceId string) {
+	l.info(fmt.Sprintf("%s %s created", resourceName, resourceId))
+}
+
+func (l *Logger) ResourceDeleted(resourceName, resourceId string) {
+	l.info(fmt.Sprintf("%s %s deleted", resourceName, resourceId))
+}
+
+func (l *Logger) ServerHealthy() {
+	l.info("server is healthy")
+}
+
 func (l *Logger) ShutdownServer(reason string) {
-	l.info(fmt.Sprintf(shutdownServerMsg, reason))
+	l.info(fmt.Sprintf("shutting down server: %s", reason))
+}
+
+func (l *Logger) SkippingAdminCheck() {
+	l.warn("skipping admin check in dev environment")
+}
+
+func (l *Logger) SkippingAuth() {
+	l.warn("skipping authentication in dev environment")
+}
+
+func (l *Logger) UserLoggedIn(userId string) {
+	l.info(fmt.Sprintf("user %s logged in", userId))
 }

@@ -3,6 +3,7 @@ package server
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -42,35 +43,35 @@ func NewServerHandler(psqlClient *sql.DB, mongoCLient *mongo.Client, logger *log
 
 func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	// Health Check
-	r.Handle("/api/healthcheck", handleHealthCheck()).Methods("GET")
+	r.Handle("/api/healthcheck", handleHealthCheck(s.logger)).Methods("GET")
 
 	// Service Request
-	r.Handle("/api/service_request", isAuthenticated(handleGetAllServiceRequest(s.mongoClient))).Methods("GET")
+	r.Handle("/api/service_request", isAuthenticated(handleGetAllServiceRequest(s.logger, s.mongoClient), s.logger)).Methods("GET")
 	// TODO: @Zheng-Zhi-Qiang this route conflicts with `/api/service_request/{requestId}`.
 	// r.Handle("/api/service_request/{organisationId}", isAuthenticated(handleGetServiceRequestsByOrganisation(mongoClient))).Methods("GET")
-	r.Handle("/api/service_request/{requestId}", isAuthenticated(handleGetServiceRequest(s.mongoClient, s.psqlClient))).Methods("GET")
-	r.Handle("/api/service_request", isAuthenticated(handleCreateServiceRequest(s.mongoClient, s.psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
-	r.Handle("/api/service_request/{requestId}", isAuthenticated(handleUpdateServiceRequest(s.mongoClient))).Methods("PATCH").Headers("Content-Type", "application/json")
-	r.Handle("/api/service_request/{requestId}/cancel", isAuthenticated(handleCancelStartedServiceRequest(s.mongoClient))).Methods("GET")
-	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(handleStartServiceRequest(s.mongoClient))).Methods("GET")
-	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(isAuthorisedAdmin(handleApproveServiceRequest(s.mongoClient)))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/{requestId}", isAuthenticated(handleGetServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger)).Methods("GET")
+	r.Handle("/api/service_request", isAuthenticated(handleCreateServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/{requestId}", isAuthenticated(handleUpdateServiceRequest(s.logger, s.mongoClient), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/{requestId}/cancel", isAuthenticated(handleCancelStartedServiceRequest(s.logger, s.mongoClient), s.logger)).Methods("GET")
+	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(handleStartServiceRequest(s.logger, s.mongoClient), s.logger)).Methods("GET")
+	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(isAuthorisedAdmin(handleApproveServiceRequest(s.logger, s.mongoClient), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 
 	// Pipeline
-	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(handleGetAllPipelines(s.mongoClient)))).Methods("GET")
-	r.Handle("/api/pipeline/{pipelineId}", isAuthenticated(isAuthorisedAdmin(handleGetPipeline(s.mongoClient)))).Methods("GET")
-	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(validateCreatePipelineRequest(handleCreatePipeline(s.mongoClient))))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(handleGetAllPipelines(s.logger, s.mongoClient), s.logger), s.logger)).Methods("GET")
+	r.Handle("/api/pipeline/{pipelineId}", isAuthenticated(isAuthorisedAdmin(handleGetPipeline(s.logger, s.mongoClient), s.logger), s.logger)).Methods("GET")
+	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(validateCreatePipelineRequest(handleCreatePipeline(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 
 	// User
-	r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.psqlClient))).Methods("Get")
-	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
-	r.Handle("/api/organisation", isAuthenticated(handleCreateOrganisation(s.psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
-	r.Handle("/api/membership", isAuthenticated(handleCreateMembership(s.psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.logger, s.psqlClient), s.logger)).Methods("Get")
+	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/organisation", isAuthenticated(handleCreateOrganisation(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/membership", isAuthenticated(handleCreateMembership(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 }
 
-func handleHealthCheck() http.Handler {
+func handleHealthCheck(l *logger.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if serverHealthy() {
-			logger.Info("[HealthCheck] Server working!", nil)
+			l.ServerHealthy()
 			encode(w, r, http.StatusOK, "Server working!")
 			return
 		}
@@ -78,20 +79,19 @@ func handleHealthCheck() http.Handler {
 	})
 }
 
-func handleGetAllServiceRequest(client *mongo.Client) http.Handler {
+func handleGetAllServiceRequest(logger *logger.Logger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		allsr, err := database.NewServiceRequest(client).GetAll()
 		if err != nil {
-			logger.Error("[GetAllServiceRequest] Error retrieving all service request", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		logger.Info("[GetAllServiceRequest] Successfully retrieved service requests", map[string]interface{}{"count": len(allsr)})
 		encode(w, r, http.StatusOK, allsr)
 	})
 }
 
-func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
+func handleGetServiceRequest(logger *logger.Logger, mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
 	type ResponseBodyStep struct {
 		Name         string           `json:"name"`
 		Status       models.EventType `json:"status"`
@@ -109,19 +109,19 @@ func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http
 		requestId := vars["requestId"]
 		sr, err := database.NewServiceRequest(mongoClient).GetById(requestId)
 		if err != nil {
-			logger.Error("[GetServiceRequest] Unable to retrieve service request", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		pipeline, err := database.NewPipeline(mongoClient).GetById(sr.PipelineId)
 		if err != nil {
-			logger.Error("[GetServiceRequest] Unable to retrieve pipeline", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		sre, err := database.NewServiceRequestEvent(psqlClient).GetStepsLatestEvent(requestId)
 		if err != nil {
-			logger.Error("[GetServiceRequest] Unable to retrieve latest service request events", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
@@ -129,7 +129,7 @@ func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http
 		for _, event := range sre {
 			step := pipeline.GetPipelineStep(event.StepName)
 			if step == nil {
-				logger.Error("[GetServiceRequest] Found a step that exists in events log but not in pipeline", map[string]interface{}{"step": event.StepName})
+				logger.ErrEventLogStepMissingInPipeline(event.StepName)
 				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 				return
 			}
@@ -146,27 +146,26 @@ func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http
 			Steps:          steps,
 			FirstStepName:  pipeline.FirstStepName,
 		}
-		logger.Info("[GetServiceRequest] Successfully retrieved service request", map[string]interface{}{"response": response})
 		encode(w, r, http.StatusOK, response)
 	})
 }
 
-func handleCreateServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
+func handleCreateServiceRequest(logger *logger.Logger, mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srm, err := decode[models.ServiceRequestModel](r)
 		if err != nil {
-			logger.Error("[CreateServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
+			logger.ErrParsingJsonRequestBody(err)
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
 
 		pipeline, err := database.NewPipeline(mongoClient).GetById(srm.PipelineId)
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			logger.Error("[CreateServiceRequest] Invalid pipeline id, no matching pipeline found", map[string]interface{}{"pipelineId": srm.PipelineId})
+			logger.ErrResourceNotFound("pipeline", srm.PipelineId)
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidPipelineId, http.StatusBadRequest))
 			return
 		} else if err != nil {
-			logger.Error("[CreateServiceRequest] Error getting pipeline", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
@@ -177,7 +176,7 @@ func handleCreateServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) h
 
 		res, err := database.NewServiceRequest(mongoClient).Create(&srm)
 		if err != nil {
-			logger.Error("[CreateServiceRequest] Error creating service request", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
@@ -189,37 +188,36 @@ func handleCreateServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) h
 				StepName:         step.StepName,
 			})
 			if err != nil {
-				logger.Error("[CreateServiceRequest] Error creating step not started event", map[string]interface{}{"err": err})
+				logger.ErrHandlingRequest(err)
 				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 				return
 			}
 		}
-		logger.Info("[CreateServiceRequest] Successfully created service request", map[string]interface{}{"sr": srm})
 		insertedId, _ := res.InsertedID.(primitive.ObjectID)
 		srm.Id = insertedId
 		encode(w, r, http.StatusCreated, srm)
 	})
 }
 
-func handleCancelStartedServiceRequest(client *mongo.Client) http.Handler {
+func handleCancelStartedServiceRequest(logger *logger.Logger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		requestId := vars["requestId"]
 		sr, err := database.NewServiceRequest(client).GetById(requestId)
 		if err != nil {
-			logger.Error("[CancelStartedServiceRequest] Error getting service request", map[string]interface{}{"err": err})
+			logger.ErrResourceNotFound("service request", requestId)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		status := sr.Status
 		if status != models.Pending && status != models.Running {
-			logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has been completed", nil)
+			logger.ErrServiceRequestStatusUpdateFailed("cancel", requestId, "execution has been completed")
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestAlreadyCompleted, http.StatusBadRequest))
 			return
 		}
 
 		if status == models.NotStarted {
-			logger.Error("[CancelStartedServiceRequest] Unable to cancel service request as execution has not been started", nil)
+			logger.ErrServiceRequestStatusUpdateFailed("cancel", requestId, "execution has not been started")
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestNotStarted, http.StatusBadRequest))
 			return
 		}
@@ -230,21 +228,19 @@ func handleCancelStartedServiceRequest(client *mongo.Client) http.Handler {
 
 		// TODO: discuss how to handle this error
 		if err != nil {
-			logger.Error("[CancelStartedServiceRequest] Unable to update service request status", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-
-		logger.Info("[CancelStartedServiceRequest] Successfully canceled started service request", nil)
 		encode[any](w, r, http.StatusOK, nil)
 	})
 }
 
-func handleUpdateServiceRequest(client *mongo.Client) http.Handler {
+func handleUpdateServiceRequest(logger *logger.Logger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srm, err := decode[models.ServiceRequestModel](r)
 		if err != nil {
-			logger.Error("[UpdateServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
+			logger.ErrParsingJsonRequestBody(err)
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
@@ -252,39 +248,38 @@ func handleUpdateServiceRequest(client *mongo.Client) http.Handler {
 		requestId := vars["requestId"]
 		sr, err := database.NewServiceRequest(client).GetById(requestId)
 		if err != nil {
-			logger.Error("[UpdateServiceRequest] Error getting service request", map[string]interface{}{"err": err})
+			logger.ErrResourceNotFound("service request", requestId)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		status := sr.Status
 		if status != models.NotStarted {
-			logger.Error("[UpdateServiceRequest] Unable to update service request as service request has been started", nil)
+			logger.ErrServiceRequestStatusUpdateFailed("update", requestId, "execution has been started")
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestAlreadyStarted, http.StatusBadRequest))
 			return
 		}
-		res, err := database.NewServiceRequest(client).UpdateById(requestId, &srm)
+		_, err = database.NewServiceRequest(client).UpdateById(requestId, &srm)
 		if err != nil {
-			logger.Error("[UpdateServiceRequest] Error updating service request", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		logger.Info("[UpdateServiceRequest] Successfully updated service request", map[string]interface{}{"count": res.ModifiedCount})
 		encode[any](w, r, http.StatusOK, nil)
 	})
 }
 
-func handleStartServiceRequest(client *mongo.Client) http.Handler {
+func handleStartServiceRequest(logger *logger.Logger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		requestId := vars["requestId"]
 		srm, err := database.NewServiceRequest(client).GetById(requestId)
 		if err != nil {
-			logger.Error("[StartServiceRequest] Unable retrieve service request", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		if srm.Status != models.NotStarted {
-			logger.Error("[StartServiceRequest] Service request has already been started", nil)
+			logger.ErrServiceRequestStatusUpdateFailed("start", requestId, "execution has already been started")
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestAlreadyStarted, http.StatusBadRequest))
 			return
 		}
@@ -293,7 +288,7 @@ func handleStartServiceRequest(client *mongo.Client) http.Handler {
 	})
 }
 
-func handleApproveServiceRequest(client *mongo.Client) http.Handler {
+func handleApproveServiceRequest(logger *logger.Logger, client *mongo.Client) http.Handler {
 	type requestBody struct {
 		StepName string `json:"step_name"`
 	}
@@ -301,32 +296,40 @@ func handleApproveServiceRequest(client *mongo.Client) http.Handler {
 		params := mux.Vars(r)
 		serviceRequestId := params["requestId"]
 		serviceRequest, err := database.NewServiceRequest(client).GetById(serviceRequestId)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			logger.ErrResourceNotFound("service request", serviceRequestId)
+			encode(w, r, http.StatusNotFound, newHandlerError(ErrInvalidServiceRequestId, http.StatusNotFound))
+		}
 		if err != nil {
-			logger.Error("[ApproveServiceRequest] Unable to get service request", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		body, err := decode[requestBody](r)
 		if err != nil {
-			logger.Error("[ApproveServiceRequest] Unable to parse json request body", map[string]interface{}{"err": err})
+			logger.ErrParsingJsonRequestBody(err)
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
 		pipeline, err := database.NewPipeline(client).GetById(serviceRequest.PipelineId)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			logger.ErrResourceNotFound("pipeline", serviceRequest.PipelineId)
+			encode(w, r, http.StatusNotFound, newHandlerError(ErrInvalidPipelineId, http.StatusNotFound))
+		}
 		if err != nil {
-			logger.Error("[ApproveServiceRequest] Unable to get pipeline", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		waitForApprovalStep := pipeline.GetPipelineStep(body.StepName)
 
 		if waitForApprovalStep == nil {
-			logger.Error("[ApproveServiceRequest] Unable to get wait for approval step", map[string]interface{}{"step": body.StepName})
+			logger.ErrMissingPipelineStep(body.StepName)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		if waitForApprovalStep.StepType != models.WaitForApprovalStep {
-			logger.Error("[ApproveServiceRequest] Step is not a wait for approval step", map[string]interface{}{"step": body.StepName})
+			logger.ErrInvalidStepType(models.WaitForApprovalStep, waitForApprovalStep.StepType)
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrWrongStepType, http.StatusBadRequest))
 			return
 		}
@@ -336,11 +339,11 @@ func handleApproveServiceRequest(client *mongo.Client) http.Handler {
 	})
 }
 
-func handleCreatePipeline(client *mongo.Client) http.Handler {
+func handleCreatePipeline(logger *logger.Logger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pipeline, err := decode[models.PipelineModel](r)
 		if err != nil {
-			logger.Error("[CreatePipeline] Unable to parse json request body", map[string]interface{}{"err": err})
+			logger.ErrParsingJsonRequestBody(err)
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
@@ -349,51 +352,51 @@ func handleCreatePipeline(client *mongo.Client) http.Handler {
 		pipeline.Version = 1
 		res, err := database.NewPipeline(client).Create(&pipeline)
 		if err != nil {
-			logger.Error("[CreatePipeline] Unable to create pipeline", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrPipelineCreateFail, http.StatusInternalServerError))
 			return
 		}
 		insertedId, _ := res.InsertedID.(primitive.ObjectID)
 		pipeline.Id = insertedId
-		logger.Info("[CreatePipeline] Successfully created pipeline", map[string]interface{}{"pipeline": pipeline})
 		encode(w, r, http.StatusCreated, pipeline)
 	})
 }
 
-func handleGetPipeline(client *mongo.Client) http.Handler {
+func handleGetPipeline(logger *logger.Logger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		pipelineId := vars["pipelineId"]
 		pipeline, err := database.NewPipeline(client).GetById(pipelineId)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			logger.ErrResourceNotFound("pipeline", pipelineId)
+		}
 		if err != nil {
-			logger.Error("[GetPipeline] Unable to get pipeline", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		logger.Info("[GetPipeline] Successfully retrieved pipeline", map[string]interface{}{"pipeline": pipeline})
 		encode(w, r, http.StatusOK, pipeline)
 	})
 }
 
-func handleGetAllPipelines(client *mongo.Client) http.Handler {
+func handleGetAllPipelines(logger *logger.Logger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pipelines, err := database.NewPipeline(client).GetAll()
 		if err != nil {
-			logger.Error("[GetAllPipelines] Unable to get pipelines", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		logger.Info("[GetAllPipelines] Successfully retrieved pipelines", map[string]interface{}{"count": len(pipelines)})
 		encode(w, r, http.StatusOK, pipelines)
 	})
 }
 
 // NOTE: handler and data functions used in here are subjected to change depending on if frontend is able to validate that user has been previously registered in auth0
-func handleUserLogin(client *sql.DB) http.Handler {
+func handleUserLogin(logger *logger.Logger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		um, err := decode[models.UserModel](r)
 		if err != nil {
-			logger.Error("[UserLogin] Unable to parse json request body", map[string]interface{}{"err": err})
+			logger.ErrParsingJsonRequestBody(err)
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
@@ -401,100 +404,102 @@ func handleUserLogin(client *sql.DB) http.Handler {
 		if errors.Is(err, sql.ErrNoRows) {
 			user, err := database.NewUser(client).CreateUser(&um)
 			if err != nil {
-				logger.Error("[UserLogin] Unable to create user", map[string]interface{}{"err": err})
+				logger.ErrHandlingRequest(err)
 				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserCreateFail, http.StatusInternalServerError))
 				return
 			}
-			logger.Info("[UserLogin] Successfully created user", map[string]interface{}{"user": user})
+			logger.ResourceCreated("user", user.UserId)
 			encode[any](w, r, http.StatusCreated, nil)
 			return
 		} else if err != nil {
-			logger.Error("[UserLogin] Error querying user table using user_id", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		logger.Info("[UserLogin] Successfully logged in user", nil)
+		logger.UserLoggedIn(um.UserId)
 		encode[any](w, r, http.StatusOK, nil)
 	})
 }
 
-func handleCreateOrganisation(client *sql.DB) http.Handler {
+func handleCreateOrganisation(logger *logger.Logger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		om, err := decode[models.OrganisationModel](r)
 		if err != nil {
-			logger.Error("[CreateOrganisation] Unable to parse json request body", map[string]interface{}{"err": err})
+			logger.ErrParsingJsonRequestBody(err)
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
 		org, err := database.NewOrganization(client).Create(&om)
 		if err != nil {
-			logger.Error("[CreateOrganisation] Unable to create organisation", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationCreateFail, http.StatusInternalServerError))
 			return
 		}
-		logger.Info("[CreateOrganisation] Successfully created organisation", map[string]interface{}{"org": org})
+		logger.ResourceCreated("organisation", fmt.Sprint(org.OrgId))
 		encode(w, r, http.StatusCreated, org)
 	})
 }
 
-func handleCreateMembership(client *sql.DB) http.Handler {
+func handleCreateMembership(logger *logger.Logger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mm, err := decode[models.MembershipModel](r)
 		if err != nil {
-			logger.Error("[CreateMembership] Unable to parse json request body", map[string]interface{}{"err": err})
+			logger.ErrParsingJsonRequestBody(err)
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
 		membership, err := database.NewMembership(client).Create(&mm)
 		if err != nil {
-			logger.Error("[CreateMembership] Unable to create membership", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipCreateFail, http.StatusInternalServerError))
 			return
 		}
-		logger.Info("[CreateMembership] Successfully created membership", map[string]interface{}{"membership": membership})
+		logger.ResourceCreated("membership", fmt.Sprintf("%s-%d", mm.UserId, mm.OrgId))
 		encode(w, r, http.StatusCreated, membership)
 	})
 }
 
-func handleGetServiceRequestsByOrganisation(client *mongo.Client) http.Handler {
+func handleGetServiceRequestsByOrganisation(logger *logger.Logger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		orgId, err := strconv.Atoi(vars["organisationId"])
 		if err != nil {
-			logger.Error("[GetServiceRequestsByOrganisation] Error converting organisation id to int", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
 			return
 		}
 		allsr, err := database.NewServiceRequest(client).GetServiceRequestsByOrgId(orgId)
 		if err != nil {
-			logger.Error("[GetServiceRequestsByOrganisation] Error retrieving all service request", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		logger.Info("[GetAllServiceRequest] Successfully retrieved service requests", map[string]interface{}{"count": len(allsr)})
 		encode(w, r, http.StatusOK, allsr)
 	})
 }
 
-func handleGetUserById(client *sql.DB) http.Handler {
+func handleGetUserById(logger *logger.Logger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		user_id := vars["userId"]
-		user, err := database.NewUser(client).GetUserById(user_id)
+		userId := vars["userId"]
+		user, err := database.NewUser(client).GetUserById(userId)
+		if errors.Is(err, sql.ErrNoRows) {
+			logger.ErrResourceNotFound("user", userId)
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInvalidUserId, http.StatusInternalServerError))
+			return
+		}
 		if err != nil {
-			logger.Error("[GetUserById] Unable to retrieve user", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserRetrieve, http.StatusInternalServerError))
 			return
 		}
-		logger.Info("[GetUserById] Successfully retrieved user exists", map[string]interface{}{"user": user})
 
 		orgs, err := database.NewOrganization(client).GetAllOrgsByUserId(user.UserId)
 		if err != nil {
-			logger.Error("[GetUserById] Unable to retrieve user orgs", map[string]interface{}{"err": err})
+			logger.ErrHandlingRequest(err)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationRetrieve, http.StatusInternalServerError))
 			return
 		}
-		logger.Info("[GetUserById] Successfully retrieved user organisations", map[string]interface{}{"orgs": orgs})
 		user.Organisations = orgs
 		encode(w, r, http.StatusCreated, user)
 	})

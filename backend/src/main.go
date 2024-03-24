@@ -45,6 +45,7 @@ func gracefulShutdown(logger *logger.Logger, svr *http.Server, psqlClient *sql.D
 }
 
 func main() {
+	logger := logger.NewLogger(os.Stdout)
 	psqlClient, err := client.GetPsqlClient()
 	if err != nil {
 		panic(err)
@@ -54,13 +55,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	logger := logger.NewLogger(os.Stdout)
-
 	// Start the Step Execution Manager
 	srm, err := execute.NewStepExecutionManager(
 		mongoClient,
 		psqlClient,
+		logger,
 		execute.WithStepExecutor(execute.NewApiStepExecutor()),
 		execute.WithStepExecutor(execute.NewWaitForApprovalStepExecutor()),
 	)
