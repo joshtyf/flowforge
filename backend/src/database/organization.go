@@ -27,7 +27,7 @@ func (u *Organization) Create(org *models.OrganisationModel) (*models.Organisati
 		return nil, err
 	}
 
-	if _, err := tx.Exec(CreateMembershipStatement, org.Owner, org.OrgId); err != nil {
+	if _, err := tx.Exec(CreateMembershipStatement, org.Owner, org.OrgId, models.Owner); err != nil {
 		return nil, err
 	}
 

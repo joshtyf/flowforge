@@ -15,7 +15,7 @@ func NewMembership(c *sql.DB) *Membership {
 }
 
 func (u *Membership) Create(membership *models.MembershipModel) (*models.MembershipModel, error) {
-	if err := u.c.QueryRow(CreateMembershipStatement, membership.UserId, membership.OrgId).Scan(&membership.JoinedOn); err != nil {
+	if err := u.c.QueryRow(CreateMembershipStatement, membership.UserId, membership.OrgId, membership.Role).Scan(&membership.JoinedOn); err != nil {
 		return nil, err
 	}
 	return membership, nil
