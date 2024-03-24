@@ -52,41 +52,41 @@ func NewLogger(f io.Writer) *Logger {
 	}
 }
 
+func (l *Logger) getOriginalCaller() (string, error) {
+	pc := make([]uintptr, 1)
+	n := runtime.Callers(4, pc) // Callstack: getOriginalCaller -> info/error/warn -> message method -> caller
+	if n == 0 {
+		return "", fmt.Errorf("could not get caller")
+	}
+	frames := runtime.CallersFrames(pc)
+	frame, _ := frames.Next()
+	frameFunc := frame.Func
+	if frameFunc == nil {
+		return "", fmt.Errorf("could not get caller")
+	}
+	return frameFunc.Name(), nil
+}
+
 func (l *Logger) info(msg string) {
-	pc, _, _, ok := runtime.Caller(2)
-	if !ok {
-		l.logger.Printf(logWithoutFunc, "INFO", msg)
+	if originalCaller, err := l.getOriginalCaller(); err == nil {
+		l.logger.Printf(logWithFuncFormat, "INFO", originalCaller, msg)
+		return
 	}
-	f := runtime.FuncForPC(pc)
-	if f == nil {
-		l.logger.Printf(logWithoutFunc, "INFO", msg)
-	}
-	funcName := f.Name()
-	l.logger.Printf(logWithFuncFormat, "INFO", funcName, msg)
+	l.logger.Printf(logWithoutFunc, "INFO", msg)
 }
 
 func (l *Logger) error(msg string) {
-	pc, _, _, ok := runtime.Caller(2)
-	if !ok {
-		l.logger.Printf(logWithoutFunc, "ERROR", msg)
+	if originalCaller, err := l.getOriginalCaller(); err == nil {
+		l.logger.Printf(logWithFuncFormat, "ERROR", originalCaller, msg)
+		return
 	}
-	f := runtime.FuncForPC(pc)
-	if f == nil {
-		l.logger.Printf(logWithoutFunc, "ERROR", msg)
-	}
-	funcName := f.Name()
-	l.logger.Printf(logWithFuncFormat, "ERROR", funcName, msg)
+	l.logger.Printf(logWithoutFunc, "ERROR", msg)
 }
 
 func (l *Logger) warn(msg string) {
-	pc, _, _, ok := runtime.Caller(2)
-	if !ok {
-		l.logger.Printf(logWithoutFunc, "WARN", msg)
+	if originalCaller, err := l.getOriginalCaller(); err == nil {
+		l.logger.Printf(logWithFuncFormat, "WARN", originalCaller, msg)
+		return
 	}
-	f := runtime.FuncForPC(pc)
-	if f == nil {
-		l.logger.Printf(logWithoutFunc, "WARN", msg)
-	}
-	funcName := f.Name()
-	l.logger.Printf(logWithFuncFormat, "WARN", funcName, msg)
+	l.logger.Printf(logWithoutFunc, "WARN", msg)
 }
