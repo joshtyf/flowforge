@@ -417,8 +417,7 @@ func handleCreateMembership(client *sql.DB) http.Handler {
 
 func handleGetAllServiceRequestsForOrganisation(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		orgId, err := strconv.Atoi(vars["orgId"])
+		orgId, err := strconv.Atoi(r.URL.Query().Get("orgId"))
 		if err != nil {
 			logger.Error("[GetAllServiceRequestsForOrganisation] Error converting organisation id to int", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
