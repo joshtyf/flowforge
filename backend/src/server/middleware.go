@@ -20,6 +20,7 @@ import (
 	"github.com/joshtyf/flowforge/src/database/models"
 	"github.com/joshtyf/flowforge/src/logger"
 	"github.com/joshtyf/flowforge/src/validation"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func validateCreatePipelineRequest(next http.Handler) http.Handler {
@@ -132,7 +133,11 @@ func isAuthorisedAdmin(next http.Handler) http.Handler {
 	})
 }
 
-func isOrgOwner(next http.Handler) http.Handler {
+type OrgId struct {
+	OrganisationId int `bson:"org_id" json:"org_id"`
+}
+
+func IsOrgOwner(next http.Handler) http.Handler {
 	env := os.Getenv("ENV")
 	if env == "dev" {
 		logger.Info("[Authorization] Skipping org owner check in dev environment", nil)
@@ -141,12 +146,14 @@ func isOrgOwner(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c, err := client.GetPsqlClient()
 		if err != nil {
-			panic(err)
+			logger.Error("[Authorization] Error getting postgres client", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
 		}
 		vars := mux.Vars(r)
 		orgId, err := strconv.Atoi(vars["orgId"])
 		if err != nil {
-			logger.Error("[Authorization] Error converting organisation id to int", map[string]interface{}{"err": err})
+			logger.Error("[Authorization] Error converting org id to int", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
 			return
 		}
@@ -159,11 +166,163 @@ func isOrgOwner(next http.Handler) http.Handler {
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		} else if err != nil {
-			logger.Error("[Authorization] Error encountered while verifying owner", nil)
+			logger.Error("[Authorization] Error encountered while verifying ownership", nil)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func IsOrgAdmin(next http.Handler) http.Handler {
+	env := os.Getenv("ENV")
+	if env == "dev" {
+		logger.Info("[Authorization] Skipping org owner check in dev environment", nil)
+		return next
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var org_id int
+		var err error
+		if r.Method == "POST" || r.Method == "PATCH" {
+			org, err := decode[OrgId](r)
+			if err != nil {
+				logger.Error("[Authorization] Error parsing org id", map[string]interface{}{"err": err})
+				encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
+			}
+			org_id = org.OrganisationId
+		} else {
+			if q := r.URL.Query().Get("org_id"); q == "" {
+				mongoClient, err := client.GetMongoClient()
+				if err != nil {
+					logger.Error("[Authorization] Error getting mongo client", map[string]interface{}{"err": err})
+					encode(w, r, http.StatusBadRequest, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+					return
+				}
+
+				org, err := getOrgIdUsingServiceRequestId(mongoClient, r)
+				if err != nil {
+					logger.Error("[Authorization] Error getting org id using service request id", map[string]interface{}{"err": err})
+					encode(w, r, http.StatusBadRequest, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+					return
+				}
+
+				org_id = org.OrganisationId
+			} else {
+				org_id, err = strconv.Atoi(q)
+				if err != nil {
+					logger.Error("[Authorization] Error converting org id to int", map[string]interface{}{"err": err})
+					encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
+				}
+			}
+		}
+
+		postgresClient, err := client.GetPsqlClient()
+		if err != nil {
+			logger.Error("[Authorization] Error getting postgres client", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+
+		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		userId := token.RegisteredClaims.Subject
+
+		membership, err := database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(userId, org_id)
+		if errors.Is(err, sql.ErrNoRows) {
+			logger.Error("[Authorization] User not authorized member", nil)
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			return
+		} else if err != nil {
+			logger.Error("[Authorization] Error encountered while verifying membership", nil)
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+
+		if membership.Role == models.Member {
+			logger.Error("[Authorization] User not authorized member", nil)
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func IsOrgMember(next http.Handler) http.Handler {
+	env := os.Getenv("ENV")
+	if env == "dev" {
+		logger.Info("[Authorization] Skipping org owner check in dev environment", nil)
+		return next
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var org_id int
+		var err error
+		if r.Method == "POST" || r.Method == "PATCH" {
+			org, err := decode[OrgId](r)
+			if err != nil {
+				logger.Error("[Authorization] Error parsing org id", map[string]interface{}{"err": err})
+				encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
+			}
+			org_id = org.OrganisationId
+		} else {
+			if q := r.URL.Query().Get("org_id"); q == "" {
+				mongoClient, err := client.GetMongoClient()
+				if err != nil {
+					logger.Error("[Authorization] Error getting mongo client", map[string]interface{}{"err": err})
+					encode(w, r, http.StatusBadRequest, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+					return
+				}
+
+				org, err := getOrgIdUsingServiceRequestId(mongoClient, r)
+				if err != nil {
+					logger.Error("[Authorization] Error getting org id using service request id", map[string]interface{}{"err": err})
+					encode(w, r, http.StatusBadRequest, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+					return
+				}
+
+				org_id = org.OrganisationId
+			} else {
+				org_id, err = strconv.Atoi(q)
+				if err != nil {
+					logger.Error("[Authorization] Error converting org id to int", map[string]interface{}{"err": err})
+					encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
+				}
+			}
+		}
+
+		postgresClient, err := client.GetPsqlClient()
+		if err != nil {
+			logger.Error("[Authorization] Error getting postgres client", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+
+		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		userId := token.RegisteredClaims.Subject
+
+		_, err = database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(userId, org_id)
+		if errors.Is(err, sql.ErrNoRows) {
+			logger.Error("[Authorization] User not authorized member", nil)
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			return
+		} else if err != nil {
+			logger.Error("[Authorization] Error encountered while verifying membership", nil)
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func getOrgIdUsingServiceRequestId(c *mongo.Client, r *http.Request) (*OrgId, error) {
+	vars := mux.Vars(r)
+	sr_id := vars["requestId"]
+	sr, err := database.NewServiceRequest(c).GetById(sr_id)
+	if err != nil {
+		return nil, err
+	}
+	return &OrgId{OrganisationId: sr.OrganisationId}, nil
 }

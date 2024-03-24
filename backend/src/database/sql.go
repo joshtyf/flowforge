@@ -37,6 +37,10 @@ var (
 	// Membership
 	CreateMembershipStatement = `INSERT INTO public."membership" (user_id, org_id, role) 
 								  VALUES ($1, $2, $3) RETURNING joined_on`
+
+	SelectMembershipByUserAndOrgId = `SELECT * FROM public."membership"
+										WHERE org_id = $1
+										AND user_id = $2`
 )
 
 func txnRollback(tx *sql.Tx) {
