@@ -18,7 +18,7 @@ import (
 )
 
 type ExecutionManager struct {
-	logger      *logger.Logger
+	logger      *logger.ServerLogger
 	mongoClient *mongo.Client
 	psqlClient  *sql.DB
 	executors   map[models.PipelineStepType]*stepExecutor
@@ -32,7 +32,7 @@ func WithStepExecutor(step stepExecutor) ExecutionManagerConfig {
 	}
 }
 
-func NewStepExecutionManager(mongoClient *mongo.Client, psqlClient *sql.DB, logger *logger.Logger, configs ...ExecutionManagerConfig) (*ExecutionManager, error) {
+func NewStepExecutionManager(mongoClient *mongo.Client, psqlClient *sql.DB, logger *logger.ServerLogger, configs ...ExecutionManagerConfig) (*ExecutionManager, error) {
 	if mongoClient == nil {
 		return nil, fmt.Errorf("mongo client is nil")
 	}

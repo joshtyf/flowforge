@@ -13,7 +13,7 @@ import (
 
 func main() {
 	c, err := client.GetMongoClient()
-	logger := logger.NewLogger(os.Stdout)
+	logger := logger.NewServerLogger(os.Stdout)
 	if err != nil {
 		panic(err)
 	}

@@ -28,12 +28,12 @@ func newHandlerError(err error, code int) *HandlerError {
 }
 
 type ServerHandler struct {
-	logger      *logger.Logger
+	logger      *logger.ServerLogger
 	psqlClient  *sql.DB
 	mongoClient *mongo.Client
 }
 
-func NewServerHandler(psqlClient *sql.DB, mongoCLient *mongo.Client, logger *logger.Logger) *ServerHandler {
+func NewServerHandler(psqlClient *sql.DB, mongoCLient *mongo.Client, logger *logger.ServerLogger) *ServerHandler {
 	return &ServerHandler{
 		psqlClient:  psqlClient,
 		mongoClient: mongoCLient,
@@ -68,7 +68,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/membership", isAuthenticated(handleCreateMembership(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 }
 
-func handleHealthCheck(l *logger.Logger) http.Handler {
+func handleHealthCheck(l *logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if serverHealthy() {
 			l.ServerHealthy()
@@ -79,7 +79,7 @@ func handleHealthCheck(l *logger.Logger) http.Handler {
 	})
 }
 
-func handleGetAllServiceRequest(logger *logger.Logger, client *mongo.Client) http.Handler {
+func handleGetAllServiceRequest(logger *logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		allsr, err := database.NewServiceRequest(client).GetAll()
 		if err != nil {
@@ -91,7 +91,7 @@ func handleGetAllServiceRequest(logger *logger.Logger, client *mongo.Client) htt
 	})
 }
 
-func handleGetServiceRequest(logger *logger.Logger, mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
+func handleGetServiceRequest(logger *logger.ServerLogger, mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
 	type ResponseBodyStep struct {
 		Name         string           `json:"name"`
 		Status       models.EventType `json:"status"`
@@ -150,7 +150,7 @@ func handleGetServiceRequest(logger *logger.Logger, mongoClient *mongo.Client, p
 	})
 }
 
-func handleCreateServiceRequest(logger *logger.Logger, mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
+func handleCreateServiceRequest(logger *logger.ServerLogger, mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srm, err := decode[models.ServiceRequestModel](r)
 		if err != nil {
@@ -199,7 +199,7 @@ func handleCreateServiceRequest(logger *logger.Logger, mongoClient *mongo.Client
 	})
 }
 
-func handleCancelStartedServiceRequest(logger *logger.Logger, client *mongo.Client) http.Handler {
+func handleCancelStartedServiceRequest(logger *logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		requestId := vars["requestId"]
@@ -236,7 +236,7 @@ func handleCancelStartedServiceRequest(logger *logger.Logger, client *mongo.Clie
 	})
 }
 
-func handleUpdateServiceRequest(logger *logger.Logger, client *mongo.Client) http.Handler {
+func handleUpdateServiceRequest(logger *logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srm, err := decode[models.ServiceRequestModel](r)
 		if err != nil {
@@ -268,7 +268,7 @@ func handleUpdateServiceRequest(logger *logger.Logger, client *mongo.Client) htt
 	})
 }
 
-func handleStartServiceRequest(logger *logger.Logger, client *mongo.Client) http.Handler {
+func handleStartServiceRequest(logger *logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		requestId := vars["requestId"]
@@ -288,7 +288,7 @@ func handleStartServiceRequest(logger *logger.Logger, client *mongo.Client) http
 	})
 }
 
-func handleApproveServiceRequest(logger *logger.Logger, client *mongo.Client) http.Handler {
+func handleApproveServiceRequest(logger *logger.ServerLogger, client *mongo.Client) http.Handler {
 	type requestBody struct {
 		StepName string `json:"step_name"`
 	}
@@ -339,7 +339,7 @@ func handleApproveServiceRequest(logger *logger.Logger, client *mongo.Client) ht
 	})
 }
 
-func handleCreatePipeline(logger *logger.Logger, client *mongo.Client) http.Handler {
+func handleCreatePipeline(logger *logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pipeline, err := decode[models.PipelineModel](r)
 		if err != nil {
@@ -362,7 +362,7 @@ func handleCreatePipeline(logger *logger.Logger, client *mongo.Client) http.Hand
 	})
 }
 
-func handleGetPipeline(logger *logger.Logger, client *mongo.Client) http.Handler {
+func handleGetPipeline(logger *logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		pipelineId := vars["pipelineId"]
@@ -379,7 +379,7 @@ func handleGetPipeline(logger *logger.Logger, client *mongo.Client) http.Handler
 	})
 }
 
-func handleGetAllPipelines(logger *logger.Logger, client *mongo.Client) http.Handler {
+func handleGetAllPipelines(logger *logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pipelines, err := database.NewPipeline(client).GetAll()
 		if err != nil {
@@ -392,7 +392,7 @@ func handleGetAllPipelines(logger *logger.Logger, client *mongo.Client) http.Han
 }
 
 // NOTE: handler and data functions used in here are subjected to change depending on if frontend is able to validate that user has been previously registered in auth0
-func handleUserLogin(logger *logger.Logger, client *sql.DB) http.Handler {
+func handleUserLogin(logger *logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		um, err := decode[models.UserModel](r)
 		if err != nil {
@@ -421,7 +421,7 @@ func handleUserLogin(logger *logger.Logger, client *sql.DB) http.Handler {
 	})
 }
 
-func handleCreateOrganisation(logger *logger.Logger, client *sql.DB) http.Handler {
+func handleCreateOrganisation(logger *logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		om, err := decode[models.OrganisationModel](r)
 		if err != nil {
@@ -440,7 +440,7 @@ func handleCreateOrganisation(logger *logger.Logger, client *sql.DB) http.Handle
 	})
 }
 
-func handleCreateMembership(logger *logger.Logger, client *sql.DB) http.Handler {
+func handleCreateMembership(logger *logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mm, err := decode[models.MembershipModel](r)
 		if err != nil {
@@ -459,7 +459,7 @@ func handleCreateMembership(logger *logger.Logger, client *sql.DB) http.Handler 
 	})
 }
 
-func handleGetServiceRequestsByOrganisation(logger *logger.Logger, client *mongo.Client) http.Handler {
+func handleGetServiceRequestsByOrganisation(logger *logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		orgId, err := strconv.Atoi(vars["organisationId"])
@@ -478,7 +478,7 @@ func handleGetServiceRequestsByOrganisation(logger *logger.Logger, client *mongo
 	})
 }
 
-func handleGetUserById(logger *logger.Logger, client *sql.DB) http.Handler {
+func handleGetUserById(logger *logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		userId := vars["userId"]
