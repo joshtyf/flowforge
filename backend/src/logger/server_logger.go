@@ -102,10 +102,12 @@ func (l *ServerLogger) ErrExecutingStep(stepName string, err error) {
 	l.error(fmt.Sprintf("error executing %s: %s", stepName, err))
 }
 
+// Generic error message for handling events
 func (l *ServerLogger) ErrHandlingEvent(err error) {
 	l.error(fmt.Sprintf("error encountered while handling event: %s", err))
 }
 
+// Generic error message for handling API requests
 func (l *ServerLogger) ErrHandlingRequest(err error) {
 	l.error(fmt.Sprintf("error encountered while handling API request: %s", err))
 }
