@@ -14,7 +14,7 @@ func NewUser(c *sql.DB) *User {
 	return &User{c: c}
 }
 
-func (u *User) CreateUser(user *models.UserModel) (*models.UserModel, error) {
+func (u *User) Create(user *models.UserModel) (*models.UserModel, error) {
 	if err := u.c.QueryRow(CreateUserStatement, user.UserId, user.Name, user.IdentityProvider).Scan(&user.CreatedOn); err != nil {
 		return nil, err
 	}

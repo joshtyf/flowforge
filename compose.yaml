@@ -59,6 +59,18 @@ services:
       interval: 60s
       retries: 3
 
+  postgres_seed:
+    profiles:
+      - be-seed
+    build:
+      context: backend
+      dockerfile: dockerfiles/postgres_seed.Dockerfile
+    depends_on:
+      postgres:
+        condition: service_completed_successfully
+    environment:
+      - POSTGRES_URI=${POSTGRES_URI}
+
   mongo:
     profiles:
       - main

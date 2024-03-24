@@ -358,7 +358,7 @@ func handleUserLogin(client *sql.DB) http.Handler {
 		}
 		_, err = database.NewUser(client).GetUserById(um.UserId)
 		if errors.Is(err, sql.ErrNoRows) {
-			user, err := database.NewUser(client).CreateUser(&um)
+			user, err := database.NewUser(client).Create(&um)
 			if err != nil {
 				logger.Error("[UserLogin] Unable to create user", map[string]interface{}{"err": err})
 				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserCreateFail, http.StatusInternalServerError))
