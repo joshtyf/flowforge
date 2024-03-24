@@ -15,7 +15,7 @@ func GetMongoClient() (*mongo.Client, error) {
 	if c == nil {
 		uri := os.Getenv("MONGO_URI")
 		if uri == "" {
-			return nil, fmt.Errorf("POSTGRES_URI environment variable not set")
+			return nil, fmt.Errorf("MONGO_URI environment variable not set")
 		}
 		client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(uri))
 		if err != nil {
