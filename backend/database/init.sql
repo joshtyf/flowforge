@@ -116,6 +116,7 @@ ALTER TABLE ONLY public.organization ALTER COLUMN org_id SET DEFAULT nextval('pu
 CREATE TABLE public.membership (
     user_id character varying NOT NULL,
     org_id integer NOT NULL,
+    role character varying NOT NULL,
     joined_on timestamp without time zone DEFAULT now()
 );
 
