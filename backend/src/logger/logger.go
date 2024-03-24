@@ -12,6 +12,8 @@ const (
 	logFormat         = "[%s] %s {%s}"
 	logWithFuncFormat = "[%s] %s: %s" // [MSG_TYPE] FUNC_NAME: MSG
 	logWithoutFunc    = "[%s] %s"     // [MSG_TYPE] MSG
+
+	shutdownServerMsg = "shutting down server: %s" // shutting down server: REASON
 )
 
 func init() {
@@ -89,4 +91,8 @@ func (l *Logger) warn(msg string) {
 		return
 	}
 	l.logger.Printf(logWithoutFunc, "WARN", msg)
+}
+
+func (l *Logger) ShutdownServer(reason string) {
+	l.info(fmt.Sprintf(shutdownServerMsg, reason))
 }

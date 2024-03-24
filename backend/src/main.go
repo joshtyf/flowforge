@@ -22,9 +22,9 @@ const (
 	SERVER_SHUTDOWN_GRACE_PERIOD = 10 * time.Second
 )
 
-func gracefulShutdown(svr *http.Server, psqlClient *sql.DB, mongoClient *mongo.Client) func(interface{}) {
-	return func(reason interface{}) {
-		log.Println("Server Shutdown:", reason)
+func gracefulShutdown(logger *logger.Logger, svr *http.Server, psqlClient *sql.DB, mongoClient *mongo.Client) func(string) {
+	shutdownHandler := func(reason string) {
+		logger.ShutdownServer(reason)
 		ctx, cancel := context.WithTimeout(context.Background(), SERVER_SHUTDOWN_GRACE_PERIOD)
 		defer cancel()
 		if err := svr.Shutdown(ctx); err != nil {
@@ -41,6 +41,7 @@ func gracefulShutdown(svr *http.Server, psqlClient *sql.DB, mongoClient *mongo.C
 			log.Println("Error Gracefully Shutting Down Mongo:", err)
 		}
 	}
+	return shutdownHandler
 }
 
 func main() {
@@ -53,6 +54,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	logger := logger.NewLogger(os.Stdout)
 
 	// Start the Step Execution Manager
 	srm, err := execute.NewStepExecutionManager(
@@ -72,7 +75,7 @@ func main() {
 		Router:       mux.NewRouter(),
 		PsqlClient:   psqlClient,
 		MongoClient:  mongoClient,
-		ServerLogger: logger.NewLogger(os.Stdout),
+		ServerLogger: logger,
 	}
 	svr := server.New(config)
 
@@ -89,8 +92,8 @@ func main() {
 	// Block until a signal is received or the server stops
 	select {
 	case err := <-srvErrs:
-		gracefulShutdown(&svr, psqlClient, mongoClient)(err)
+		gracefulShutdown(logger, &svr, psqlClient, mongoClient)(err.Error())
 	case <-done:
-		gracefulShutdown(&svr, psqlClient, mongoClient)("Received Shutdown Signal")
+		gracefulShutdown(logger, &svr, psqlClient, mongoClient)("received shutdown signal")
 	}
 }
