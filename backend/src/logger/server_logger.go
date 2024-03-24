@@ -26,9 +26,15 @@ func NewServerLogger(f io.Writer) *ServerLogger {
 	}
 }
 
+// Returns information about the original caller of the function that called the public logging method.
+// This method should not be called outside of the main info/error/warn methods as it is dependent on the callstack depth.
+//
+// Format: FILE_PATH:FUNC_NAME:LINE_NUMBER
+//
+// If the original caller is an anonymous function, the FUNC_NAME will be replaced with _anon_fn_.
 func (l *ServerLogger) getOriginalCaller() (string, error) {
 	pc := make([]uintptr, 1)
-	n := runtime.Callers(4, pc) // Callstack: getOriginalCaller -> info/error/warn -> message method -> caller
+	n := runtime.Callers(4, pc) // Callstack: getOriginalCaller -> info/error/warn -> public logging method -> caller
 	if n == 0 {
 		return "", fmt.Errorf("could not get caller. callstack depth is too shallow")
 	}
@@ -49,6 +55,9 @@ func (l *ServerLogger) getOriginalCaller() (string, error) {
 	return fmt.Sprintf("%s:%s:%d", frame.File, originalCaller, frame.Line), nil
 }
 
+// Helper method to tag log message with "[INFO]"
+//
+// This function should be called immediately after a public logging method so as to maintain the correct callstack depth.
 func (l *ServerLogger) info(msg string) {
 	if originalCaller, err := l.getOriginalCaller(); err == nil {
 		l.logger.Printf(logWithFuncFormat, "INFO", originalCaller, msg)
@@ -57,6 +66,9 @@ func (l *ServerLogger) info(msg string) {
 	l.logger.Printf(logWithoutFunc, "INFO", msg)
 }
 
+// Helper method to tag log message with "[ERROR]"
+//
+// This function should be called immediately after a public logging method so as to maintain the correct callstack depth.
 func (l *ServerLogger) error(msg string) {
 	if originalCaller, err := l.getOriginalCaller(); err == nil {
 		l.logger.Printf(logWithFuncFormat, "ERROR", originalCaller, msg)
@@ -65,6 +77,9 @@ func (l *ServerLogger) error(msg string) {
 	l.logger.Printf(logWithoutFunc, "ERROR", msg)
 }
 
+// Helper method to tag log message with "[WARN]"
+//
+// This function should be called immediately after a public logging method so as to maintain the correct callstack depth.
 func (l *ServerLogger) warn(msg string) {
 	if originalCaller, err := l.getOriginalCaller(); err == nil {
 		l.logger.Printf(logWithFuncFormat, "WARN", originalCaller, msg)
@@ -72,6 +87,8 @@ func (l *ServerLogger) warn(msg string) {
 	}
 	l.logger.Printf(logWithoutFunc, "WARN", msg)
 }
+
+/* PUBLIC LOGGING METHODS */
 
 func (l *ServerLogger) ErrClaimsMissingPermission(permission string) {
 	l.error(fmt.Sprintf("unauthorized: missing permission %s", permission))
