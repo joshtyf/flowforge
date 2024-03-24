@@ -15,8 +15,8 @@ func NewOrganization(c *sql.DB) *Organization {
 	return &Organization{c: c}
 }
 
-func (u *Organization) Create(org *models.OrganisationModel) (*models.OrganisationModel, error) {
-	tx, err := u.c.BeginTx(context.Background(), nil)
+func (o *Organization) Create(org *models.OrganisationModel) (*models.OrganisationModel, error) {
+	tx, err := o.c.BeginTx(context.Background(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -38,8 +38,8 @@ func (u *Organization) Create(org *models.OrganisationModel) (*models.Organisati
 	return org, nil
 }
 
-func (u *Organization) GetAllOrgsByUserId(user_id string) ([]*models.OrganisationModel, error) {
-	rows, err := u.c.Query(SelectOrganizationsStatement, user_id)
+func (o *Organization) GetAllOrgsByUserId(user_id string) ([]*models.OrganisationModel, error) {
+	rows, err := o.c.Query(SelectOrganizationsStatement, user_id)
 	if err != nil {
 		return nil, err
 	}
@@ -57,4 +57,12 @@ func (u *Organization) GetAllOrgsByUserId(user_id string) ([]*models.Organisatio
 		return nil, err
 	}
 	return oms, nil
+}
+
+func (o *Organization) GetOrgByOwnerAndOrgId(user_id string, org_id int) (*models.OrganisationModel, error) {
+	om := &models.OrganisationModel{}
+	if err := o.c.QueryRow(SelectOrganisationByUserAndOrgId, org_id, user_id).Scan(&om.OrgId, &om.Name, &om.Owner, &om.CreatedOn); err != nil {
+		return nil, err
+	}
+	return om, nil
 }

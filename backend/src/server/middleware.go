@@ -2,15 +2,21 @@ package server
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/auth0/go-jwt-middleware/v2/jwks"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
+	"github.com/gorilla/mux"
+	"github.com/joshtyf/flowforge/src/database"
+	"github.com/joshtyf/flowforge/src/database/client"
 	"github.com/joshtyf/flowforge/src/database/models"
 	"github.com/joshtyf/flowforge/src/logger"
 	"github.com/joshtyf/flowforge/src/validation"
@@ -122,6 +128,42 @@ func isAuthorisedAdmin(next http.Handler) http.Handler {
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func isOrgOwner(next http.Handler) http.Handler {
+	env := os.Getenv("ENV")
+	if env == "dev" {
+		logger.Info("[Authorization] Skipping org owner check in dev environment", nil)
+		return next
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c, err := client.GetPsqlClient()
+		if err != nil {
+			panic(err)
+		}
+		vars := mux.Vars(r)
+		orgId, err := strconv.Atoi(vars["orgId"])
+		if err != nil {
+			logger.Error("[Authorization] Error converting organisation id to int", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
+			return
+		}
+		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		userId := token.RegisteredClaims.Subject
+
+		_, err = database.NewOrganization(c).GetOrgByOwnerAndOrgId(userId, orgId)
+		if errors.Is(err, sql.ErrNoRows) {
+			logger.Error("[Authorization] User not authorized owner", nil)
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			return
+		} else if err != nil {
+			logger.Error("[Authorization] Error encountered while verifying owner", nil)
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }

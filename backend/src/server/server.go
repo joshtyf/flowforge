@@ -23,11 +23,9 @@ func addRoutes(r *mux.Router) {
 	r.Handle("/api/healthcheck", handleHealthCheck()).Methods("GET")
 
 	// Service Request
-	r.Handle("/api/service_request", isAuthenticated(handleGetAllServiceRequest(mongoClient))).Methods("GET")
-	// TODO: @Zheng-Zhi-Qiang this route conflicts with `/api/service_request/{requestId}`.
-	// r.Handle("/api/service_request/{organisationId}", isAuthenticated(handleGetServiceRequestsByOrganisation(mongoClient))).Methods("GET")
+	r.Handle("/api/service_request/org/{orgId}", isAuthenticated(handleGetAllServiceRequestsForOrganisation(mongoClient))).Methods("GET")
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(handleGetServiceRequest(mongoClient, psqlClient))).Methods("GET")
-	r.Handle("/api/service_request", isAuthenticated(handleCreateServiceRequest(mongoClient, psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/org/{orgId}", isAuthenticated(handleCreateServiceRequest(mongoClient, psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(handleUpdateServiceRequest(mongoClient))).Methods("PATCH").Headers("Content-Type", "application/json")
 	r.Handle("/api/service_request/{requestId}/cancel", isAuthenticated(handleCancelStartedServiceRequest(mongoClient))).Methods("GET")
 	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(handleStartServiceRequest(mongoClient))).Methods("GET")

@@ -415,22 +415,22 @@ func handleCreateMembership(client *sql.DB) http.Handler {
 	})
 }
 
-func handleGetServiceRequestsByOrganisation(client *mongo.Client) http.Handler {
+func handleGetAllServiceRequestsForOrganisation(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		orgId, err := strconv.Atoi(vars["organisationId"])
+		orgId, err := strconv.Atoi(vars["orgId"])
 		if err != nil {
-			logger.Error("[GetServiceRequestsByOrganisation] Error converting organisation id to int", map[string]interface{}{"err": err})
+			logger.Error("[GetAllServiceRequestsForOrganisation] Error converting organisation id to int", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
 			return
 		}
-		allsr, err := database.NewServiceRequest(client).GetServiceRequestsByOrgId(orgId)
+		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestsForOrgId(orgId)
 		if err != nil {
-			logger.Error("[GetServiceRequestsByOrganisation] Error retrieving all service request", map[string]interface{}{"err": err})
+			logger.Error("[GetAllServiceRequestsForOrganisation] Error retrieving all service request", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		logger.Info("[GetAllServiceRequest] Successfully retrieved service requests", map[string]interface{}{"count": len(allsr)})
+		logger.Info("[GetAllServiceRequestsForOrganisation] Successfully retrieved service requests", map[string]interface{}{"count": len(allsr)})
 		encode(w, r, http.StatusOK, allsr)
 	})
 }
