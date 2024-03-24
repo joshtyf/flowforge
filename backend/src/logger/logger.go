@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"regexp"
 	"runtime"
 	"strings"
 )
@@ -58,15 +59,23 @@ func (l *Logger) getOriginalCaller() (string, error) {
 	pc := make([]uintptr, 1)
 	n := runtime.Callers(4, pc) // Callstack: getOriginalCaller -> info/error/warn -> message method -> caller
 	if n == 0 {
-		return "", fmt.Errorf("could not get caller")
+		return "", fmt.Errorf("could not get caller. callstack depth is too shallow")
 	}
 	frames := runtime.CallersFrames(pc)
 	frame, _ := frames.Next()
 	frameFunc := frame.Func
 	if frameFunc == nil {
-		return "", fmt.Errorf("could not get caller")
+		return "", fmt.Errorf("could not get caller frame")
 	}
-	return frameFunc.Name(), nil
+	callerFullPath := frameFunc.Name()
+	callerFuncs := strings.Split(callerFullPath, ".")
+	originalCaller := callerFuncs[len(callerFuncs)-1]
+	// Check if original caller is anonymous function
+	re := regexp.MustCompile(`\bfunc\d+\b`)
+	if re.MatchString(originalCaller) {
+		return fmt.Sprintf("%s:_anon_fn_:%d", frame.File, frame.Line), nil
+	}
+	return fmt.Sprintf("%s:%s:%d", frame.File, originalCaller, frame.Line), nil
 }
 
 func (l *Logger) info(msg string) {
