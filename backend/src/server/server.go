@@ -11,24 +11,28 @@ import (
 )
 
 type ServerConfig struct {
+	Address      string
+	Router       *mux.Router
 	PsqlClient   *sql.DB
 	MongoClient  *mongo.Client
 	ServerLogger *logger.Logger
 }
 
-func New(c *ServerConfig) http.Handler {
-	router := mux.NewRouter()
+func New(c *ServerConfig) http.Server {
 	serverHandler := NewServerHandler(c.PsqlClient, c.MongoClient, c.ServerLogger)
-	serverHandler.registerRoutes(router)
-	return handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:3000"}),
-		handlers.AllowedHeaders([]string{
-			"Content-Type",
-			"Authorization",
-			"Access-Control-Allow-Origin",
-			"Access-Control-Allow-Headers",
-			"Access-Control-Allow-Methods",
-			"Access-Control-Allow-Credentials",
-		}),
-	)(router)
+	serverHandler.registerRoutes(c.Router)
+	return http.Server{
+		Addr: c.Address,
+		Handler: handlers.CORS(
+			handlers.AllowedOrigins([]string{"http://localhost:3000"}),
+			handlers.AllowedHeaders([]string{
+				"Content-Type",
+				"Authorization",
+				"Access-Control-Allow-Origin",
+				"Access-Control-Allow-Headers",
+				"Access-Control-Allow-Methods",
+				"Access-Control-Allow-Credentials",
+			}),
+		)(c.Router),
+	}
 }
