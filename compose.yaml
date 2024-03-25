@@ -66,7 +66,8 @@ services:
       context: backend
       dockerfile: dockerfiles/postgres_seed.Dockerfile
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       - POSTGRES_URI=${POSTGRES_URI}
 

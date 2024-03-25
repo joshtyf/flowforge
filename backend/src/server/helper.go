@@ -1,8 +1,10 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -20,6 +22,21 @@ func decode[T any](r *http.Request) (T, error) {
 	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
 		return v, fmt.Errorf("decode json: %w", err)
 	}
+	return v, nil
+}
+
+func extractDecodeRequestBody[T any](r *http.Request) (T, error) {
+	var v T
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return v, fmt.Errorf("decode json: %w", err)
+	}
+
+	if err := json.NewDecoder(io.NopCloser(bytes.NewBuffer(body))).Decode(&v); err != nil {
+		return v, fmt.Errorf("decode json: %w", err)
+	}
+
+	r.Body = io.NopCloser(bytes.NewBuffer(body))
 	return v, nil
 }
 
