@@ -33,19 +33,29 @@ var (
 									WHERE user_id = $1
 									AND o.deleted = false`
 
-	SelectOrganisationByUserAndOrgId = `SELECT * FROM public."organization"
-										WHERE org_id = $1
-										AND owner = $2
-										AND deleted = false`
+	SelectOrganisationByUserAndOrgIdStatement = `SELECT * FROM public."organization"
+													WHERE org_id = $1
+													AND owner = $2
+													AND deleted = false`
 
 	// Membership
 	CreateMembershipStatement = `INSERT INTO public."membership" (user_id, org_id, role) 
 								  VALUES ($1, $2, $3) RETURNING joined_on`
 
-	SelectMembershipByUserAndOrgId = `SELECT * FROM public."membership"
-										WHERE org_id = $1
-										AND user_id = $2
-										AND deleted = false`
+	SelectMembershipByUserAndOrgIdStatement = `SELECT * FROM public."membership"
+												WHERE org_id = $1
+												AND user_id = $2
+												AND deleted = false`
+
+	UpdateMembershipStatement = `UPDATE public."membership"
+									SET role = $1
+									WHERE user_id = $2
+									AND org_id = $3`
+
+	DeleteMembershipStatement = `UPDATE public."membership"
+									SET deleted = $1
+									WHERE user_id = $2
+									AND org_id = $3`
 )
 
 func txnRollback(tx *sql.Tx) {

@@ -132,10 +132,6 @@ func isAuthorisedAdmin(next http.Handler) http.Handler {
 	})
 }
 
-type OrgId struct {
-	OrganisationId int `bson:"org_id" json:"org_id"`
-}
-
 func IsOrgOwner(postgresClient *sql.DB, next http.Handler) http.Handler {
 	env := os.Getenv("ENV")
 	if env == "dev" {
@@ -223,6 +219,10 @@ func IsOrgMember(mongoClient *mongo.Client, postgresClient *sql.DB, next http.Ha
 func getMembership(mongoClient *mongo.Client, postgresClient *sql.DB, r *http.Request) (*models.MembershipModel, error) {
 	var org_id int
 	var err error
+	type OrgId struct {
+		OrganisationId int `bson:"org_id" json:"org_id"`
+	}
+
 	if r.Method == "POST" || r.Method == "PATCH" {
 		org, err := decode[OrgId](r)
 		if err != nil {

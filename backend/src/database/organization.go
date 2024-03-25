@@ -61,7 +61,7 @@ func (o *Organization) GetAllOrgsByUserId(user_id string) ([]*models.Organisatio
 
 func (o *Organization) GetOrgByOwnerAndOrgId(user_id string, org_id int) (*models.OrganisationModel, error) {
 	om := &models.OrganisationModel{}
-	if err := o.c.QueryRow(SelectOrganisationByUserAndOrgId, org_id, user_id).Scan(&om.OrgId, &om.Name, &om.Owner, &om.CreatedOn, &om.Deleted); err != nil {
+	if err := o.c.QueryRow(SelectOrganisationByUserAndOrgIdStatement, org_id, user_id).Scan(&om.OrgId, &om.Name, &om.Owner, &om.CreatedOn, &om.Deleted); err != nil {
 		return nil, err
 	}
 	return om, nil

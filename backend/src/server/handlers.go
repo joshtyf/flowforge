@@ -457,3 +457,41 @@ func handleGetUserById(client *sql.DB) http.Handler {
 		encode(w, r, http.StatusCreated, user)
 	})
 }
+
+func handleUpdateMembership(client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mm, err := decode[models.MembershipModel](r)
+		if err != nil {
+			logger.Error("[UpdateMembership] Unable to parse json request body", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		_, err = database.NewMembership(client).UpdateUserMembership(&mm)
+		if err != nil {
+			logger.Error("[UpdateMembership] Unable to update membership", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipUpdateFail, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[UpdateMembership] Successfully updated membership", nil)
+		encode[any](w, r, http.StatusOK, nil)
+	})
+}
+
+func handleDeleteMembership(client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mm, err := decode[models.MembershipModel](r)
+		if err != nil {
+			logger.Error("[DeleteMembership] Unable to parse json request body", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		_, err = database.NewMembership(client).UpdateUserMembership(&mm)
+		if err != nil {
+			logger.Error("[DeleteMembership] Unable to delete membership", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipDeleteFail, http.StatusInternalServerError))
+			return
+		}
+		logger.Info("[DeleteMembership] Successfully delete membership", nil)
+		encode[any](w, r, http.StatusOK, nil)
+	})
+}

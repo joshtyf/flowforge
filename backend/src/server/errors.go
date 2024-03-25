@@ -23,4 +23,6 @@ var (
 	ErrOrganisationCreateFail = errors.New("failed to create organisation")
 	ErrInvalidOrganisationId  = errors.New("invalid organisation id")
 	ErrMembershipCreateFail   = errors.New("failed to create membership")
+	ErrMembershipUpdateFail   = errors.New("failed to update membership")
+	ErrMembershipDeleteFail   = errors.New("failed to delete membership")
 )

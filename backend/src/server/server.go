@@ -39,8 +39,14 @@ func addRoutes(r *mux.Router) {
 	// User
 	r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(psqlClient))).Methods("Get")
 	r.Handle("/api/login", isAuthenticated(handleUserLogin(psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+
+	// Organisation
 	r.Handle("/api/organisation", isAuthenticated(handleCreateOrganisation(psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+
+	// Membership
 	r.Handle("/api/membership", isAuthenticated(handleCreateMembership(psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/membership", isAuthenticated(handleUpdateMembership(psqlClient))).Methods("PATCH").Headers("Content-Type", "application/json")
+	r.Handle("/api/membership", isAuthenticated(handleDeleteMembership(psqlClient))).Methods("DELETE").Headers("Content-Type", "application/json")
 }
 
 func New() http.Handler {
