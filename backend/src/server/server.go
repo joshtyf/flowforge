@@ -48,8 +48,8 @@ func addRoutes(r *mux.Router) {
 func New() http.Handler {
 	router := mux.NewRouter()
 	addRoutes(router)
-	handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:3000"}),
+	return handlers.CORS(
+		handlers.AllowedOrigins([]string{"*"}),
 		handlers.AllowedHeaders([]string{
 			"Content-Type",
 			"Authorization",
@@ -59,5 +59,4 @@ func New() http.Handler {
 			"Access-Control-Allow-Credentials",
 		}),
 	)(router)
-	return router
 }
