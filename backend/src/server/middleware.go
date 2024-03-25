@@ -125,34 +125,24 @@ func isAuthorisedAdmin(next http.Handler) http.Handler {
 		claims := token.CustomClaims.(*CustomClaims)
 		if !claims.HasPermission("approve:pipeline_step") {
 			logger.Error("[Authorization] User not authorized admin", nil)
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}
 		next.ServeHTTP(w, r)
 	})
 }
 
-func IsOrgOwner(postgresClient *sql.DB, next http.Handler) http.Handler {
+func isOrgOwner(mongoClient *mongo.Client, postgresClient *sql.DB, next http.Handler) http.Handler {
 	env := os.Getenv("ENV")
 	if env == "dev" {
 		logger.Info("[Authorization] Skipping org owner check in dev environment", nil)
 		return next
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		orgId, err := strconv.Atoi(vars["orgId"])
-		if err != nil {
-			logger.Error("[Authorization] Error converting org id to int", map[string]interface{}{"err": err})
-			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
-			return
-		}
-		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
-		userId := token.RegisteredClaims.Subject
-
-		_, err = database.NewOrganization(postgresClient).GetOrgByOwnerAndOrgId(userId, orgId)
+		membership, err := getMembership(mongoClient, postgresClient, r)
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error("[Authorization] User not authorized owner", nil)
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		} else if err != nil {
 			logger.Error("[Authorization] Error encountered while verifying ownership", nil)
@@ -160,14 +150,20 @@ func IsOrgOwner(postgresClient *sql.DB, next http.Handler) http.Handler {
 			return
 		}
 
+		if membership.Role != models.Owner {
+			logger.Error("[Authorization] User not authorized owner", nil)
+			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }
 
-func IsOrgAdmin(mongoClient *mongo.Client, postgresClient *sql.DB, next http.Handler) http.Handler {
+func isOrgAdmin(mongoClient *mongo.Client, postgresClient *sql.DB, next http.Handler) http.Handler {
 	env := os.Getenv("ENV")
 	if env == "dev" {
-		logger.Info("[Authorization] Skipping org owner check in dev environment", nil)
+		logger.Info("[Authorization] Skipping org admin check in dev environment", nil)
 		return next
 	}
 
@@ -175,28 +171,57 @@ func IsOrgAdmin(mongoClient *mongo.Client, postgresClient *sql.DB, next http.Han
 		membership, err := getMembership(mongoClient, postgresClient, r)
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error("[Authorization] User not authorized member", nil)
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		} else if err != nil {
-			logger.Error("[Authorization] Error encountered while verifying membership", nil)
+			logger.Error("[Authorization] Error encountered while verifying admin role", nil)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 
 		if membership.Role == models.Member {
-			logger.Error("[Authorization] User not authorized member", nil)
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			logger.Error("[Authorization] User not authorized admin", nil)
+			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
+		}
+
+		if r.URL.Path == "/api/membership" {
+			mm, err := decode[models.MembershipModel](r)
+			if err != nil {
+				logger.Error("[Authorization] Unable to parse json request body", map[string]interface{}{"err": err})
+				encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+				return
+			}
+
+			subjectMembership, err := database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(mm.UserId, mm.OrgId)
+			if err != nil {
+				logger.Error("[Authorization] Error encountered while verifying subject role", nil)
+				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+				return
+			}
+			
+			if subjectMembership.Role == models.Owner {
+				logger.Error("[Authorization] User not authorized to alter owner role", nil)
+				encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+				return
+			}
+
+			if mm.Role == models.Owner {
+				logger.Error("[Authorization] User not authorized to grant owner role", nil)
+				encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+				return
+			}
+
 		}
 
 		next.ServeHTTP(w, r)
 	})
 }
 
-func IsOrgMember(mongoClient *mongo.Client, postgresClient *sql.DB, next http.Handler) http.Handler {
+func isOrgMember(mongoClient *mongo.Client, postgresClient *sql.DB, next http.Handler) http.Handler {
 	env := os.Getenv("ENV")
 	if env == "dev" {
-		logger.Info("[Authorization] Skipping org owner check in dev environment", nil)
+		logger.Info("[Authorization] Skipping org member check in dev environment", nil)
 		return next
 	}
 
@@ -204,7 +229,7 @@ func IsOrgMember(mongoClient *mongo.Client, postgresClient *sql.DB, next http.Ha
 		_, err := getMembership(mongoClient, postgresClient, r)
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error("[Authorization] User not authorized member", nil)
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		} else if err != nil {
 			logger.Error("[Authorization] Error encountered while verifying membership", nil)
@@ -223,7 +248,7 @@ func getMembership(mongoClient *mongo.Client, postgresClient *sql.DB, r *http.Re
 		OrganisationId int `bson:"org_id" json:"org_id"`
 	}
 
-	if r.Method == "POST" || r.Method == "PATCH" {
+	if r.Method == "POST" || r.Method == "PATCH" || r.Method == "DELETE" {
 		org, err := decode[OrgId](r)
 		if err != nil {
 			return nil, err
