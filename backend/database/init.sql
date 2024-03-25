@@ -126,6 +126,7 @@ CREATE TABLE public.membership (
 ALTER TABLE public.membership OWNER TO postgres;
 
 ALTER TABLE ONLY public.membership
+    ADD CONSTRAINT membership_pkey PRIMARY KEY (user_id, org_id),
     ADD CONSTRAINT membership_user_fkey FOREIGN KEY (user_id) REFERENCES public.user (user_id),
     ADD CONSTRAINT membership_org_fkey FOREIGN KEY (org_id) REFERENCES public.organization (org_id);
 
