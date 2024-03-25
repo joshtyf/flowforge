@@ -15,11 +15,13 @@ var (
 
 	SelectUserByIdStatement = `SELECT user_id, name, identity_provider, created_on 
 								FROM public."user" 
-								WHERE user_id = $1`
+								WHERE user_id = $1
+								AND deleted = false`
 
 	CheckUserExistsStatement = `SELECT * 
 								FROM public."user" 
-								WHERE user_id = $1`
+								WHERE user_id = $1
+								AND deleted = false`
 
 	// Organisation
 	CreateOrganizationStatement = `INSERT INTO public."organization" (name, owner) 
@@ -28,11 +30,13 @@ var (
 	SelectOrganizationsStatement = `SELECT o.* FROM public."organization" o
 									INNER JOIN public."membership" m
 									ON o.org_id = m.org_id
-									WHERE user_id = $1`
+									WHERE user_id = $1
+									AND o.deleted = false`
 
 	SelectOrganisationByUserAndOrgId = `SELECT * FROM public."organization"
 										WHERE org_id = $1
-										AND owner = $2`
+										AND owner = $2
+										AND deleted = false`
 
 	// Membership
 	CreateMembershipStatement = `INSERT INTO public."membership" (user_id, org_id, role) 
@@ -40,7 +44,8 @@ var (
 
 	SelectMembershipByUserAndOrgId = `SELECT * FROM public."membership"
 										WHERE org_id = $1
-										AND user_id = $2`
+										AND user_id = $2
+										AND deleted = false`
 )
 
 func txnRollback(tx *sql.Tx) {

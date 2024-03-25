@@ -77,7 +77,8 @@ CREATE TABLE public.user (
     user_id character varying NOT NULL,
     name character varying NOT NULL,
     identity_provider character varying NOT NULL,
-    created_on timestamp without time zone DEFAULT now()
+    created_on timestamp without time zone DEFAULT now(),
+    deleted boolean DEFAULT false
 );
 
 ALTER TABLE public.user OWNER TO postgres;
@@ -89,7 +90,8 @@ CREATE TABLE public.organization (
     org_id integer NOT NULL,
     name character varying NOT NULL,
     owner character varying NOT NULL,
-    created_on timestamp without time zone DEFAULT now()
+    created_on timestamp without time zone DEFAULT now(),
+    deleted boolean DEFAULT false
 );
 
 ALTER TABLE public.organization OWNER TO postgres;
@@ -117,7 +119,8 @@ CREATE TABLE public.membership (
     user_id character varying NOT NULL,
     org_id integer NOT NULL,
     role character varying NOT NULL,
-    joined_on timestamp without time zone DEFAULT now()
+    joined_on timestamp without time zone DEFAULT now(),
+    deleted boolean DEFAULT false
 );
 
 ALTER TABLE public.membership OWNER TO postgres;

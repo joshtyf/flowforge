@@ -15,4 +15,5 @@ type MembershipModel struct {
 	OrgId    int       `json:"org_id"`
 	Role     Role      `json:"role"`
 	JoinedOn time.Time `json:"joined_on"`
+	Deleted  bool      `json:"deleted"`
 }

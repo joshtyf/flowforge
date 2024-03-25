@@ -23,7 +23,7 @@ func (m *Membership) Create(membership *models.MembershipModel) (*models.Members
 
 func (m *Membership) GetMembershipByUserAndOrgId(user_id string, org_id int) (*models.MembershipModel, error) {
 	mm := &models.MembershipModel{}
-	if err := m.c.QueryRow(SelectOrganisationByUserAndOrgId, org_id, user_id).Scan(&mm.UserId, &mm.OrgId, &mm.Role, &mm.JoinedOn); err != nil {
+	if err := m.c.QueryRow(SelectOrganisationByUserAndOrgId, org_id, user_id).Scan(&mm.UserId, &mm.OrgId, &mm.Role, &mm.JoinedOn, &mm.Deleted); err != nil {
 		return nil, err
 	}
 	return mm, nil
