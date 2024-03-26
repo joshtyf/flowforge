@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"strings"
 )
@@ -36,4 +37,14 @@ func Warn(msg string, args map[string]interface{}) {
 		argsSlice = append(argsSlice, fmt.Sprintf("%s=%v", k, v))
 	}
 	log.Printf(logFormat, "WARN", msg, strings.Join(argsSlice, ", "))
+}
+
+type Logger struct {
+	logger *log.Logger
+}
+
+func NewLogger(f io.Writer) *Logger {
+	return &Logger{
+		logger: log.New(f, "", log.LstdFlags),
+	}
 }
