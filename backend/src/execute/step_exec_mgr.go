@@ -9,7 +9,6 @@ import (
 
 	"github.com/gookit/event"
 	"github.com/joshtyf/flowforge/src/database"
-	"github.com/joshtyf/flowforge/src/database/client"
 	"github.com/joshtyf/flowforge/src/database/models"
 	"github.com/joshtyf/flowforge/src/events"
 	"github.com/joshtyf/flowforge/src/logger"
@@ -31,14 +30,12 @@ func WithStepExecutor(step stepExecutor) ExecutionManagerConfig {
 	}
 }
 
-func NewStepExecutionManager(configs ...ExecutionManagerConfig) *ExecutionManager {
-	mongoClient, err := client.GetMongoClient()
-	if err != nil {
-		logger.Error("[ServiceRequestManager] Error getting mongo client", map[string]interface{}{"err": err})
+func NewStepExecutionManager(mongoClient *mongo.Client, psqlClient *sql.DB, configs ...ExecutionManagerConfig) (*ExecutionManager, error) {
+	if mongoClient == nil {
+		return nil, fmt.Errorf("mongo client is nil")
 	}
-	psqlClient, err := client.GetPsqlClient()
-	if err != nil {
-		logger.Error("[ServiceRequestManager] Error getting psql client", map[string]interface{}{"err": err})
+	if psqlClient == nil {
+		return nil, fmt.Errorf("psql client is nil")
 	}
 	srm := &ExecutionManager{
 		executors:   map[models.PipelineStepType]*stepExecutor{},
@@ -48,7 +45,7 @@ func NewStepExecutionManager(configs ...ExecutionManagerConfig) *ExecutionManage
 	for _, c := range configs {
 		c(srm)
 	}
-	return srm
+	return srm, nil
 }
 
 // Starts the manager by registering event listeners
