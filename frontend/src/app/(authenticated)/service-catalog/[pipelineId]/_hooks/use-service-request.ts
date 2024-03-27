@@ -66,7 +66,9 @@ const useServiceRequest = ({ pipelineId }: UseServiceRequestOptions) => {
       })
   }, [pipelineId])
 
-  const handleSubmit = (data: IChangeEvent<object, RJSFSchema, object>) => {
+  const handleCreateServiceRequest = (
+    data: IChangeEvent<object, RJSFSchema, object>
+  ) => {
     const { formData } = data
     setIsSubmittingRequest(true)
     // TODO: Add validations if needed
@@ -104,7 +106,7 @@ const useServiceRequest = ({ pipelineId }: UseServiceRequestOptions) => {
     service,
     rjsfSchema,
     uiSchema,
-    handleSubmit,
+    handleSubmit: handleCreateServiceRequest,
     isLoadingForm,
     isSubmittingRequest,
   }

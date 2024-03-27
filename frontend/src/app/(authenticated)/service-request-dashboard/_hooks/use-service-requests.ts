@@ -1,8 +1,11 @@
+import { toast } from "@/components/ui/use-toast"
+import { getAllServiceRequest } from "@/lib/service"
 import {
   ServiceRequest,
   ServiceRequestStatus,
   ServiceRequestStep,
 } from "@/types/service-request"
+import { useQuery } from "@tanstack/react-query"
 
 const PIPELINE_1_DUMMY_STEPS: ServiceRequestStep[] = [
   {
@@ -216,7 +219,21 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
 ]
 
 const useServiceRequests = () => {
-  return { serviceRequests: DUMMY_SERVICE_REQUESTS }
+  // TODO: Add user id to get all service requests API call once ready
+  const { isLoading, data: serviceRequests } = useQuery({
+    queryKey: ["user_service_requests"],
+    queryFn: () =>
+      getAllServiceRequest().catch((err) => {
+        console.log(err)
+        toast({
+          title: "Fetching Service Requests Error",
+          description:
+            "Failed to fetch Service Requests for user. Please try again later.",
+          variant: "destructive",
+        })
+      }),
+  })
+  return { serviceRequests, isLoading }
 }
 
 export default useServiceRequests

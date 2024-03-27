@@ -40,7 +40,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
             <Tooltip delayDuration={300}>
               <TooltipTrigger>
                 <Link
-                  // TODO: Insert logs page URL
+                  // TODO: Insert SR form details page URL
                   href={`#`}
                   className="hover:underline hover:text-blue-500 flex space-x-1"
                 >
@@ -49,7 +49,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
                 </Link>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Go to logs</p>
+                <p>Go to Service Request Form Details</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -104,7 +104,7 @@ export default function ServiceRequestDetailsDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{`${serviceRequest.form_data.name} Details`}</DialogTitle>
+          <DialogTitle>{`${serviceRequest?.pipeline_name} Details`}</DialogTitle>
         </DialogHeader>
         <ServiceRequestDetails serviceRequest={serviceRequest} />
       </DialogContent>

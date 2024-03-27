@@ -23,6 +23,7 @@ interface ServiceRequestViewProps {
   handleSubmit: (event: IChangeEvent) => void
   isSubmittingRequest: boolean
   viewOnly?: boolean
+  formData?: object
 }
 const widgets: RegistryWidgetsType = {
   CheckboxesWidget: CustomCheckboxes,
@@ -38,6 +39,7 @@ export default function ServiceRequestView({
   handleSubmit,
   isSubmittingRequest,
   viewOnly = false,
+  formData,
 }: ServiceRequestViewProps) {
   const backNavigationEnabled = router && returnRoute
   return (
@@ -66,6 +68,7 @@ export default function ServiceRequestView({
         <div className="w-4/5">
           <Form
             disabled={viewOnly}
+            formData={formData}
             schema={rjsfSchema}
             uiSchema={uiSchema}
             validator={validator}

@@ -29,7 +29,7 @@ export async function createServiceRequest(
 }
 
 export async function getAllServiceRequest(): Promise<ServiceRequest[]> {
-  return apiClient.post("/service_request")
+  return apiClient.get("/service_request").then((res) => res.data)
 }
 
 export async function getServiceRequest(
