@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"os"
 	"strconv"
