@@ -28,4 +28,6 @@ var (
 	ErrMembershipUpdateFail = errors.New("failed to update membership")
 	ErrMembershipDeleteFail = errors.New("failed to delete membership")
 	ErrMembershipInvalid    = errors.New("invalid membership")
+
+	ErrInvalidOffset = errors.New("invalid offset")
 )
