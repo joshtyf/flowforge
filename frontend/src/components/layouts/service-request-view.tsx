@@ -15,12 +15,14 @@ import { ChevronLeft } from "lucide-react"
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
 
 interface ServiceRequestViewProps {
-  router: AppRouterInstance
+  router?: AppRouterInstance
+  returnRoute?: string
   service?: Pipeline
   rjsfSchema: RJSFSchema
   uiSchema: UiSchema
   handleSubmit: (event: IChangeEvent) => void
   isSubmittingRequest: boolean
+  viewOnly?: boolean
 }
 const widgets: RegistryWidgetsType = {
   CheckboxesWidget: CustomCheckboxes,
@@ -29,33 +31,41 @@ const widgets: RegistryWidgetsType = {
 
 export default function ServiceRequestView({
   router,
+  returnRoute,
   service,
   rjsfSchema,
   uiSchema,
   handleSubmit,
   isSubmittingRequest,
+  viewOnly = false,
 }: ServiceRequestViewProps) {
+  const backNavigationEnabled = router && returnRoute
   return (
     <>
       <div className="flex flex-col justify-start py-10">
         <HeaderAccessory />
         <div className="flex items-baseline space-x-2 pt-5">
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => router.push("/service-catalog")}
-          >
-            <ChevronLeft />
-          </Button>
+          {backNavigationEnabled && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => router.push(returnRoute)}
+            >
+              <ChevronLeft />
+            </Button>
+          )}
           <p className="font-bold text-3xl">{service?.pipeline_name}</p>
         </div>
-        <p className="text-lg pt-3 ml-12 text-gray-500">
+        <p
+          className={`text-lg pt-3 ${backNavigationEnabled && "ml-12"} text-gray-500`}
+        >
           {service?.pipeline_description}
         </p>
       </div>
       <div className="w-full flex justify-center">
         <div className="w-4/5">
           <Form
+            disabled={viewOnly}
             schema={rjsfSchema}
             uiSchema={uiSchema}
             validator={validator}
