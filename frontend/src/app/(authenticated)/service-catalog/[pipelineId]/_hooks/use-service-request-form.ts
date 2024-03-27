@@ -1,4 +1,5 @@
 import { toast } from "@/components/ui/use-toast"
+import usePipeline from "@/hooks/use-pipeline"
 import { createServiceRequest, getPipeline } from "@/lib/service"
 import {
   convertServiceRequestFormToRJSFSchema,
@@ -10,7 +11,7 @@ import { IChangeEvent } from "@rjsf/core"
 import { RJSFSchema } from "@rjsf/utils"
 import { useEffect, useMemo, useState } from "react"
 
-interface UseServiceRequestOptions {
+interface UseServiceRequestFormOptions {
   pipelineId: string
 }
 
@@ -40,31 +41,13 @@ const DUMMY_SERVICE_REQUEST_FORM: JsonFormComponents = {
   },
 }
 
-const useServiceRequest = ({ pipelineId }: UseServiceRequestOptions) => {
-  const [service, setService] = useState<Pipeline>()
-  const [isLoadingForm, setIsLoadingForm] = useState(true)
+const useServiceRequestForm = ({
+  pipelineId,
+}: UseServiceRequestFormOptions) => {
+  const { pipeline: service, isPipelineLoading: isLoadingForm } = usePipeline({
+    pipelineId,
+  })
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
-
-  useEffect(() => {
-    getPipeline(pipelineId)
-      .then((data) => {
-        // TODO: To remove once data contains description
-        data.form = DUMMY_SERVICE_REQUEST_FORM
-        data.pipeline_description = "Pipeline description"
-        setService(data)
-      })
-      .catch((err) => {
-        console.log(err)
-        toast({
-          title: "Fetching Service Error",
-          description: "Failed to fetch the service for service request.",
-          variant: "destructive",
-        })
-      })
-      .finally(() => {
-        setIsLoadingForm(false)
-      })
-  }, [pipelineId])
 
   const handleCreateServiceRequest = (
     data: IChangeEvent<object, RJSFSchema, object>
@@ -103,7 +86,8 @@ const useServiceRequest = ({ pipelineId }: UseServiceRequestOptions) => {
   )
 
   return {
-    service,
+    pipelineName: service?.pipeline_name,
+    pipelineDescription: service?.pipeline_description,
     rjsfSchema,
     uiSchema,
     handleSubmit: handleCreateServiceRequest,
@@ -112,4 +96,4 @@ const useServiceRequest = ({ pipelineId }: UseServiceRequestOptions) => {
   }
 }
 
-export default useServiceRequest
+export default useServiceRequestForm

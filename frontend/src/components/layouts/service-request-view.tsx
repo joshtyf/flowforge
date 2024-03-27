@@ -17,11 +17,12 @@ import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.share
 interface ServiceRequestViewProps {
   router?: AppRouterInstance
   returnRoute?: string
-  service?: Pipeline
+  pipelineName: string
+  pipelineDescription?: string
   rjsfSchema: RJSFSchema
   uiSchema: UiSchema
-  handleSubmit: (event: IChangeEvent) => void
-  isSubmittingRequest: boolean
+  handleSubmit?: (event: IChangeEvent) => void
+  isSubmittingRequest?: boolean
   viewOnly?: boolean
   formData?: object
 }
@@ -33,7 +34,8 @@ const widgets: RegistryWidgetsType = {
 export default function ServiceRequestView({
   router,
   returnRoute,
-  service,
+  pipelineName,
+  pipelineDescription,
   rjsfSchema,
   uiSchema,
   handleSubmit,
@@ -42,6 +44,7 @@ export default function ServiceRequestView({
   formData,
 }: ServiceRequestViewProps) {
   const backNavigationEnabled = router && returnRoute
+  const isSubmitEnabled = handleSubmit && !viewOnly
   return (
     <>
       <div className="flex flex-col justify-start py-10">
@@ -56,12 +59,12 @@ export default function ServiceRequestView({
               <ChevronLeft />
             </Button>
           )}
-          <p className="font-bold text-3xl">{service?.pipeline_name}</p>
+          <p className="font-bold text-3xl">{pipelineName}</p>
         </div>
         <p
           className={`text-lg pt-3 ${backNavigationEnabled && "ml-12"} text-gray-500`}
         >
-          {service?.pipeline_description}
+          {pipelineDescription}
         </p>
       </div>
       <div className="w-full flex justify-center">
@@ -83,7 +86,7 @@ export default function ServiceRequestView({
             showErrorList={false}
           >
             <div className="flex justify-end">
-              {service && (
+              {isSubmitEnabled && (
                 <ButtonWithSpinner
                   type="submit"
                   disabled={isSubmittingRequest}

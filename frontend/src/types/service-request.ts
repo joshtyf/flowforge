@@ -32,8 +32,9 @@ type ServiceRequestStep = {
 type ServiceRequest = {
   id: string
   pipeline_id: string
-  // TODO: Make field mandatory once pipeline name is in service request
+  // TODO: Make field mandatory once pipeline name/description is in service request
   pipeline_name?: string
+  pipeline_description?: string
   pipeline_version: string
   // TODO: Make field mandatory once pipeline form is in service request
   form?: JsonFormComponents
