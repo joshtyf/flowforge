@@ -45,26 +45,30 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/healthcheck", handleHealthCheck()).Methods("GET")
 
 	// Service Request
-	r.Handle("/api/service_request", isAuthenticated(handleGetAllServiceRequest(s.mongoClient))).Methods("GET")
-	// TODO: @Zheng-Zhi-Qiang this route conflicts with `/api/service_request/{requestId}`.
-	// r.Handle("/api/service_request/{organisationId}", isAuthenticated(handleGetServiceRequestsByOrganisation(mongoClient))).Methods("GET")
-	r.Handle("/api/service_request/{requestId}", isAuthenticated(handleGetServiceRequest(s.mongoClient, s.psqlClient))).Methods("GET")
-	r.Handle("/api/service_request", isAuthenticated(handleCreateServiceRequest(s.mongoClient, s.psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
-	r.Handle("/api/service_request/{requestId}", isAuthenticated(handleUpdateServiceRequest(s.mongoClient))).Methods("PATCH").Headers("Content-Type", "application/json")
-	r.Handle("/api/service_request/{requestId}/cancel", isAuthenticated(handleCancelStartedServiceRequest(s.mongoClient))).Methods("GET")
-	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(handleStartServiceRequest(s.mongoClient))).Methods("GET")
-	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(isAuthorisedAdmin(handleApproveServiceRequest(s.mongoClient)))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request", isAuthenticated(isOrgMember(s.mongoClient, s.psqlClient, handleGetAllServiceRequestsForOrganisation(s.mongoClient)))).Methods("GET")
+	r.Handle("/api/service_request/{requestId}", isAuthenticated(isOrgMember(s.mongoClient, s.psqlClient, handleGetServiceRequest(s.mongoClient, s.psqlClient)))).Methods("GET")
+	r.Handle("/api/service_request", isAuthenticated(isOrgMember(s.mongoClient, s.psqlClient, handleCreateServiceRequest(s.mongoClient, s.psqlClient)))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/{requestId}", isAuthenticated(isOrgMember(s.mongoClient, s.psqlClient, handleUpdateServiceRequest(s.mongoClient)))).Methods("PATCH").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/{requestId}/cancel", isAuthenticated(isOrgMember(s.mongoClient, s.psqlClient, handleCancelStartedServiceRequest(s.mongoClient)))).Methods("PUT")
+	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(isOrgMember(s.mongoClient, s.psqlClient, handleStartServiceRequest(s.mongoClient)))).Methods("PUT")
+	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(isOrgAdmin(s.mongoClient, s.psqlClient, handleApproveServiceRequest(s.mongoClient)))).Methods("POST").Headers("Content-Type", "application/json")
 
 	// Pipeline
-	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(handleGetAllPipelines(s.mongoClient)))).Methods("GET")
-	r.Handle("/api/pipeline/{pipelineId}", isAuthenticated(isAuthorisedAdmin(handleGetPipeline(s.mongoClient)))).Methods("GET")
-	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(validateCreatePipelineRequest(handleCreatePipeline(s.mongoClient))))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/pipeline", isAuthenticated(isOrgAdmin(s.mongoClient, s.psqlClient, handleGetAllPipelines(s.mongoClient)))).Methods("GET")
+	r.Handle("/api/pipeline/{pipelineId}", isAuthenticated(isOrgAdmin(s.mongoClient, s.psqlClient, handleGetPipeline(s.mongoClient)))).Methods("GET")
+	r.Handle("/api/pipeline", isAuthenticated(isOrgAdmin(s.mongoClient, s.psqlClient, validateCreatePipelineRequest(handleCreatePipeline(s.mongoClient))))).Methods("POST").Headers("Content-Type", "application/json")
 
 	// User
 	r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.psqlClient))).Methods("Get")
 	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+
+	// Organisation
 	r.Handle("/api/organisation", isAuthenticated(handleCreateOrganisation(s.psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
-	r.Handle("/api/membership", isAuthenticated(handleCreateMembership(s.psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+
+	// Membership
+	r.Handle("/api/membership", isAuthenticated(isOrgAdmin(s.mongoClient, s.psqlClient, handleCreateMembership(s.psqlClient)))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/membership", isAuthenticated(isOrgAdmin(s.mongoClient, s.psqlClient, handleUpdateMembership(s.psqlClient)))).Methods("PATCH").Headers("Content-Type", "application/json")
+	r.Handle("/api/membership", isAuthenticated(isOrgOwner(s.mongoClient, s.psqlClient, handleDeleteMembership(s.psqlClient)))).Methods("DELETE").Headers("Content-Type", "application/json")
 }
 
 func handleHealthCheck() http.Handler {

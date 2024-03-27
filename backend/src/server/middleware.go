@@ -173,7 +173,7 @@ func isOrgAdmin(mongoClient *mongo.Client, postgresClient *sql.DB, next http.Han
 		}
 
 		if r.URL.Path == "/api/membership" {
-			mm, err := extractDecodeRequestBody[models.MembershipModel](r)
+			mm, err := decode[models.MembershipModel](r)
 			if err != nil {
 				logger.Error("[Authorization] Unable to parse json request body", map[string]interface{}{"err": err})
 				encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
@@ -229,7 +229,7 @@ func getMembership(mongoClient *mongo.Client, postgresClient *sql.DB, r *http.Re
 		OrganisationId int `json:"org_id"`
 	}
 	if r.Method == "POST" || r.Method == "PATCH" || r.Method == "DELETE" {
-		org, err := extractDecodeRequestBody[OrgId](r)
+		org, err := decode[OrgId](r)
 		if err != nil {
 			return nil, err
 		}

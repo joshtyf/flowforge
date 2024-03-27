@@ -33,21 +33,6 @@ func decode[T any](r *http.Request) (T, error) {
 	return v, nil
 }
 
-func extractDecodeRequestBody[T any](r *http.Request) (T, error) {
-	var v T
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		return v, fmt.Errorf("decode json: %w", err)
-	}
-
-	if err := json.NewDecoder(io.NopCloser(bytes.NewBuffer(body))).Decode(&v); err != nil {
-		return v, fmt.Errorf("decode json: %w", err)
-	}
-
-	r.Body = io.NopCloser(bytes.NewBuffer(body))
-	return v, nil
-}
-
 func serverHealthy() bool {
 	// TODO: Include database health check
 	return true
