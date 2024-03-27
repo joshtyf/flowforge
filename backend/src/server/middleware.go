@@ -228,28 +228,40 @@ func getMembership(mongoClient *mongo.Client, postgresClient *sql.DB, r *http.Re
 	type OrgId struct {
 		OrganisationId int `json:"org_id"`
 	}
-	if r.Method == "POST" || r.Method == "PATCH" || r.Method == "DELETE" {
-		org, err := decode[OrgId](r)
-		if err != nil {
-			return nil, err
+
+	// Checks org_id is a query param
+	if q := r.URL.Query().Get("org_id"); q == "" {
+		vars := mux.Vars(r)
+		// Checks for org id in path
+		if id := vars["organisationId"]; id == "" {
+			// Checks for request id in path
+			if sr_id := vars["requestId"]; sr_id == "" {
+				// all else fails get org id in body
+				org, err := decode[OrgId](r)
+				if err != nil {
+					return nil, err
+				}
+
+				org_id = org.OrganisationId
+			} else {
+				sr, err := database.NewServiceRequest(mongoClient).GetById(sr_id)
+				if err != nil {
+					return nil, err
+				}
+
+				org_id = sr.OrganisationId
+			}
+		} else {
+			org_id, err = strconv.Atoi(id)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		org_id = org.OrganisationId
 	} else {
-		if q := r.URL.Query().Get("org_id"); q == "" {
-			vars := mux.Vars(r)
-			sr_id := vars["requestId"]
-			sr, err := database.NewServiceRequest(mongoClient).GetById(sr_id)
-			if err != nil {
-				return nil, err
-			}
-
-			org_id = sr.OrganisationId
-		} else {
-			org_id, err = strconv.Atoi(q)
-			if err != nil {
-				return nil, err
-			}
+		org_id, err = strconv.Atoi(q)
+		if err != nil {
+			return nil, err
 		}
 	}
 
