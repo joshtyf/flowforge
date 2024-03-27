@@ -8,7 +8,7 @@ import { JsonFormComponents } from "@/types/json-form-components"
 import { Pipeline } from "@/types/pipeline"
 import { IChangeEvent } from "@rjsf/core"
 import { RJSFSchema } from "@rjsf/utils"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 interface UseServiceRequestOptions {
   pipelineId: string
@@ -48,7 +48,7 @@ const useServiceRequest = ({ pipelineId }: UseServiceRequestOptions) => {
   useEffect(() => {
     getPipeline(pipelineId)
       .then((data) => {
-        // TODO: To remove once data contains form and description
+        // TODO: To remove once data contains description
         data.form = DUMMY_SERVICE_REQUEST_FORM
         data.pipeline_description = "Pipeline description"
         setService(data)
@@ -67,10 +67,11 @@ const useServiceRequest = ({ pipelineId }: UseServiceRequestOptions) => {
   }, [pipelineId])
 
   const handleSubmit = (data: IChangeEvent<object, RJSFSchema, object>) => {
+    const { formData } = data
     setIsSubmittingRequest(true)
     // TODO: Add validations if needed
     // TODO: Add submission of form data
-    createServiceRequest(pipelineId)
+    createServiceRequest(pipelineId, formData, service?.version)
       .then((data) => {
         toast({
           title: "Request Submission Successful",
@@ -93,8 +94,11 @@ const useServiceRequest = ({ pipelineId }: UseServiceRequestOptions) => {
       })
   }
 
-  const uiSchema = generateUiSchema(service?.form)
-  const rjsfSchema = convertServiceRequestFormToRJSFSchema(service?.form)
+  const uiSchema = useMemo(() => generateUiSchema(service?.form), [service])
+  const rjsfSchema = useMemo(
+    () => convertServiceRequestFormToRJSFSchema(service?.form),
+    [service]
+  )
 
   return {
     service,

@@ -16,12 +16,14 @@ export async function getPipeline(pipelineId: string): Promise<Pipeline> {
 
 export async function createServiceRequest(
   pipelineId: string,
-  pipelineVersion?: string,
+  formData?: object,
+  pipelineVersion?: number,
   remarks?: string
 ): Promise<ServiceRequest> {
   return apiClient.post("/service_request", {
     pipeline_id: pipelineId,
     pipeline_version: pipelineVersion,
+    form_data: formData,
     remarks: remarks,
   })
 }

@@ -120,6 +120,7 @@ const useCreateService = ({ router }: UseCreateServiceProps) => {
     const pipelineJson: Pipeline = {
       pipeline_name: name,
       pipeline_description: description,
+      form: formJson,
       ...JSON.parse(pipeline),
     }
 
