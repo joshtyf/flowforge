@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 )
 
 const (
@@ -15,6 +16,10 @@ const (
 	httpResponseStatusMsg          = "status code: %d"
 	waitingForApprovalMsg          = "waiting for approval"
 )
+
+func FindExecutorLogFile(serviceRequestId, stepName string) (*os.File, error) {
+	return os.Open(fmt.Sprintf("%s/%s/%s.log", BaseLogDir, serviceRequestId, stepName))
+}
 
 type ExecutorLogger struct {
 	logger *log.Logger
