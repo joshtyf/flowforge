@@ -4,7 +4,7 @@ import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
-import ApproveServiceRequestActions from "./_components/pending-service-request-actions"
+import PendingServiceRequestActions from "./_components/pending-service-request-actions"
 import { StatusBadge } from "@/components/layouts/status-badge"
 import { ExternalLink } from "lucide-react"
 
@@ -59,10 +59,10 @@ export const pendingServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
-      const serviceRequestId: string = row.original.id
+      const serviceRequest: ServiceRequest = row.original
       return (
-        <ApproveServiceRequestActions
-          serviceRequestId={serviceRequestId}
+        <PendingServiceRequestActions
+          serviceRequest={serviceRequest}
           approveRequest={(serviceRequestId: string) => {
             // TODO: Replace with actual approval action
             console.log("Approve service request for:", serviceRequestId)

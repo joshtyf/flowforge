@@ -9,18 +9,21 @@ import { MoreHorizontal } from "lucide-react"
 import { useState } from "react"
 import { ApproveConfirmationDialog } from "./approve-confirmation-dialog"
 import { RejectConfirmationDialog } from "./reject-confirmation-dialog"
+import ServiceRequestDetailsDialog from "@/components/layouts/service-request-details-dialog"
+import { ServiceRequest } from "@/types/service-request"
 
-interface ApproveServiceRequestActionsProps {
-  serviceRequestId: string
+interface PendingServiceRequestActionsProps {
+  serviceRequest: ServiceRequest
   approveRequest: (serviceRequestId: string) => void
   rejectRequest: (serviceRequestId: string, remarks?: string) => void
 }
 
-export default function ApproveServiceRequestActions({
-  serviceRequestId,
+export default function PendingServiceRequestActions({
+  serviceRequest,
   approveRequest,
   rejectRequest,
-}: ApproveServiceRequestActionsProps) {
+}: PendingServiceRequestActionsProps) {
+  const [openDetailsDialog, setOpenDetailsDialog] = useState(false)
   const [openApproveConfirmationDialog, setOpenApproveConfirmationDialog] =
     useState(false)
   const [openRejectConfirmationDialog, setOpenRejectConfirmationDialog] =
@@ -33,6 +36,14 @@ export default function ApproveServiceRequestActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
+        <DropdownMenuItem
+          onClick={() => {
+            setOpenDetailsDialog(true)
+          }}
+        >
+          <Button variant="ghost">View Details</Button>
+        </DropdownMenuItem>
+
         <DropdownMenuItem>
           <Button
             variant="ghost"
@@ -53,16 +64,21 @@ export default function ApproveServiceRequestActions({
           </Button>
         </DropdownMenuItem>
       </DropdownMenuContent>
+      <ServiceRequestDetailsDialog
+        serviceRequest={serviceRequest}
+        open={openDetailsDialog}
+        setOpen={setOpenDetailsDialog}
+      />
       <ApproveConfirmationDialog
         open={openApproveConfirmationDialog}
         setOpen={setOpenApproveConfirmationDialog}
-        onApprove={() => approveRequest(serviceRequestId)}
+        onApprove={() => approveRequest(serviceRequest.id)}
       />
       <RejectConfirmationDialog
         open={openRejectConfirmationDialog}
         setOpen={setOpenRejectConfirmationDialog}
         onReject={(remarks?: string) =>
-          rejectRequest(serviceRequestId, remarks)
+          rejectRequest(serviceRequest.id, remarks)
         }
       />
     </DropdownMenu>

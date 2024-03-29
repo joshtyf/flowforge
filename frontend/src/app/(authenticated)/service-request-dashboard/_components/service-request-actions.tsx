@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ServiceRequest } from "@/types/service-request"
 import { MoreHorizontal } from "lucide-react"
-import ServiceRequestDetailsDialog from "./service-request-details-dialog"
+import ServiceRequestDetailsDialog from "@/components/layouts/service-request-details-dialog"
 import { useState } from "react"
 
 interface ServiceRequestActionsProps {
