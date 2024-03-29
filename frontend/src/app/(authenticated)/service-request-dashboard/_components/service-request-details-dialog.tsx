@@ -40,8 +40,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
             <Tooltip delayDuration={300}>
               <TooltipTrigger>
                 <Link
-                  // TODO: Insert SR form details page URL
-                  href={`#`}
+                  href={`/service-request-info/${serviceRequestId}`}
                   className="hover:underline hover:text-blue-500 flex space-x-1"
                 >
                   <p>{serviceRequestId}</p>

@@ -54,8 +54,6 @@ const useServiceRequestForm = ({
   ) => {
     const { formData } = data
     setIsSubmittingRequest(true)
-    // TODO: Add validations if needed
-    // TODO: Add submission of form data
     createServiceRequest(pipelineId, formData, service?.version)
       .then((data) => {
         toast({
