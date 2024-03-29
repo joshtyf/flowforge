@@ -543,7 +543,7 @@ func handleDeleteMembership(client *sql.DB) http.Handler {
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
-		_, err = database.NewMembership(client).UpdateUserMembership(&mm)
+		_, err = database.NewMembership(client).DeleteUserMembership(&mm)
 		if err != nil {
 			logger.Error("[DeleteMembership] Unable to delete membership", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipDeleteFail, http.StatusInternalServerError))
