@@ -14,7 +14,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import Link from "next/link"
-import Stepper from "./stepper"
+import Stepper from "../../app/(authenticated)/service-request-dashboard/_components/stepper"
 import { ExternalLink } from "lucide-react"
 
 interface ServiceRequestDetailsProps {
@@ -101,7 +101,7 @@ export default function ServiceRequestDetailsDialog({
 }: ServiceRequestDetailsDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
+      <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>{`${serviceRequest?.pipeline_name} Details`}</DialogTitle>
         </DialogHeader>
