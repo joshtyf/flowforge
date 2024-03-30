@@ -38,7 +38,7 @@ func NewServerLog(f io.Writer) ServerLogger {
 // If the original caller is an anonymous function, the FUNC_NAME will be replaced with _anon_fn_.
 func (l *ServerLog) getOriginalCaller() (string, error) {
 	pc := make([]uintptr, 1)
-	n := runtime.Callers(4, pc) // Callstack: getOriginalCaller -> info/error/warn -> public logging method -> caller
+	n := runtime.Callers(3, pc) // Callstack: getOriginalCaller -> info/error/warn  -> caller
 	if n == 0 {
 		return "", fmt.Errorf("could not get caller. callstack depth is too shallow")
 	}
