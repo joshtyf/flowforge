@@ -16,7 +16,7 @@ import (
 	"github.com/joshtyf/flowforge/src/validation"
 )
 
-func validateCreatePipelineRequest(next http.Handler, logger *logger.ServerLogger) http.Handler {
+func validateCreatePipelineRequest(next http.Handler, logger *logger.ServerLog) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pipeline, err := decode[models.PipelineModel](r)
 		if err != nil {
@@ -58,7 +58,7 @@ func (c CustomClaims) HasPermission(expectedPermission string) bool {
 	return false
 }
 
-func isAuthenticated(next http.Handler, logger *logger.ServerLogger) http.Handler {
+func isAuthenticated(next http.Handler, logger *logger.ServerLog) http.Handler {
 	// TODO: implement a proper flag pattern
 	env := os.Getenv("ENV")
 	if env == "dev" {
@@ -108,7 +108,7 @@ func isAuthenticated(next http.Handler, logger *logger.ServerLogger) http.Handle
 }
 
 // TODO: To be tested once frontend is ready
-func isAuthorisedAdmin(next http.Handler, logger *logger.ServerLogger) http.Handler {
+func isAuthorisedAdmin(next http.Handler, logger *logger.ServerLog) http.Handler {
 	env := os.Getenv("ENV")
 	if env == "dev" {
 		logger.SkippingAdminCheck()
