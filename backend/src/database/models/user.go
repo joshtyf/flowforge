@@ -10,4 +10,5 @@ type UserModel struct {
 	IdentityProvider string               `json:"identity_provider"`
 	Organisations    []*OrganisationModel `json:"organisations,omitempty"`
 	CreatedOn        time.Time            `json:"created_on"`
+	Deleted          bool                 `json:"deleted"`
 }
