@@ -103,6 +103,7 @@ func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http
 		ServiceRequest *models.ServiceRequestModel `json:"service_request"`
 		Steps          map[string]ResponseBodyStep `json:"steps"`
 		FirstStepName  string                      `json:"first_step_name"`
+		Form           models.Form                 `json:"form"`
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -145,6 +146,7 @@ func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http
 			ServiceRequest: sr,
 			Steps:          steps,
 			FirstStepName:  pipeline.FirstStepName,
+			Form:           pipeline.Form,
 		}
 		logger.Info("[GetServiceRequest] Successfully retrieved service request", map[string]interface{}{"response": response})
 		encode(w, r, http.StatusOK, response)
