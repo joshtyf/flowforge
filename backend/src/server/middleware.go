@@ -17,6 +17,7 @@ import (
 	"github.com/joshtyf/flowforge/src/database"
 	"github.com/joshtyf/flowforge/src/database/models"
 	"github.com/joshtyf/flowforge/src/logger"
+	"github.com/joshtyf/flowforge/src/util"
 	"github.com/joshtyf/flowforge/src/validation"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -130,13 +131,9 @@ func isAuthorisedAdmin(next http.Handler) http.Handler {
 	})
 }
 
-type OrgId struct {
-	OrganisationId int `json:"org_id"`
-}
-
 func isOrgOwner(postgresClient *sql.DB, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		org_id := r.Context().Value(OrgId{}).(int)
+		org_id := r.Context().Value(util.OrgContextKey{}).(int)
 		membership, err := getMembership(org_id, postgresClient, r)
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error("[Authorization] User not authorized owner", nil)
@@ -160,7 +157,7 @@ func isOrgOwner(postgresClient *sql.DB, next http.Handler) http.Handler {
 
 func isOrgAdmin(postgresClient *sql.DB, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		org_id := r.Context().Value(OrgId{}).(int)
+		org_id := r.Context().Value(util.OrgContextKey{}).(int)
 		membership, err := getMembership(org_id, postgresClient, r)
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error("[Authorization] User not authorized member", nil)
@@ -184,7 +181,7 @@ func isOrgAdmin(postgresClient *sql.DB, next http.Handler) http.Handler {
 
 func isOrgMember(postgresClient *sql.DB, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		org_id := r.Context().Value(OrgId{}).(int)
+		org_id := r.Context().Value(util.OrgContextKey{}).(int)
 		_, err := getMembership(org_id, postgresClient, r)
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error("[Authorization] User not authorized member", nil)
@@ -217,7 +214,7 @@ func getOrgIdFromQuery(next http.Handler) http.Handler {
 			}
 		}
 
-		r = r.Clone(context.WithValue(r.Context(), OrgId{}, org_id))
+		r = r.Clone(context.WithValue(r.Context(), util.OrgContextKey{}, org_id))
 		next.ServeHTTP(w, r)
 	})
 }
@@ -240,13 +237,16 @@ func getOrgIdFromPath(next http.Handler) http.Handler {
 			}
 		}
 
-		r = r.Clone(context.WithValue(r.Context(), OrgId{}, org_id))
+		r = r.Clone(context.WithValue(r.Context(), util.OrgContextKey{}, org_id))
 		next.ServeHTTP(w, r)
 	})
 }
 
 func getOrgIdFromRequestBody(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		type OrgId struct {
+			OrganisationId int `json:"org_id"`
+		}
 		org, err := decode[OrgId](r)
 		if err != nil {
 			logger.Error("[Authorization] Unable to parse request body into json", nil)
@@ -261,7 +261,7 @@ func getOrgIdFromRequestBody(next http.Handler) http.Handler {
 			return
 		}
 
-		r = r.Clone(context.WithValue(r.Context(), OrgId{}, org_id))
+		r = r.Clone(context.WithValue(r.Context(), util.OrgContextKey{}, org_id))
 		next.ServeHTTP(w, r)
 	})
 }
@@ -285,14 +285,14 @@ func getOrgIdUsingSrId(mongoClient *mongo.Client, next http.Handler) http.Handle
 			org_id = sr.OrganisationId
 		}
 
-		r = r.Clone(context.WithValue(r.Context(), OrgId{}, org_id))
+		r = r.Clone(context.WithValue(r.Context(), util.OrgContextKey{}, org_id))
 		next.ServeHTTP(w, r)
 	})
 }
 
 func validateMembershipChange(postgresClient *sql.DB, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		org_id := r.Context().Value(OrgId{}).(int)
+		org_id := r.Context().Value(util.OrgContextKey{}).(int)
 		membership, err := getMembership(org_id, postgresClient, r)
 		if err != nil {
 			logger.Error("[Authorization] Error getting requestor membership", map[string]interface{}{"err": err})
