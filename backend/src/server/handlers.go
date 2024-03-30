@@ -26,6 +26,52 @@ func newHandlerError(err error, code int) *HandlerError {
 	return &HandlerError{Message: err.Error(), Code: code}
 }
 
+type ServerHandler struct {
+	logger      *logger.Logger
+	psqlClient  *sql.DB
+	mongoClient *mongo.Client
+}
+
+func NewServerHandler(psqlClient *sql.DB, mongoCLient *mongo.Client, logger *logger.Logger) *ServerHandler {
+	return &ServerHandler{
+		psqlClient:  psqlClient,
+		mongoClient: mongoCLient,
+		logger:      logger,
+	}
+}
+
+func (s *ServerHandler) registerRoutes(r *mux.Router) {
+	// Health Check
+	r.Handle("/api/healthcheck", handleHealthCheck()).Methods("GET")
+
+	// Service Request
+	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromQuery(isOrgMember(s.psqlClient, handleGetAllServiceRequestsForOrganisation(s.mongoClient))))).Methods("GET")
+	r.Handle("/api/service_request/{requestId}", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetServiceRequest(s.mongoClient, s.psqlClient))))).Methods("GET")
+	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromRequestBody(isOrgMember(s.psqlClient, handleCreateServiceRequest(s.mongoClient, s.psqlClient))))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/{requestId}", isAuthenticated(getOrgIdFromRequestBody(isOrgMember(s.psqlClient, handleUpdateServiceRequest(s.mongoClient))))).Methods("PATCH").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/{requestId}/cancel", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleCancelStartedServiceRequest(s.mongoClient))))).Methods("PUT")
+	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleStartServiceRequest(s.mongoClient))))).Methods("PUT")
+	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(getOrgIdFromRequestBody(isOrgAdmin(s.psqlClient, handleApproveServiceRequest(s.mongoClient))))).Methods("POST").Headers("Content-Type", "application/json")
+
+	// Pipeline
+	// TODO: @joshtyf need to integrate orgId in some way into these routes or the pipeline model, esp for the post method.
+	r.Handle("/api/pipeline", isAuthenticated(handleGetAllPipelines(s.mongoClient))).Methods("GET")
+	r.Handle("/api/pipeline/{pipelineId}", isAuthenticated(handleGetPipeline(s.mongoClient))).Methods("GET")
+	r.Handle("/api/pipeline", isAuthenticated(validateCreatePipelineRequest(handleCreatePipeline(s.mongoClient)))).Methods("POST").Headers("Content-Type", "application/json")
+
+	// User
+	r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.psqlClient))).Methods("Get")
+	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+
+	// Organisation
+	r.Handle("/api/organisation", isAuthenticated(handleCreateOrganisation(s.psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
+
+	// Membership
+	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgAdmin(s.psqlClient, handleCreateMembership(s.psqlClient)))))).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgAdmin(s.psqlClient, handleUpdateMembership(s.psqlClient)))))).Methods("PATCH").Headers("Content-Type", "application/json")
+	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgOwner(s.psqlClient, handleDeleteMembership(s.psqlClient)))))).Methods("DELETE").Headers("Content-Type", "application/json")
+}
+
 func handleHealthCheck() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if serverHealthy() {
@@ -37,6 +83,7 @@ func handleHealthCheck() http.Handler {
 	})
 }
 
+// TODO: review if is required
 func handleGetAllServiceRequest(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		allsr, err := database.NewServiceRequest(client).GetAll()
@@ -58,10 +105,15 @@ func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http
 		ApprovedBy   string           `json:"approved_by"`
 		NextStepName string           `json:"next_step_name"`
 	}
+	type ResponseBodyPipeline struct {
+		Name string       `json:"name"`
+		Form *models.Form `json:"form"`
+	}
 	type ResponseBody struct {
 		ServiceRequest *models.ServiceRequestModel `json:"service_request"`
 		Steps          map[string]ResponseBodyStep `json:"steps"`
 		FirstStepName  string                      `json:"first_step_name"`
+		Pipeline       *ResponseBodyPipeline       `json:"pipeline"`
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -104,6 +156,10 @@ func handleGetServiceRequest(mongoClient *mongo.Client, psqlClient *sql.DB) http
 			ServiceRequest: sr,
 			Steps:          steps,
 			FirstStepName:  pipeline.FirstStepName,
+			Pipeline: &ResponseBodyPipeline{
+				Name: pipeline.PipelineName,
+				Form: &pipeline.Form,
+			},
 		}
 		logger.Info("[GetServiceRequest] Successfully retrieved service request", map[string]interface{}{"response": response})
 		encode(w, r, http.StatusOK, response)
@@ -358,7 +414,7 @@ func handleUserLogin(client *sql.DB) http.Handler {
 		}
 		_, err = database.NewUser(client).GetUserById(um.UserId)
 		if errors.Is(err, sql.ErrNoRows) {
-			user, err := database.NewUser(client).CreateUser(&um)
+			user, err := database.NewUser(client).Create(&um)
 			if err != nil {
 				logger.Error("[UserLogin] Unable to create user", map[string]interface{}{"err": err})
 				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserCreateFail, http.StatusInternalServerError))
@@ -415,22 +471,21 @@ func handleCreateMembership(client *sql.DB) http.Handler {
 	})
 }
 
-func handleGetServiceRequestsByOrganisation(client *mongo.Client) http.Handler {
+func handleGetAllServiceRequestsForOrganisation(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		orgId, err := strconv.Atoi(vars["organisationId"])
+		orgId, err := strconv.Atoi(r.URL.Query().Get("org_id"))
 		if err != nil {
-			logger.Error("[GetServiceRequestsByOrganisation] Error converting organisation id to int", map[string]interface{}{"err": err})
+			logger.Error("[GetAllServiceRequestsForOrganisation] Error converting organisation id to int", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
 			return
 		}
-		allsr, err := database.NewServiceRequest(client).GetServiceRequestsByOrgId(orgId)
+		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestsForOrgId(orgId)
 		if err != nil {
-			logger.Error("[GetServiceRequestsByOrganisation] Error retrieving all service request", map[string]interface{}{"err": err})
+			logger.Error("[GetAllServiceRequestsForOrganisation] Error retrieving all service request", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		logger.Info("[GetAllServiceRequest] Successfully retrieved service requests", map[string]interface{}{"count": len(allsr)})
+		logger.Info("[GetAllServiceRequestsForOrganisation] Successfully retrieved service requests", map[string]interface{}{"count": len(allsr)})
 		encode(w, r, http.StatusOK, allsr)
 	})
 }
@@ -456,5 +511,45 @@ func handleGetUserById(client *sql.DB) http.Handler {
 		logger.Info("[GetUserById] Successfully retrieved user organisations", map[string]interface{}{"orgs": orgs})
 		user.Organisations = orgs
 		encode(w, r, http.StatusCreated, user)
+	})
+}
+
+func handleUpdateMembership(client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mm, err := decode[models.MembershipModel](r)
+		if err != nil {
+			logger.Error("[UpdateMembership] Unable to parse json request body", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		_, err = database.NewMembership(client).UpdateUserMembership(&mm)
+		if err != nil {
+			logger.Error("[UpdateMembership] Unable to update membership", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipUpdateFail, http.StatusInternalServerError))
+			return
+		}
+
+		logger.Info("[UpdateMembership] Successfully updated membership", nil)
+		encode[any](w, r, http.StatusOK, nil)
+	})
+}
+
+func handleDeleteMembership(client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mm, err := decode[models.MembershipModel](r)
+		if err != nil {
+			logger.Error("[DeleteMembership] Unable to parse json request body", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		_, err = database.NewMembership(client).DeleteUserMembership(&mm)
+		if err != nil {
+			logger.Error("[DeleteMembership] Unable to delete membership", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipDeleteFail, http.StatusInternalServerError))
+			return
+		}
+
+		logger.Info("[DeleteMembership] Successfully delete membership", nil)
+		encode[any](w, r, http.StatusOK, nil)
 	})
 }

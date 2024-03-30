@@ -77,7 +77,8 @@ CREATE TABLE public.user (
     user_id character varying NOT NULL,
     name character varying NOT NULL,
     identity_provider character varying NOT NULL,
-    created_on timestamp without time zone DEFAULT now()
+    created_on timestamp without time zone DEFAULT now(),
+    deleted boolean DEFAULT false
 );
 
 ALTER TABLE public.user OWNER TO postgres;
@@ -89,7 +90,8 @@ CREATE TABLE public.organization (
     org_id integer NOT NULL,
     name character varying NOT NULL,
     owner character varying NOT NULL,
-    created_on timestamp without time zone DEFAULT now()
+    created_on timestamp without time zone DEFAULT now(),
+    deleted boolean DEFAULT false
 );
 
 ALTER TABLE public.organization OWNER TO postgres;
@@ -116,12 +118,15 @@ ALTER TABLE ONLY public.organization ALTER COLUMN org_id SET DEFAULT nextval('pu
 CREATE TABLE public.membership (
     user_id character varying NOT NULL,
     org_id integer NOT NULL,
-    joined_on timestamp without time zone DEFAULT now()
+    role character varying NOT NULL,
+    joined_on timestamp without time zone DEFAULT now(),
+    deleted boolean DEFAULT false
 );
 
 ALTER TABLE public.membership OWNER TO postgres;
 
 ALTER TABLE ONLY public.membership
+    ADD CONSTRAINT membership_pkey PRIMARY KEY (user_id, org_id),
     ADD CONSTRAINT membership_user_fkey FOREIGN KEY (user_id) REFERENCES public.user (user_id),
     ADD CONSTRAINT membership_org_fkey FOREIGN KEY (org_id) REFERENCES public.organization (org_id);
 

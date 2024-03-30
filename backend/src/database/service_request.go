@@ -76,7 +76,7 @@ func (sr *ServiceRequest) UpdateStatus(id string, status models.ServiceRequestSt
 	return err
 }
 
-func (sr *ServiceRequest) GetServiceRequestsByOrgId(orgId int) ([]*models.ServiceRequestModel, error) {
+func (sr *ServiceRequest) GetAllServiceRequestsForOrgId(orgId int) ([]*models.ServiceRequestModel, error) {
 	result, err := sr.c.Database(DatabaseName).Collection("service_requests").Find(context.Background(), bson.M{"org_id": orgId})
 	if err != nil {
 		return nil, err
