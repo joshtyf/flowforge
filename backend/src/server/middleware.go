@@ -130,9 +130,14 @@ func isAuthorisedAdmin(next http.Handler) http.Handler {
 	})
 }
 
-func isOrgOwner(mongoClient *mongo.Client, postgresClient *sql.DB, next http.Handler) http.Handler {
+type OrgId struct {
+	OrganisationId int `json:"org_id"`
+}
+
+func isOrgOwner(postgresClient *sql.DB, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		membership, err := getMembership(mongoClient, postgresClient, r)
+		org_id := r.Context().Value(OrgId{}).(int)
+		membership, err := getMembership(org_id, postgresClient, r)
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error("[Authorization] User not authorized owner", nil)
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
@@ -153,9 +158,10 @@ func isOrgOwner(mongoClient *mongo.Client, postgresClient *sql.DB, next http.Han
 	})
 }
 
-func isOrgAdmin(mongoClient *mongo.Client, postgresClient *sql.DB, next http.Handler) http.Handler {
+func isOrgAdmin(postgresClient *sql.DB, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		membership, err := getMembership(mongoClient, postgresClient, r)
+		org_id := r.Context().Value(OrgId{}).(int)
+		membership, err := getMembership(org_id, postgresClient, r)
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error("[Authorization] User not authorized member", nil)
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
@@ -172,42 +178,14 @@ func isOrgAdmin(mongoClient *mongo.Client, postgresClient *sql.DB, next http.Han
 			return
 		}
 
-		if r.URL.Path == "/api/membership" {
-			mm, err := decode[models.MembershipModel](r)
-			if err != nil {
-				logger.Error("[Authorization] Unable to parse json request body", map[string]interface{}{"err": err})
-				encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
-				return
-			}
-
-			if mm.Role == models.Owner && membership.Role == models.Admin {
-				logger.Error("[Authorization] User not authorized to grant/delete ownership", nil)
-				encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
-				return
-			}
-
-			subjectMembership, err := database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(mm.UserId, mm.OrgId)
-			if err != nil && !errors.Is(err, sql.ErrNoRows) {
-				logger.Error("[Authorization] Error encountered while verifying subject role", map[string]interface{}{"err": err})
-				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
-				return
-			}
-
-			if subjectMembership != nil && subjectMembership.Role == models.Owner && membership.Role == models.Admin {
-				logger.Error("[Authorization] User not authorized to alter/delete ownership", nil)
-				encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
-				return
-			}
-
-		}
-
 		next.ServeHTTP(w, r)
 	})
 }
 
-func isOrgMember(mongoClient *mongo.Client, postgresClient *sql.DB, next http.Handler) http.Handler {
+func isOrgMember(postgresClient *sql.DB, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := getMembership(mongoClient, postgresClient, r)
+		org_id := r.Context().Value(OrgId{}).(int)
+		_, err := getMembership(org_id, postgresClient, r)
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error("[Authorization] User not authorized member", nil)
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
@@ -222,49 +200,136 @@ func isOrgMember(mongoClient *mongo.Client, postgresClient *sql.DB, next http.Ha
 	})
 }
 
-func getMembership(mongoClient *mongo.Client, postgresClient *sql.DB, r *http.Request) (*models.MembershipModel, error) {
-	var org_id int
-	var err error
-	type OrgId struct {
-		OrganisationId int `json:"org_id"`
-	}
-
-	// Checks org_id is a query param
-	if q := r.URL.Query().Get("org_id"); q == "" {
-		vars := mux.Vars(r)
-		// Checks for org id in path
-		if id := vars["organisationId"]; id == "" {
-			// Checks for request id in path
-			if sr_id := vars["requestId"]; sr_id == "" {
-				// all else fails get org id in body
-				org, err := decode[OrgId](r)
-				if err != nil {
-					return nil, err
-				}
-
-				org_id = org.OrganisationId
-			} else {
-				sr, err := database.NewServiceRequest(mongoClient).GetById(sr_id)
-				if err != nil {
-					return nil, err
-				}
-
-				org_id = sr.OrganisationId
+func getOrgIdFromQuery(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var org_id int
+		var err error
+		if q := r.URL.Query().Get("org_id"); q == "" {
+			logger.Error("[Authorization] Org Id does not exist in query", nil)
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrUnauthorised, http.StatusBadRequest))
+			return
+		} else {
+			org_id, err = strconv.Atoi(q)
+			if err != nil {
+				logger.Error("[Authorization] Failed to parse Org Id as integer", nil)
+				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
+				return
 			}
+		}
+
+		r = r.Clone(context.WithValue(r.Context(), OrgId{}, org_id))
+		next.ServeHTTP(w, r)
+	})
+}
+
+func getOrgIdFromPath(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var org_id int
+		var err error
+		vars := mux.Vars(r)
+		if id := vars["organisationId"]; id == "" {
+			logger.Error("[Authorization] Org Id does not exist in path", nil)
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrUnauthorised, http.StatusBadRequest))
+			return
 		} else {
 			org_id, err = strconv.Atoi(id)
 			if err != nil {
-				return nil, err
+				logger.Error("[Authorization] Failed to parse Org Id as integer", nil)
+				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
+				return
 			}
 		}
 
-	} else {
-		org_id, err = strconv.Atoi(q)
-		if err != nil {
-			return nil, err
-		}
-	}
+		r = r.Clone(context.WithValue(r.Context(), OrgId{}, org_id))
+		next.ServeHTTP(w, r)
+	})
+}
 
+func getOrgIdFromRequestBody(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		org, err := decode[OrgId](r)
+		if err != nil {
+			logger.Error("[Authorization] Unable to parse request body into json", nil)
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
+			return
+		}
+		org_id := org.OrganisationId
+
+		if org_id == 0 {
+			logger.Error("[Authorization] Org Id does not exist in request body", nil)
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrUnauthorised, http.StatusBadRequest))
+			return
+		}
+
+		r = r.Clone(context.WithValue(r.Context(), OrgId{}, org_id))
+		next.ServeHTTP(w, r)
+	})
+}
+
+func getOrgIdUsingSrId(mongoClient *mongo.Client, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var org_id int
+		vars := mux.Vars(r)
+		if sr_id := vars["requestId"]; sr_id == "" {
+			logger.Error("[Authorization] Service Request Id does not exist in path", nil)
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrUnauthorised, http.StatusBadRequest))
+			return
+		} else {
+			sr, err := database.NewServiceRequest(mongoClient).GetById(sr_id)
+			if err != nil {
+				logger.Error("[Authorization] Failed to retrieve service request by service request id", nil)
+				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
+				return
+			}
+
+			org_id = sr.OrganisationId
+		}
+
+		r = r.Clone(context.WithValue(r.Context(), OrgId{}, org_id))
+		next.ServeHTTP(w, r)
+	})
+}
+
+func validateMembershipChange(postgresClient *sql.DB, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		org_id := r.Context().Value(OrgId{}).(int)
+		membership, err := getMembership(org_id, postgresClient, r)
+		if err != nil {
+			logger.Error("[Authorization] Error getting requestor membership", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
+			return
+		}
+
+		mm, err := decode[models.MembershipModel](r)
+		if err != nil {
+			logger.Error("[Authorization] Unable to parse json request body", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+
+		if mm.Role == models.Owner && membership.Role == models.Admin {
+			logger.Error("[Authorization] User not authorized to grant/delete ownership", nil)
+			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			return
+		}
+
+		subjectMembership, err := database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(mm.UserId, mm.OrgId)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			logger.Error("[Authorization] Error encountered while verifying subject role", map[string]interface{}{"err": err})
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+
+		if subjectMembership != nil && subjectMembership.Role == models.Owner && membership.Role == models.Admin {
+			logger.Error("[Authorization] User not authorized to alter/delete ownership", nil)
+			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func getMembership(org_id int, postgresClient *sql.DB, r *http.Request) (*models.MembershipModel, error) {
 	token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 	userId := token.RegisteredClaims.Subject
 
