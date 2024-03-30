@@ -16,11 +16,17 @@ const (
 	logWithoutFunc    = "[%s] %s"     // [MSG_TYPE] MSG
 )
 
+type ServerLogger interface {
+	Info(msg string)
+	Error(msg string)
+	Warn(msg string)
+}
+
 type ServerLog struct {
 	logger *log.Logger
 }
 
-func NewServerLog(f io.Writer) *ServerLog {
+func NewServerLog(f io.Writer) ServerLogger {
 	return &ServerLog{
 		logger: log.New(f, "", log.LstdFlags),
 	}
@@ -58,7 +64,7 @@ func (l *ServerLog) getOriginalCaller() (string, error) {
 // Helper method to tag log message with "[INFO]"
 //
 // This function should be called immediately after a public logging method so as to maintain the correct callstack depth.
-func (l *ServerLog) info(msg string) {
+func (l *ServerLog) Info(msg string) {
 	if originalCaller, err := l.getOriginalCaller(); err == nil {
 		l.logger.Printf(logWithFuncFormat, "INFO", originalCaller, msg)
 		return
@@ -69,7 +75,7 @@ func (l *ServerLog) info(msg string) {
 // Helper method to tag log message with "[ERROR]"
 //
 // This function should be called immediately after a public logging method so as to maintain the correct callstack depth.
-func (l *ServerLog) error(msg string) {
+func (l *ServerLog) Error(msg string) {
 	if originalCaller, err := l.getOriginalCaller(); err == nil {
 		l.logger.Printf(logWithFuncFormat, "ERROR", originalCaller, msg)
 		return
@@ -80,7 +86,7 @@ func (l *ServerLog) error(msg string) {
 // Helper method to tag log message with "[WARN]"
 //
 // This function should be called immediately after a public logging method so as to maintain the correct callstack depth.
-func (l *ServerLog) warn(msg string) {
+func (l *ServerLog) Warn(msg string) {
 	if originalCaller, err := l.getOriginalCaller(); err == nil {
 		l.logger.Printf(logWithFuncFormat, "WARN", originalCaller, msg)
 		return
@@ -91,99 +97,99 @@ func (l *ServerLog) warn(msg string) {
 /* PUBLIC LOGGING METHODS */
 
 func (l *ServerLog) ErrClaimsMissingPermission(permission string) {
-	l.error(fmt.Sprintf("unauthorized: missing permission %s", permission))
+	l.Error(fmt.Sprintf("unauthorized: missing permission %s", permission))
 }
 
 func (l *ServerLog) ErrEventLogStepMissingInPipeline(stepName string) {
-	l.error(fmt.Sprintf("%s exists in event log but not in pipeline template", stepName))
+	l.Error(fmt.Sprintf("%s exists in event log but not in pipeline template", stepName))
 }
 
 func (l *ServerLog) ErrExecutingStep(stepName string, err error) {
-	l.error(fmt.Sprintf("error executing %s: %s", stepName, err))
+	l.Error(fmt.Sprintf("error executing %s: %s", stepName, err))
 }
 
 // Generic error message for handling events
 func (l *ServerLog) ErrHandlingEvent(err error) {
-	l.error(fmt.Sprintf("error encountered while handling event: %s", err))
+	l.Error(fmt.Sprintf("error encountered while handling event: %s", err))
 }
 
 // Generic error message for handling API requests
 func (l *ServerLog) ErrHandlingRequest(err error) {
-	l.error(fmt.Sprintf("error encountered while handling API request: %s", err))
+	l.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 }
 
 func (l *ServerLog) ErrInvalidStepType(expectedStepType, actualStepType models.PipelineStepType) {
-	l.error(fmt.Sprintf("invalid step type: expected %s got %s", expectedStepType, actualStepType))
+	l.Error(fmt.Sprintf("invalid step type: expected %s got %s", expectedStepType, actualStepType))
 }
 
 func (l *ServerLog) ErrMissingExecutorForStep(stepName string) {
-	l.error(fmt.Sprintf("missing executor for step: %s", stepName))
+	l.Error(fmt.Sprintf("missing executor for step: %s", stepName))
 }
 
 func (l *ServerLog) ErrMissingPipelineStep(stepName string) {
-	l.error(fmt.Sprintf("missing pipeline step: %s", stepName))
+	l.Error(fmt.Sprintf("missing pipeline step: %s", stepName))
 }
 
 func (l *ServerLog) ErrParsingIssuerURL(err error) {
-	l.error(fmt.Sprintf("failed to parse the issuer url: %s", err))
+	l.Error(fmt.Sprintf("failed to parse the issuer url: %s", err))
 }
 
 func (l *ServerLog) ErrParsingJsonRequestBody(err error) {
-	l.error(fmt.Sprintf("failed to parse json request body: %s", err))
+	l.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 }
 
 func (l *ServerLog) ErrResourceNotFound(resourceName, resourceId string) {
-	l.error(fmt.Sprintf("%s %s not found", resourceName, resourceId))
+	l.Error(fmt.Sprintf("%s %s not found", resourceName, resourceId))
 }
 
 func (l *ServerLog) ErrServiceRequestStatusUpdateFailed(action, serviceRequestId, reason string) {
-	l.error(fmt.Sprintf("failed to %s service request %s: %s", action, serviceRequestId, reason))
+	l.Error(fmt.Sprintf("failed to %s service request %s: %s", action, serviceRequestId, reason))
 }
 
 func (l *ServerLog) ErrSettingUpJWTValidator(err error) {
-	l.error(fmt.Sprintf("failed to set up jwt validator: %s", err))
+	l.Error(fmt.Sprintf("failed to set up jwt validator: %s", err))
 }
 
 func (l *ServerLog) ErrValidatingJWT(err error) {
-	l.error(fmt.Sprintf("failed to validate jwt: %s", err))
+	l.Error(fmt.Sprintf("failed to validate jwt: %s", err))
 }
 
 func (l *ServerLog) ErrValidatingPipeline(err error) {
-	l.error(fmt.Sprintf("failed to validate pipeline: %s", err))
+	l.Error(fmt.Sprintf("failed to validate pipeline: %s", err))
 }
 
 func (l *ServerLog) ErrEventMissingData(eventName, data string) {
-	l.error(fmt.Sprintf("event %s missing data: %s", eventName, data))
+	l.Error(fmt.Sprintf("event %s missing data: %s", eventName, data))
 }
 
 func (l *ServerLog) HandleEvent(eventName string) {
-	l.info(fmt.Sprintf("handling event: %s", eventName))
+	l.Info(fmt.Sprintf("handling event: %s", eventName))
 }
 
 func (l *ServerLog) ResourceCreated(resourceName, resourceId string) {
-	l.info(fmt.Sprintf("%s %s created", resourceName, resourceId))
+	l.Info(fmt.Sprintf("%s %s created", resourceName, resourceId))
 }
 
 func (l *ServerLog) ResourceDeleted(resourceName, resourceId string) {
-	l.info(fmt.Sprintf("%s %s deleted", resourceName, resourceId))
+	l.Info(fmt.Sprintf("%s %s deleted", resourceName, resourceId))
 }
 
 func (l *ServerLog) ServerHealthy() {
-	l.info("server is healthy")
+	l.Info("server is healthy")
 }
 
 func (l *ServerLog) ShutdownServer(reason string) {
-	l.info(fmt.Sprintf("shutting down server: %s", reason))
+	l.Info(fmt.Sprintf("shutting down server: %s", reason))
 }
 
 func (l *ServerLog) SkippingAdminCheck() {
-	l.warn("skipping admin check in dev environment")
+	l.Warn("skipping admin check in dev environment")
 }
 
 func (l *ServerLog) SkippingAuth() {
-	l.warn("skipping authentication in dev environment")
+	l.Warn("skipping authentication in dev environment")
 }
 
 func (l *ServerLog) UserLoggedIn(userId string) {
-	l.info(fmt.Sprintf("user %s logged in", userId))
+	l.Info(fmt.Sprintf("user %s logged in", userId))
 }
