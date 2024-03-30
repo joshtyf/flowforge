@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -22,9 +23,9 @@ const (
 	SERVER_SHUTDOWN_GRACE_PERIOD = 10 * time.Second
 )
 
-func gracefulShutdown(logger *logger.ServerLog, svr *http.Server, psqlClient *sql.DB, mongoClient *mongo.Client) func(string) {
+func gracefulShutdown(logger logger.ServerLogger, svr *http.Server, psqlClient *sql.DB, mongoClient *mongo.Client) func(string) {
 	shutdownHandler := func(reason string) {
-		logger.ShutdownServer(reason)
+		logger.Info(fmt.Sprintf("shutting down server: %s", reason))
 		ctx, cancel := context.WithTimeout(context.Background(), SERVER_SHUTDOWN_GRACE_PERIOD)
 		defer cancel()
 		if err := svr.Shutdown(ctx); err != nil {

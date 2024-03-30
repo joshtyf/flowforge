@@ -15,7 +15,7 @@ type ServerConfig struct {
 	Router       *mux.Router
 	PsqlClient   *sql.DB
 	MongoClient  *mongo.Client
-	ServerLogger *logger.ServerLog
+	ServerLogger logger.ServerLogger
 }
 
 func New(c *ServerConfig) http.Server {

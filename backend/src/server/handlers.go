@@ -28,12 +28,12 @@ func newHandlerError(err error, code int) *HandlerError {
 }
 
 type ServerHandler struct {
-	logger      *logger.ServerLog
+	logger      logger.ServerLogger
 	psqlClient  *sql.DB
 	mongoClient *mongo.Client
 }
 
-func NewServerHandler(psqlClient *sql.DB, mongoCLient *mongo.Client, logger *logger.ServerLog) *ServerHandler {
+func NewServerHandler(psqlClient *sql.DB, mongoCLient *mongo.Client, logger logger.ServerLogger) *ServerHandler {
 	return &ServerHandler{
 		psqlClient:  psqlClient,
 		mongoClient: mongoCLient,
@@ -68,10 +68,10 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/membership", isAuthenticated(handleCreateMembership(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 }
 
-func handleHealthCheck(l *logger.ServerLog) http.Handler {
+func handleHealthCheck(l logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if serverHealthy() {
-			l.ServerHealthy()
+			l.Info("server is healthy")
 			encode(w, r, http.StatusOK, "Server working!")
 			return
 		}
@@ -79,11 +79,11 @@ func handleHealthCheck(l *logger.ServerLog) http.Handler {
 	})
 }
 
-func handleGetAllServiceRequest(logger *logger.ServerLog, client *mongo.Client) http.Handler {
+func handleGetAllServiceRequest(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		allsr, err := database.NewServiceRequest(client).GetAll()
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
@@ -91,7 +91,7 @@ func handleGetAllServiceRequest(logger *logger.ServerLog, client *mongo.Client) 
 	})
 }
 
-func handleGetServiceRequest(logger *logger.ServerLog, mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
+func handleGetServiceRequest(logger logger.ServerLogger, mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
 	type ResponseBodyStep struct {
 		Name         string           `json:"name"`
 		Status       models.EventType `json:"status"`
@@ -109,19 +109,19 @@ func handleGetServiceRequest(logger *logger.ServerLog, mongoClient *mongo.Client
 		requestId := vars["requestId"]
 		sr, err := database.NewServiceRequest(mongoClient).GetById(requestId)
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		pipeline, err := database.NewPipeline(mongoClient).GetById(sr.PipelineId)
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		sre, err := database.NewServiceRequestEvent(psqlClient).GetStepsLatestEvent(requestId)
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
@@ -129,7 +129,7 @@ func handleGetServiceRequest(logger *logger.ServerLog, mongoClient *mongo.Client
 		for _, event := range sre {
 			step := pipeline.GetPipelineStep(event.StepName)
 			if step == nil {
-				logger.ErrEventLogStepMissingInPipeline(event.StepName)
+				logger.Error(fmt.Sprintf("%s exists in event log but not in pipeline template", event.StepName))
 				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 				return
 			}
@@ -150,22 +150,22 @@ func handleGetServiceRequest(logger *logger.ServerLog, mongoClient *mongo.Client
 	})
 }
 
-func handleCreateServiceRequest(logger *logger.ServerLog, mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
+func handleCreateServiceRequest(logger logger.ServerLogger, mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srm, err := decode[models.ServiceRequestModel](r)
 		if err != nil {
-			logger.ErrParsingJsonRequestBody(err)
+			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
 
 		pipeline, err := database.NewPipeline(mongoClient).GetById(srm.PipelineId)
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			logger.ErrResourceNotFound("pipeline", srm.PipelineId)
+			logger.Error(fmt.Sprintf("%s %s not found", "pipeline", srm.PipelineId))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidPipelineId, http.StatusBadRequest))
 			return
 		} else if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
@@ -176,7 +176,7 @@ func handleCreateServiceRequest(logger *logger.ServerLog, mongoClient *mongo.Cli
 
 		res, err := database.NewServiceRequest(mongoClient).Create(&srm)
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
@@ -188,7 +188,7 @@ func handleCreateServiceRequest(logger *logger.ServerLog, mongoClient *mongo.Cli
 				StepName:         step.StepName,
 			})
 			if err != nil {
-				logger.ErrHandlingRequest(err)
+				logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 				return
 			}
@@ -199,25 +199,25 @@ func handleCreateServiceRequest(logger *logger.ServerLog, mongoClient *mongo.Cli
 	})
 }
 
-func handleCancelStartedServiceRequest(logger *logger.ServerLog, client *mongo.Client) http.Handler {
+func handleCancelStartedServiceRequest(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		requestId := vars["requestId"]
 		sr, err := database.NewServiceRequest(client).GetById(requestId)
 		if err != nil {
-			logger.ErrResourceNotFound("service request", requestId)
+			logger.Error(fmt.Sprintf("%s %s not found", "service request", requestId))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		status := sr.Status
 		if status != models.Pending && status != models.Running {
-			logger.ErrServiceRequestStatusUpdateFailed("cancel", requestId, "execution has been completed")
+			logger.Error(fmt.Sprintf("failed to %s service request %s: %s", "cancel", requestId, "execution has been completed"))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestAlreadyCompleted, http.StatusBadRequest))
 			return
 		}
 
 		if status == models.NotStarted {
-			logger.ErrServiceRequestStatusUpdateFailed("cancel", requestId, "execution has not been started")
+			logger.Error(fmt.Sprintf("failed to %s service request %s: %s", "cancel", requestId, "execution has not been started"))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestNotStarted, http.StatusBadRequest))
 			return
 		}
@@ -228,7 +228,7 @@ func handleCancelStartedServiceRequest(logger *logger.ServerLog, client *mongo.C
 
 		// TODO: discuss how to handle this error
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
@@ -236,11 +236,11 @@ func handleCancelStartedServiceRequest(logger *logger.ServerLog, client *mongo.C
 	})
 }
 
-func handleUpdateServiceRequest(logger *logger.ServerLog, client *mongo.Client) http.Handler {
+func handleUpdateServiceRequest(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srm, err := decode[models.ServiceRequestModel](r)
 		if err != nil {
-			logger.ErrParsingJsonRequestBody(err)
+			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
@@ -248,19 +248,19 @@ func handleUpdateServiceRequest(logger *logger.ServerLog, client *mongo.Client) 
 		requestId := vars["requestId"]
 		sr, err := database.NewServiceRequest(client).GetById(requestId)
 		if err != nil {
-			logger.ErrResourceNotFound("service request", requestId)
+			logger.Error(fmt.Sprintf("%s %s not found", "service request", requestId))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		status := sr.Status
 		if status != models.NotStarted {
-			logger.ErrServiceRequestStatusUpdateFailed("update", requestId, "execution has been started")
+			logger.Error(fmt.Sprintf("failed to %s service request %s: %s", "update", requestId, "execution has been started"))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestAlreadyStarted, http.StatusBadRequest))
 			return
 		}
 		_, err = database.NewServiceRequest(client).UpdateById(requestId, &srm)
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
@@ -268,18 +268,18 @@ func handleUpdateServiceRequest(logger *logger.ServerLog, client *mongo.Client) 
 	})
 }
 
-func handleStartServiceRequest(logger *logger.ServerLog, client *mongo.Client) http.Handler {
+func handleStartServiceRequest(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		requestId := vars["requestId"]
 		srm, err := database.NewServiceRequest(client).GetById(requestId)
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		if srm.Status != models.NotStarted {
-			logger.ErrServiceRequestStatusUpdateFailed("start", requestId, "execution has already been started")
+			logger.Error(fmt.Sprintf("failed to %s service request %s: %s", "start", requestId, "execution has already been started"))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestAlreadyStarted, http.StatusBadRequest))
 			return
 		}
@@ -288,7 +288,7 @@ func handleStartServiceRequest(logger *logger.ServerLog, client *mongo.Client) h
 	})
 }
 
-func handleApproveServiceRequest(logger *logger.ServerLog, client *mongo.Client) http.Handler {
+func handleApproveServiceRequest(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	type requestBody struct {
 		StepName string `json:"step_name"`
 	}
@@ -297,39 +297,39 @@ func handleApproveServiceRequest(logger *logger.ServerLog, client *mongo.Client)
 		serviceRequestId := params["requestId"]
 		serviceRequest, err := database.NewServiceRequest(client).GetById(serviceRequestId)
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			logger.ErrResourceNotFound("service request", serviceRequestId)
+			logger.Error(fmt.Sprintf("%s %s not found", "service request", serviceRequestId))
 			encode(w, r, http.StatusNotFound, newHandlerError(ErrInvalidServiceRequestId, http.StatusNotFound))
 		}
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		body, err := decode[requestBody](r)
 		if err != nil {
-			logger.ErrParsingJsonRequestBody(err)
+			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
 		pipeline, err := database.NewPipeline(client).GetById(serviceRequest.PipelineId)
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			logger.ErrResourceNotFound("pipeline", serviceRequest.PipelineId)
+			logger.Error(fmt.Sprintf("%s %s not found", "pipeline", serviceRequest.PipelineId))
 			encode(w, r, http.StatusNotFound, newHandlerError(ErrInvalidPipelineId, http.StatusNotFound))
 		}
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		waitForApprovalStep := pipeline.GetPipelineStep(body.StepName)
 
 		if waitForApprovalStep == nil {
-			logger.ErrMissingPipelineStep(body.StepName)
+			logger.Error(fmt.Sprintf("missing pipeline step: %s", body.StepName))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 		if waitForApprovalStep.StepType != models.WaitForApprovalStep {
-			logger.ErrInvalidStepType(models.WaitForApprovalStep, waitForApprovalStep.StepType)
+			logger.Error(fmt.Sprintf("invalid step type: expected %s got %s", models.WaitForApprovalStep, waitForApprovalStep.StepType))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrWrongStepType, http.StatusBadRequest))
 			return
 		}
@@ -339,11 +339,11 @@ func handleApproveServiceRequest(logger *logger.ServerLog, client *mongo.Client)
 	})
 }
 
-func handleCreatePipeline(logger *logger.ServerLog, client *mongo.Client) http.Handler {
+func handleCreatePipeline(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pipeline, err := decode[models.PipelineModel](r)
 		if err != nil {
-			logger.ErrParsingJsonRequestBody(err)
+			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
@@ -352,7 +352,7 @@ func handleCreatePipeline(logger *logger.ServerLog, client *mongo.Client) http.H
 		pipeline.Version = 1
 		res, err := database.NewPipeline(client).Create(&pipeline)
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrPipelineCreateFail, http.StatusInternalServerError))
 			return
 		}
@@ -362,16 +362,16 @@ func handleCreatePipeline(logger *logger.ServerLog, client *mongo.Client) http.H
 	})
 }
 
-func handleGetPipeline(logger *logger.ServerLog, client *mongo.Client) http.Handler {
+func handleGetPipeline(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		pipelineId := vars["pipelineId"]
 		pipeline, err := database.NewPipeline(client).GetById(pipelineId)
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			logger.ErrResourceNotFound("pipeline", pipelineId)
+			logger.Error(fmt.Sprintf("%s %s not found", "pipeline", pipelineId))
 		}
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
@@ -379,11 +379,11 @@ func handleGetPipeline(logger *logger.ServerLog, client *mongo.Client) http.Hand
 	})
 }
 
-func handleGetAllPipelines(logger *logger.ServerLog, client *mongo.Client) http.Handler {
+func handleGetAllPipelines(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pipelines, err := database.NewPipeline(client).GetAll()
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
@@ -392,11 +392,11 @@ func handleGetAllPipelines(logger *logger.ServerLog, client *mongo.Client) http.
 }
 
 // NOTE: handler and data functions used in here are subjected to change depending on if frontend is able to validate that user has been previously registered in auth0
-func handleUserLogin(logger *logger.ServerLog, client *sql.DB) http.Handler {
+func handleUserLogin(logger logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		um, err := decode[models.UserModel](r)
 		if err != nil {
-			logger.ErrParsingJsonRequestBody(err)
+			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
@@ -404,73 +404,75 @@ func handleUserLogin(logger *logger.ServerLog, client *sql.DB) http.Handler {
 		if errors.Is(err, sql.ErrNoRows) {
 			user, err := database.NewUser(client).CreateUser(&um)
 			if err != nil {
-				logger.ErrHandlingRequest(err)
+				logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserCreateFail, http.StatusInternalServerError))
 				return
 			}
-			logger.ResourceCreated("user", user.UserId)
+
+			logger.Info(fmt.Sprintf("%s %s created", "user", user.UserId))
 			encode[any](w, r, http.StatusCreated, nil)
 			return
 		} else if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		logger.UserLoggedIn(um.UserId)
+
+		logger.Info(fmt.Sprintf("user %s logged in", um.UserId))
 		encode[any](w, r, http.StatusOK, nil)
 	})
 }
 
-func handleCreateOrganisation(logger *logger.ServerLog, client *sql.DB) http.Handler {
+func handleCreateOrganisation(logger logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		om, err := decode[models.OrganisationModel](r)
 		if err != nil {
-			logger.ErrParsingJsonRequestBody(err)
+			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
 		org, err := database.NewOrganization(client).Create(&om)
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationCreateFail, http.StatusInternalServerError))
 			return
 		}
-		logger.ResourceCreated("organisation", fmt.Sprint(org.OrgId))
+		logger.Info(fmt.Sprintf("%s %s created", "organisation", fmt.Sprint(org.OrgId)))
 		encode(w, r, http.StatusCreated, org)
 	})
 }
 
-func handleCreateMembership(logger *logger.ServerLog, client *sql.DB) http.Handler {
+func handleCreateMembership(logger logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mm, err := decode[models.MembershipModel](r)
 		if err != nil {
-			logger.ErrParsingJsonRequestBody(err)
+			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
 		membership, err := database.NewMembership(client).Create(&mm)
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipCreateFail, http.StatusInternalServerError))
 			return
 		}
-		logger.ResourceCreated("membership", fmt.Sprintf("%s-%d", mm.UserId, mm.OrgId))
+		logger.Info(fmt.Sprintf("%s %s created", "membership", fmt.Sprintf("%s-%d", mm.UserId, mm.OrgId)))
 		encode(w, r, http.StatusCreated, membership)
 	})
 }
 
-func handleGetServiceRequestsByOrganisation(logger *logger.ServerLog, client *mongo.Client) http.Handler {
+func handleGetServiceRequestsByOrganisation(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		orgId, err := strconv.Atoi(vars["organisationId"])
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
 			return
 		}
 		allsr, err := database.NewServiceRequest(client).GetServiceRequestsByOrgId(orgId)
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
@@ -478,25 +480,25 @@ func handleGetServiceRequestsByOrganisation(logger *logger.ServerLog, client *mo
 	})
 }
 
-func handleGetUserById(logger *logger.ServerLog, client *sql.DB) http.Handler {
+func handleGetUserById(logger logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		userId := vars["userId"]
 		user, err := database.NewUser(client).GetUserById(userId)
 		if errors.Is(err, sql.ErrNoRows) {
-			logger.ErrResourceNotFound("user", userId)
+			logger.Error(fmt.Sprintf("%s %s not found", "user", userId))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInvalidUserId, http.StatusInternalServerError))
 			return
 		}
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserRetrieve, http.StatusInternalServerError))
 			return
 		}
 
 		orgs, err := database.NewOrganization(client).GetAllOrgsByUserId(user.UserId)
 		if err != nil {
-			logger.ErrHandlingRequest(err)
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationRetrieve, http.StatusInternalServerError))
 			return
 		}

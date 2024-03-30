@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,18 +17,18 @@ import (
 	"github.com/joshtyf/flowforge/src/validation"
 )
 
-func validateCreatePipelineRequest(next http.Handler, logger *logger.ServerLog) http.Handler {
+func validateCreatePipelineRequest(next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pipeline, err := decode[models.PipelineModel](r)
 		if err != nil {
-			logger.ErrParsingJsonRequestBody(err)
+			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 			encode(w, r, http.StatusBadRequest, err)
 			return
 		}
 
 		err = validation.ValidatePipeline(&pipeline)
 		if err != nil {
-			logger.ErrValidatingPipeline(err)
+			logger.Error(fmt.Sprintf("failed to validate pipeline: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(err, http.StatusBadRequest))
 			return
 		}
@@ -58,17 +59,17 @@ func (c CustomClaims) HasPermission(expectedPermission string) bool {
 	return false
 }
 
-func isAuthenticated(next http.Handler, logger *logger.ServerLog) http.Handler {
+func isAuthenticated(next http.Handler, logger logger.ServerLogger) http.Handler {
 	// TODO: implement a proper flag pattern
 	env := os.Getenv("ENV")
 	if env == "dev" {
-		logger.SkippingAuth()
+		logger.Warn("skipping authentication in dev environment")
 		return next
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		issuerURL, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/")
 		if err != nil {
-			logger.ErrParsingIssuerURL(err)
+			logger.Error(fmt.Sprintf("failed to parse the issuer url: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
@@ -88,13 +89,14 @@ func isAuthenticated(next http.Handler, logger *logger.ServerLog) http.Handler {
 			validator.WithAllowedClockSkew(time.Minute),
 		)
 		if err != nil {
-			logger.ErrSettingUpJWTValidator(err)
+			logger.Error(fmt.Sprintf("failed to set up jwt validator: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 
 		errorHandler := func(w http.ResponseWriter, r *http.Request, err error) {
-			logger.ErrValidatingJWT(err)
+
+			logger.Error(fmt.Sprintf("failed to validate jwt: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnableToValidateJWT, http.StatusUnauthorized))
 		}
 
@@ -108,10 +110,10 @@ func isAuthenticated(next http.Handler, logger *logger.ServerLog) http.Handler {
 }
 
 // TODO: To be tested once frontend is ready
-func isAuthorisedAdmin(next http.Handler, logger *logger.ServerLog) http.Handler {
+func isAuthorisedAdmin(next http.Handler, logger logger.ServerLogger) http.Handler {
 	env := os.Getenv("ENV")
 	if env == "dev" {
-		logger.SkippingAdminCheck()
+		logger.Warn("skipping admin check in dev environment")
 		return next
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -119,7 +121,7 @@ func isAuthorisedAdmin(next http.Handler, logger *logger.ServerLog) http.Handler
 		claims := token.CustomClaims.(*CustomClaims)
 		requiredPermission := "approve:pipeline_step"
 		if !claims.HasPermission(requiredPermission) {
-			logger.ErrClaimsMissingPermission(requiredPermission)
+			logger.Error(fmt.Sprintf("unauthorized: missing permission %s", requiredPermission))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}

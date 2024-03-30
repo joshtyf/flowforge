@@ -56,7 +56,7 @@ func main() {
 		panic(err)
 	}
 	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
-		logger.ResourceCreated("pipeline", oid.String())
+		logger.Info("created pipeline with ID: " + oid.String())
 	} else {
 		panic("Inserted ID is not an ObjectID")
 	}
@@ -81,7 +81,7 @@ func main() {
 		panic(err)
 	}
 	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
-		logger.ResourceCreated("service request", oid.String())
+		logger.Info("created service request with ID: " + oid.String())
 	} else {
 		panic("Inserted ID is not an ObjectID")
 	}

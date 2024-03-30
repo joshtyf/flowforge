@@ -7,8 +7,6 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
-
-	"github.com/joshtyf/flowforge/src/database/models"
 )
 
 const (
@@ -92,104 +90,4 @@ func (l *ServerLog) Warn(msg string) {
 		return
 	}
 	l.logger.Printf(logWithoutFunc, "WARN", msg)
-}
-
-/* PUBLIC LOGGING METHODS */
-
-func (l *ServerLog) ErrClaimsMissingPermission(permission string) {
-	l.Error(fmt.Sprintf("unauthorized: missing permission %s", permission))
-}
-
-func (l *ServerLog) ErrEventLogStepMissingInPipeline(stepName string) {
-	l.Error(fmt.Sprintf("%s exists in event log but not in pipeline template", stepName))
-}
-
-func (l *ServerLog) ErrExecutingStep(stepName string, err error) {
-	l.Error(fmt.Sprintf("error executing %s: %s", stepName, err))
-}
-
-// Generic error message for handling events
-func (l *ServerLog) ErrHandlingEvent(err error) {
-	l.Error(fmt.Sprintf("error encountered while handling event: %s", err))
-}
-
-// Generic error message for handling API requests
-func (l *ServerLog) ErrHandlingRequest(err error) {
-	l.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
-}
-
-func (l *ServerLog) ErrInvalidStepType(expectedStepType, actualStepType models.PipelineStepType) {
-	l.Error(fmt.Sprintf("invalid step type: expected %s got %s", expectedStepType, actualStepType))
-}
-
-func (l *ServerLog) ErrMissingExecutorForStep(stepName string) {
-	l.Error(fmt.Sprintf("missing executor for step: %s", stepName))
-}
-
-func (l *ServerLog) ErrMissingPipelineStep(stepName string) {
-	l.Error(fmt.Sprintf("missing pipeline step: %s", stepName))
-}
-
-func (l *ServerLog) ErrParsingIssuerURL(err error) {
-	l.Error(fmt.Sprintf("failed to parse the issuer url: %s", err))
-}
-
-func (l *ServerLog) ErrParsingJsonRequestBody(err error) {
-	l.Error(fmt.Sprintf("failed to parse json request body: %s", err))
-}
-
-func (l *ServerLog) ErrResourceNotFound(resourceName, resourceId string) {
-	l.Error(fmt.Sprintf("%s %s not found", resourceName, resourceId))
-}
-
-func (l *ServerLog) ErrServiceRequestStatusUpdateFailed(action, serviceRequestId, reason string) {
-	l.Error(fmt.Sprintf("failed to %s service request %s: %s", action, serviceRequestId, reason))
-}
-
-func (l *ServerLog) ErrSettingUpJWTValidator(err error) {
-	l.Error(fmt.Sprintf("failed to set up jwt validator: %s", err))
-}
-
-func (l *ServerLog) ErrValidatingJWT(err error) {
-	l.Error(fmt.Sprintf("failed to validate jwt: %s", err))
-}
-
-func (l *ServerLog) ErrValidatingPipeline(err error) {
-	l.Error(fmt.Sprintf("failed to validate pipeline: %s", err))
-}
-
-func (l *ServerLog) ErrEventMissingData(eventName, data string) {
-	l.Error(fmt.Sprintf("event %s missing data: %s", eventName, data))
-}
-
-func (l *ServerLog) HandleEvent(eventName string) {
-	l.Info(fmt.Sprintf("handling event: %s", eventName))
-}
-
-func (l *ServerLog) ResourceCreated(resourceName, resourceId string) {
-	l.Info(fmt.Sprintf("%s %s created", resourceName, resourceId))
-}
-
-func (l *ServerLog) ResourceDeleted(resourceName, resourceId string) {
-	l.Info(fmt.Sprintf("%s %s deleted", resourceName, resourceId))
-}
-
-func (l *ServerLog) ServerHealthy() {
-	l.Info("server is healthy")
-}
-
-func (l *ServerLog) ShutdownServer(reason string) {
-	l.Info(fmt.Sprintf("shutting down server: %s", reason))
-}
-
-func (l *ServerLog) SkippingAdminCheck() {
-	l.Warn("skipping admin check in dev environment")
-}
-
-func (l *ServerLog) SkippingAuth() {
-	l.Warn("skipping authentication in dev environment")
-}
-
-func (l *ServerLog) UserLoggedIn(userId string) {
-	l.Info(fmt.Sprintf("user %s logged in", userId))
 }
