@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/joshtyf/flowforge/src/database/models"
 )
@@ -34,6 +35,13 @@ func (m *Membership) UpdateUserMembership(membership *models.MembershipModel) (s
 	if err != nil {
 		return nil, err
 	}
+	// NOTE: may not work for all db / db drivers
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return nil, errors.New("unable to retrieve rows affected")
+	} else if rows < 1 {
+		return nil, errors.New("membership does not exist")
+	}
 	return result, nil
 }
 
@@ -41,6 +49,13 @@ func (m *Membership) DeleteUserMembership(membership *models.MembershipModel) (s
 	result, err := m.c.Exec(DeleteMembershipStatement, true, membership.UserId, membership.OrgId)
 	if err != nil {
 		return nil, err
+	}
+	// NOTE: may not work for all db / db drivers
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return nil, errors.New("unable to retrieve rows affected")
+	} else if rows < 1 {
+		return nil, errors.New("membership does not exist")
 	}
 	return result, nil
 }

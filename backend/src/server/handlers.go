@@ -513,22 +513,10 @@ func handleUpdateMembership(client *sql.DB) http.Handler {
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
-		result, err := database.NewMembership(client).UpdateUserMembership(&mm)
+		_, err = database.NewMembership(client).UpdateUserMembership(&mm)
 		if err != nil {
 			logger.Error("[UpdateMembership] Unable to update membership", map[string]interface{}{"err": err})
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipUpdateFail, http.StatusInternalServerError))
-			return
-		}
-
-		// NOTE: may not work for all db / db drivers
-		rows, err := result.RowsAffected()
-		if err != nil {
-			logger.Error("[UpdateMembership] Unable to retrieve rows affected", nil)
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
-			return
-		} else if rows < 1 {
-			logger.Error("[UpdateMembership] Membership does not exist", nil)
-			encode(w, r, http.StatusBadRequest, newHandlerError(ErrMembershipInvalid, http.StatusBadRequest))
 			return
 		}
 
@@ -551,6 +539,7 @@ func handleDeleteMembership(client *sql.DB) http.Handler {
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipDeleteFail, http.StatusInternalServerError))
 			return
 		}
+
 		logger.Info("[DeleteMembership] Successfully delete membership", nil)
 		encode[any](w, r, http.StatusOK, nil)
 	})
