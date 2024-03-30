@@ -61,7 +61,7 @@ func (srm *ExecutionManager) Start() {
 }
 
 func (srm *ExecutionManager) handleNewServiceRequestEvent(e event.Event) error {
-	srm.logger.Info(fmt.Sprintf("handling event: %s", e.Name()))
+	srm.logger.Info("handling service request event")
 	serviceRequest := e.(*events.NewServiceRequestEvent).ServiceRequest()
 	if serviceRequest == nil {
 		srm.logger.Error(fmt.Sprintf("event %s missing data: %s", e.Name(), "service request"))
@@ -156,7 +156,7 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 }
 
 func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
-	srm.logger.Info(fmt.Sprintf("handling event: %s", e.Name()))
+	srm.logger.Info("handling step completed event")
 	completedStepEvent := e.(*events.StepCompletedEvent)
 	completedStep := completedStepEvent.CompletedStep()
 	if completedStep == nil {
