@@ -62,7 +62,6 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/pipeline", isAuthenticated(validateCreatePipelineRequest(handleCreatePipeline(s.mongoClient)))).Methods("POST").Headers("Content-Type", "application/json")
 
 	// User
-
 	r.Handle("/api/user", isAuthenticated(handleGetUserById(s.psqlClient))).Methods("GET")
 	// TODO: review the need for this route
 	// r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.psqlClient))).Methods("GET")
