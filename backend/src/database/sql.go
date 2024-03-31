@@ -13,8 +13,8 @@ var (
 	CreateUserStatement = `INSERT INTO public."user" (user_id, name, identity_provider) 
 								VALUES ($1, $2, $3) RETURNING created_on`
 
-	SelectUserByIdStatement = `SELECT user_id, name, identity_provider, created_on 
-								FROM public."user" 
+	SelectUserByIdStatement = `SELECT user_id, name, identity_provider, created_on, deleted 
+								FROM public."user"
 								WHERE user_id = $1
 								AND deleted = false`
 
@@ -50,7 +50,8 @@ var (
 	UpdateMembershipStatement = `UPDATE public."membership"
 									SET role = $1
 									WHERE user_id = $2
-									AND org_id = $3`
+									AND org_id = $3
+									AND deleted = false`
 
 	DeleteMembershipStatement = `UPDATE public."membership"
 									SET deleted = $1
