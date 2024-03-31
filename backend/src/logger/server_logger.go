@@ -60,8 +60,6 @@ func (l *ServerLog) getOriginalCaller() (string, error) {
 }
 
 // Helper method to tag log message with "[INFO]"
-//
-// This function should be called immediately after a public logging method so as to maintain the correct callstack depth.
 func (l *ServerLog) Info(msg string) {
 	if originalCaller, err := l.getOriginalCaller(); err == nil {
 		l.logger.Printf(logWithFuncFormat, "INFO", originalCaller, msg)
@@ -71,8 +69,6 @@ func (l *ServerLog) Info(msg string) {
 }
 
 // Helper method to tag log message with "[ERROR]"
-//
-// This function should be called immediately after a public logging method so as to maintain the correct callstack depth.
 func (l *ServerLog) Error(msg string) {
 	if originalCaller, err := l.getOriginalCaller(); err == nil {
 		l.logger.Printf(logWithFuncFormat, "ERROR", originalCaller, msg)
@@ -82,8 +78,6 @@ func (l *ServerLog) Error(msg string) {
 }
 
 // Helper method to tag log message with "[WARN]"
-//
-// This function should be called immediately after a public logging method so as to maintain the correct callstack depth.
 func (l *ServerLog) Warn(msg string) {
 	if originalCaller, err := l.getOriginalCaller(); err == nil {
 		l.logger.Printf(logWithFuncFormat, "WARN", originalCaller, msg)
