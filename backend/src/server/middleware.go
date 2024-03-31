@@ -133,22 +133,22 @@ func isAuthorisedAdmin(next http.Handler, logger logger.ServerLogger) http.Handl
 	})
 }
 
-func isOrgOwner(postgresClient *sql.DB, next http.Handler) http.Handler {
+func isOrgOwner(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		org_id := r.Context().Value(util.OrgContextKey{}).(int)
 		membership, err := getMembership(org_id, postgresClient, r)
 		if errors.Is(err, sql.ErrNoRows) {
-			logger.Error("[Authorization] User not authorized owner", nil)
+			logger.Error("user not authorized owner")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		} else if err != nil {
-			logger.Error("[Authorization] Error encountered while verifying ownership", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("unable to verify ownership: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 
 		if membership.Role != models.Owner {
-			logger.Error("[Authorization] User not authorized owner", nil)
+			logger.Error("user not authorized owner")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}
@@ -157,22 +157,22 @@ func isOrgOwner(postgresClient *sql.DB, next http.Handler) http.Handler {
 	})
 }
 
-func isOrgAdmin(postgresClient *sql.DB, next http.Handler) http.Handler {
+func isOrgAdmin(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		org_id := r.Context().Value(util.OrgContextKey{}).(int)
 		membership, err := getMembership(org_id, postgresClient, r)
 		if errors.Is(err, sql.ErrNoRows) {
-			logger.Error("[Authorization] User not authorized member", nil)
+			logger.Error("user not authorized admin")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		} else if err != nil {
-			logger.Error("[Authorization] Error encountered while verifying admin role", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("unable to verify admin role: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 
 		if membership.Role == models.Member {
-			logger.Error("[Authorization] User not authorized admin", nil)
+			logger.Error("user not authorized admin")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}
@@ -181,16 +181,16 @@ func isOrgAdmin(postgresClient *sql.DB, next http.Handler) http.Handler {
 	})
 }
 
-func isOrgMember(postgresClient *sql.DB, next http.Handler) http.Handler {
+func isOrgMember(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		org_id := r.Context().Value(util.OrgContextKey{}).(int)
 		_, err := getMembership(org_id, postgresClient, r)
 		if errors.Is(err, sql.ErrNoRows) {
-			logger.Error("[Authorization] User not authorized member", nil)
+			logger.Error("user not authorized member")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		} else if err != nil {
-			logger.Error("[Authorization] Error encountered while verifying membership", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("unable to verify membership: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
@@ -199,18 +199,18 @@ func isOrgMember(postgresClient *sql.DB, next http.Handler) http.Handler {
 	})
 }
 
-func getOrgIdFromQuery(next http.Handler) http.Handler {
+func getOrgIdFromQuery(next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var org_id int
 		var err error
 		if q := r.URL.Query().Get("org_id"); q == "" {
-			logger.Error("[Authorization] Org Id does not exist in query", nil)
+			logger.Error("org id does not exist in query")
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrUnauthorised, http.StatusBadRequest))
 			return
 		} else {
 			org_id, err = strconv.Atoi(q)
 			if err != nil {
-				logger.Error("[Authorization] Failed to parse Org Id as integer", nil)
+				logger.Error(fmt.Sprintf("failed to parse org id as integer: %s", err))
 				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
 				return
 			}
@@ -221,19 +221,19 @@ func getOrgIdFromQuery(next http.Handler) http.Handler {
 	})
 }
 
-func getOrgIdFromPath(next http.Handler) http.Handler {
+func getOrgIdFromPath(next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var org_id int
 		var err error
 		vars := mux.Vars(r)
 		if id := vars["organisationId"]; id == "" {
-			logger.Error("[Authorization] Org Id does not exist in path", nil)
+			logger.Error("org id does not exist in path")
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrUnauthorised, http.StatusBadRequest))
 			return
 		} else {
 			org_id, err = strconv.Atoi(id)
 			if err != nil {
-				logger.Error("[Authorization] Failed to parse Org Id as integer", nil)
+				logger.Error(fmt.Sprintf("failed to parse org id as integer: %s", err))
 				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
 				return
 			}
@@ -244,21 +244,21 @@ func getOrgIdFromPath(next http.Handler) http.Handler {
 	})
 }
 
-func getOrgIdFromRequestBody(next http.Handler) http.Handler {
+func getOrgIdFromRequestBody(next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		type OrgId struct {
 			OrganisationId int `json:"org_id"`
 		}
 		org, err := decode[OrgId](r)
 		if err != nil {
-			logger.Error("[Authorization] Unable to parse request body into json", nil)
+			logger.Error("unable to parse request body into json")
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
 			return
 		}
 		org_id := org.OrganisationId
 
 		if org_id == 0 {
-			logger.Error("[Authorization] Org Id does not exist in request body", nil)
+			logger.Error("org id does not exist in request body")
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrUnauthorised, http.StatusBadRequest))
 			return
 		}
@@ -268,18 +268,18 @@ func getOrgIdFromRequestBody(next http.Handler) http.Handler {
 	})
 }
 
-func getOrgIdUsingSrId(mongoClient *mongo.Client, next http.Handler) http.Handler {
+func getOrgIdUsingSrId(mongoClient *mongo.Client, next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var org_id int
 		vars := mux.Vars(r)
 		if sr_id := vars["requestId"]; sr_id == "" {
-			logger.Error("[Authorization] Service Request Id does not exist in path", nil)
+			logger.Error("service request id does not exist in path")
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrUnauthorised, http.StatusBadRequest))
 			return
 		} else {
 			sr, err := database.NewServiceRequest(mongoClient).GetById(sr_id)
 			if err != nil {
-				logger.Error("[Authorization] Failed to retrieve service request by service request id", nil)
+				logger.Error(fmt.Sprintf("failed to retrieve service request by service request id: %s", err))
 				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
 				return
 			}
@@ -292,38 +292,38 @@ func getOrgIdUsingSrId(mongoClient *mongo.Client, next http.Handler) http.Handle
 	})
 }
 
-func validateMembershipChange(postgresClient *sql.DB, next http.Handler) http.Handler {
+func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		org_id := r.Context().Value(util.OrgContextKey{}).(int)
 		membership, err := getMembership(org_id, postgresClient, r)
 		if err != nil {
-			logger.Error("[Authorization] Error getting requestor membership", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("unable to get requestor membership: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
 			return
 		}
 
 		mm, err := decode[models.MembershipModel](r)
 		if err != nil {
-			logger.Error("[Authorization] Unable to parse json request body", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
 
 		if mm.Role == models.Owner && membership.Role == models.Admin {
-			logger.Error("[Authorization] User not authorized to grant/delete ownership", nil)
+			logger.Error("user not authorized to grant/delete ownership")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}
 
 		subjectMembership, err := database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(mm.UserId, mm.OrgId)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			logger.Error("[Authorization] Error encountered while verifying subject role", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("unable to verify subject role: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 
 		if subjectMembership != nil && subjectMembership.Role == models.Owner && membership.Role == models.Admin {
-			logger.Error("[Authorization] User not authorized to alter/delete ownership", nil)
+			logger.Error("user not authorized to alter/delete ownership")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}
