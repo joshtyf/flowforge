@@ -24,5 +24,9 @@ var (
 	ErrOrganisationRetrieve   = errors.New("failed to retrieve user organisations")
 	ErrOrganisationCreateFail = errors.New("failed to create organisation")
 	ErrInvalidOrganisationId  = errors.New("invalid organisation id")
-	ErrMembershipCreateFail   = errors.New("failed to create membership")
+
+	ErrMembershipCreateFail = errors.New("failed to create membership")
+	ErrMembershipUpdateFail = errors.New("failed to update membership")
+	ErrMembershipDeleteFail = errors.New("failed to delete membership")
+	ErrMembershipInvalid    = errors.New("invalid membership")
 )

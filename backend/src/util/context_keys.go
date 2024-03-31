@@ -9,3 +9,5 @@ const (
 	ServiceRequestKey
 	StepKey
 )
+
+type OrgContextKey struct{}

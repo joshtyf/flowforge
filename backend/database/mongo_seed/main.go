@@ -71,6 +71,7 @@ func main() {
 		PipelineId:      pipelineIdInHex,
 		PipelineVersion: 1,
 		Status:          models.Success,
+		OrganisationId:  1,
 		Remarks:         "This is a test service request.",
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),

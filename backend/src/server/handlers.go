@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
+	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/gookit/event"
 	"github.com/gorilla/mux"
 	"github.com/joshtyf/flowforge/src/database"
@@ -46,26 +48,33 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/healthcheck", handleHealthCheck(s.logger)).Methods("GET")
 
 	// Service Request
-	r.Handle("/api/service_request", isAuthenticated(handleGetAllServiceRequest(s.logger, s.mongoClient), s.logger)).Methods("GET")
-	// TODO: @Zheng-Zhi-Qiang this route conflicts with `/api/service_request/{requestId}`.
-	// r.Handle("/api/service_request/{organisationId}", isAuthenticated(handleGetServiceRequestsByOrganisation(mongoClient))).Methods("GET")
-	r.Handle("/api/service_request/{requestId}", isAuthenticated(handleGetServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger)).Methods("GET")
-	r.Handle("/api/service_request", isAuthenticated(handleCreateServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
-	r.Handle("/api/service_request/{requestId}", isAuthenticated(handleUpdateServiceRequest(s.logger, s.mongoClient), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
-	r.Handle("/api/service_request/{requestId}/cancel", isAuthenticated(handleCancelStartedServiceRequest(s.logger, s.mongoClient), s.logger)).Methods("GET")
-	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(handleStartServiceRequest(s.logger, s.mongoClient), s.logger)).Methods("GET")
-	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(isAuthorisedAdmin(handleApproveServiceRequest(s.logger, s.mongoClient), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromQuery(isOrgMember(s.psqlClient, handleGetServiceRequestsByOrganisation(s.logger, s.mongoClient))), s.logger)).Methods("GET")
+	r.Handle("/api/service_request/{requestId}", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetServiceRequest(s.logger, s.mongoClient, s.psqlClient))), s.logger)).Methods("GET")
+	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromRequestBody(isOrgMember(s.psqlClient, handleCreateServiceRequest(s.logger, s.mongoClient, s.psqlClient))), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/{requestId}", isAuthenticated(getOrgIdFromRequestBody(isOrgMember(s.psqlClient, handleUpdateServiceRequest(s.logger, s.mongoClient))), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/{requestId}/cancel", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleCancelStartedServiceRequest(s.logger, s.mongoClient))), s.logger)).Methods("PUT")
+	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleStartServiceRequest(s.logger, s.mongoClient))), s.logger)).Methods("PUT")
+	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(getOrgIdFromRequestBody(isOrgAdmin(s.psqlClient, handleApproveServiceRequest(s.logger, s.mongoClient))), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 
 	// Pipeline
-	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(handleGetAllPipelines(s.logger, s.mongoClient), s.logger), s.logger)).Methods("GET")
-	r.Handle("/api/pipeline/{pipelineId}", isAuthenticated(isAuthorisedAdmin(handleGetPipeline(s.logger, s.mongoClient), s.logger), s.logger)).Methods("GET")
-	r.Handle("/api/pipeline", isAuthenticated(isAuthorisedAdmin(validateCreatePipelineRequest(handleCreatePipeline(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	// TODO: @joshtyf need to integrate orgId in some way into these routes or the pipeline model, esp for the post method.
+	r.Handle("/api/pipeline", isAuthenticated(handleGetAllPipelines(s.logger, s.mongoClient), s.logger)).Methods("GET")
+	r.Handle("/api/pipeline/{pipelineId}", isAuthenticated(handleGetPipeline(s.logger, s.mongoClient), s.logger)).Methods("GET")
+	r.Handle("/api/pipeline", isAuthenticated(validateCreatePipelineRequest(handleCreatePipeline(s.logger, s.mongoClient), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 
 	// User
-	r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.logger, s.psqlClient), s.logger)).Methods("Get")
+	r.Handle("/api/user", isAuthenticated(handleGetUserById(s.logger, s.psqlClient), s.logger)).Methods("GET")
+	// TODO: review the need for this route
+	// r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.psqlClient))).Methods("GET")
 	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+
+	// Organisation
 	r.Handle("/api/organisation", isAuthenticated(handleCreateOrganisation(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
-	r.Handle("/api/membership", isAuthenticated(handleCreateMembership(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+
+	// Membership
+	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgAdmin(s.psqlClient, handleCreateMembership(s.logger, s.psqlClient)))), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgAdmin(s.psqlClient, handleUpdateMembership(s.logger, s.psqlClient)))), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
+	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgOwner(s.psqlClient, handleDeleteMembership(s.logger, s.psqlClient)))), s.logger)).Methods("DELETE").Headers("Content-Type", "application/json")
 }
 
 func handleHealthCheck(l logger.ServerLogger) http.Handler {
@@ -79,6 +88,7 @@ func handleHealthCheck(l logger.ServerLogger) http.Handler {
 	})
 }
 
+// TODO: review if is required
 func handleGetAllServiceRequest(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		allsr, err := database.NewServiceRequest(client).GetAll()
@@ -99,10 +109,15 @@ func handleGetServiceRequest(logger logger.ServerLogger, mongoClient *mongo.Clie
 		ApprovedBy   string           `json:"approved_by"`
 		NextStepName string           `json:"next_step_name"`
 	}
+	type ResponseBodyPipeline struct {
+		Name string       `json:"name"`
+		Form *models.Form `json:"form"`
+	}
 	type ResponseBody struct {
 		ServiceRequest *models.ServiceRequestModel `json:"service_request"`
 		Steps          map[string]ResponseBodyStep `json:"steps"`
 		FirstStepName  string                      `json:"first_step_name"`
+		Pipeline       *ResponseBodyPipeline       `json:"pipeline"`
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -145,6 +160,10 @@ func handleGetServiceRequest(logger logger.ServerLogger, mongoClient *mongo.Clie
 			ServiceRequest: sr,
 			Steps:          steps,
 			FirstStepName:  pipeline.FirstStepName,
+			Pipeline: &ResponseBodyPipeline{
+				Name: pipeline.PipelineName,
+				Form: &pipeline.Form,
+			},
 		}
 		encode(w, r, http.StatusOK, response)
 	})
@@ -402,7 +421,7 @@ func handleUserLogin(logger logger.ServerLogger, client *sql.DB) http.Handler {
 		}
 		_, err = database.NewUser(client).GetUserById(um.UserId)
 		if errors.Is(err, sql.ErrNoRows) {
-			user, err := database.NewUser(client).CreateUser(&um)
+			user, err := database.NewUser(client).Create(&um)
 			if err != nil {
 				logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserCreateFail, http.StatusInternalServerError))
@@ -463,14 +482,13 @@ func handleCreateMembership(logger logger.ServerLogger, client *sql.DB) http.Han
 
 func handleGetServiceRequestsByOrganisation(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		orgId, err := strconv.Atoi(vars["organisationId"])
+		orgId, err := strconv.Atoi(r.URL.Query().Get("org_id"))
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
 			return
 		}
-		allsr, err := database.NewServiceRequest(client).GetServiceRequestsByOrgId(orgId)
+		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestsForOrgId(orgId)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
@@ -482,8 +500,10 @@ func handleGetServiceRequestsByOrganisation(logger logger.ServerLogger, client *
 
 func handleGetUserById(logger logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		userId := vars["userId"]
+		// user_id := vars["userId"]
+		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		userId := token.RegisteredClaims.Subject
+
 		user, err := database.NewUser(client).GetUserById(userId)
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error(fmt.Sprintf("%s %s not found", "user", userId))
@@ -504,5 +524,42 @@ func handleGetUserById(logger logger.ServerLogger, client *sql.DB) http.Handler 
 		}
 		user.Organisations = orgs
 		encode(w, r, http.StatusCreated, user)
+	})
+}
+
+func handleUpdateMembership(logger logger.ServerLogger, client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mm, err := decode[models.MembershipModel](r)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to parse json request body: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		_, err = database.NewMembership(client).UpdateUserMembership(&mm)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to update membership: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipUpdateFail, http.StatusInternalServerError))
+			return
+		}
+
+		encode[any](w, r, http.StatusOK, nil)
+	})
+}
+
+func handleDeleteMembership(logger logger.ServerLogger, client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mm, err := decode[models.MembershipModel](r)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to parse json request body: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		_, err = database.NewMembership(client).DeleteUserMembership(&mm)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to delete membership: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipDeleteFail, http.StatusInternalServerError))
+			return
+		}
+		encode[any](w, r, http.StatusOK, nil)
 	})
 }
