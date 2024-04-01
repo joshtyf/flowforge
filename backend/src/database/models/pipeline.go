@@ -15,18 +15,50 @@ const (
 	CheckboxField FormFieldType = "CHECKBOX"
 )
 
-type FormField struct {
-	Name        string        `bson:"name" json:"name"`
-	Type        FormFieldType `bson:"type" json:"type"`
-	IsRequired  bool          `bson:"is_required" json:"is_required"`
-	Placeholder string        `bson:"placeholder" json:"placeholder"`
-	Description string        `bson:"description" json:"description"`
-	Values      []string      `bson:"values" json:"values"`
+type FormInput struct {
+	Title       string `bson:"title" json:"title"`
+	Description string `bson:"title" json:"description"`
+	Type        string `bson:"type" json:"type"`
+	Required    bool  `bson:"required,omitempty" json:"required,omitempty"`
+	MinLength   int    `bson:"minLength,omitempty" json:"minLength,omitempty"`
+	Placeholder string `bson:"placeholder,omitempty" json:"placeholder,omitempty"`
 }
 
-type Form struct {
-	Fields []FormField `bson:"fields" json:"fields"`
+
+type FormSelect struct {
+	Title       string `bson:"title" json:"title"`
+	Description string `bson:"description" json:"description"`
+	Type        string `bson:"type" json:"type"`
+	Required    bool  `bson:"required,omitempty" json:"required,omitempty"`
+	Options  []string `bson:"options" json:"options"`
+	Disabled []string `bson:"disabled,omitempty" json:"disabled,omitempty"`
+	Default    string `bson:"default,omitempty" json:"default,omitempty"`
+	Placeholder string `bson:"placeholder,omitempty" json:"placeholder,omitempty"`
 }
+
+type FormCheckboxes struct {
+	Title       string `bson:"title" json:"title"`
+	Description string `bson:"description" json:"description"`
+	Type        string `bson:"type" json:"type"`
+	Required bool 	`bson:"required" json:"required"`
+	Options  []string `bson:"options" json:"options"`
+	Disabled []string `bson:"disabled,omitempty" json:"disabled,omitempty"`
+}
+
+type Form map[string]interface{}
+
+// type FormField struct {
+// 	Name        string        `bson:"name" json:"name"`
+// 	Type        FormFieldType `bson:"type" json:"type"`
+// 	IsRequired  bool          `bson:"is_required" json:"is_required"`
+// 	Placeholder string        `bson:"placeholder" json:"placeholder"`
+// 	Description string        `bson:"description" json:"description"`
+// 	Values      []string      `bson:"values" json:"values"`
+// }
+
+// type Form struct {
+// 	Fields []FormField `bson:"fields" json:"fields"`
+// }
 
 type PipelineStepType string
 
@@ -63,7 +95,7 @@ type PipelineModel struct {
 	FirstStepName string              `bson:"first_step_name" json:"first_step_name"`
 	Steps         []PipelineStepModel `bson:"steps" json:"steps"`
 	CreatedOn     time.Time           `bson:"created_on" json:"created_on"`
-	Form          Form                `bson:"form" json:"form"`
+	Form          interface{}         `bson:"form" json:"form"`
 }
 
 func (p *PipelineModel) GetPipelineStep(name string) *PipelineStepModel {

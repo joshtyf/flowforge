@@ -47,8 +47,32 @@ func main() {
 				IsTerminalStep: true,
 			},
 		},
+		Form: map[string]interface{}{
+			"input": models.FormInput{
+				Title:       "Input",
+				Description: "Input Description with minimum length 1",
+				Type:        "input",
+				Required:    true,
+				MinLength:   1,
+				Placeholder: "Input placeholder...",
+			},
+			"select": models.FormSelect{
+				Title:       "Select Option",
+				Description: "Dropdown selection with default value as Item 1",
+				Type:        "select",
+				Required:    true,
+				Options:     []string{"Item 1", "Item 2", "Item 3"},
+				Placeholder: "Select placeholder...",
+			},
+			"checkbox": models.FormCheckboxes{
+				Title: "Checkboxes",
+				Description: "You can select more than 1 item",
+				Type: "checkboxes",
+				Required:    false,
+				Options: []string{"Item 1", "Item 2", "Item 3"},
+			},
+		},
 	}
-
 	res, err := database.NewPipeline(c).Create(&pipeline)
 	if err != nil {
 		panic(err)
