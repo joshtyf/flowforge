@@ -1,4 +1,5 @@
 import { toast } from "@/components/ui/use-toast"
+import useOrganisationId from "@/hooks/use-organisation-id"
 import usePipeline from "@/hooks/use-pipeline"
 import { createServiceRequest, getPipeline } from "@/lib/service"
 import {
@@ -48,13 +49,21 @@ const useServiceRequestForm = ({
     pipelineId,
   })
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
-
+  const { organisationId } = useOrganisationId()
   const handleCreateServiceRequest = (
     data: IChangeEvent<object, RJSFSchema, object>
   ) => {
     const { formData } = data
     setIsSubmittingRequest(true)
-    createServiceRequest(pipelineId, formData, service?.version)
+    if (!formData) {
+      toast({
+        title: "No Form Data Error",
+        description: "Form data cannot be found.",
+        variant: "destructive",
+      })
+      return
+    }
+    createServiceRequest(organisationId, pipelineId, formData, service?.version)
       .then((data) => {
         toast({
           title: "Request Submission Successful",

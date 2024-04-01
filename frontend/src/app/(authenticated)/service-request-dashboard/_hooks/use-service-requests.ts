@@ -1,4 +1,5 @@
 import { toast } from "@/components/ui/use-toast"
+import useOrganisationId from "@/hooks/use-organisation-id"
 import { getAllServiceRequest } from "@/lib/service"
 import {
   ServiceRequest,
@@ -219,11 +220,12 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
 ]
 
 const useServiceRequests = () => {
+  const { organisationId } = useOrganisationId()
   // TODO: Add user id to get all service requests API call once ready
   const { isLoading, data: serviceRequests } = useQuery({
     queryKey: ["user_service_requests"],
     queryFn: () =>
-      getAllServiceRequest().catch((err) => {
+      getAllServiceRequest(organisationId).catch((err) => {
         console.log(err)
         toast({
           title: "Fetching Service Requests Error",
