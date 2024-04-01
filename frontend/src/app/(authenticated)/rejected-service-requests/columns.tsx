@@ -6,6 +6,7 @@ import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
 import { ExternalLink } from "lucide-react"
 import Link from "next/link"
+import RejectedServiceRequestActions from "./_components/rejected-service-request-actions"
 
 export const rejectedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
   {
@@ -52,6 +53,14 @@ export const rejectedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
       const dateIsoString: string = row.getValue("last_updated")
       const dateObject = new Date(dateIsoString)
       return formatTimeDifference(dateObject)
+    },
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    cell: ({ row }) => {
+      const serviceRequest: ServiceRequest = row.original
+      return <RejectedServiceRequestActions serviceRequest={serviceRequest} />
     },
   },
 ]
