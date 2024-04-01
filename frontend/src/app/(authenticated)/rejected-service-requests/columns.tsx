@@ -26,7 +26,7 @@ export const rejectedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
           href={`/service-catalog/${serviceRequest.pipeline_id}`}
           className="hover:underline hover:text-blue-500 flex space-x-2"
         >
-          <p>{serviceRequest.form_data.name}</p>
+          <p>{serviceRequest.pipeline_name}</p>
           <ExternalLink className="w-5 h-5" />
         </Link>
       )

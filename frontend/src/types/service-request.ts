@@ -1,13 +1,7 @@
 import { Pipeline } from "./pipeline"
 import { JsonFormComponents } from "./json-form-components"
 
-type ServiceRequestForm = {
-  user_id: string
-  user_name: string
-  name: string
-  description: string
-  form?: JsonFormComponents
-}
+type ServiceRequestForm = object
 
 enum ServiceRequestStatus {
   NOT_STARTED = "Not Started",
@@ -32,18 +26,16 @@ type ServiceRequestStep = {
 type ServiceRequest = {
   id: string
   pipeline_id: string
-  // TODO: Make field mandatory once pipeline name/description is in service request
-  pipeline_name?: string
+  pipeline_name: string
   pipeline_description?: string
   pipeline_version: string
-  // TODO: Make field mandatory once pipeline form is in service request
-  form?: JsonFormComponents
   status: ServiceRequestStatus
   created_on: string
   // TODO: Make field mandatory once accounts are tag to service request
   created_by?: string
   last_updated: string
   remarks: string
+  form: JsonFormComponents
   form_data: ServiceRequestForm
   steps?: ServiceRequestStep[]
   currentStep?: ServiceRequestStep

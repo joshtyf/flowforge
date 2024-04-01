@@ -1,11 +1,9 @@
 import useServiceRequest from "@/hooks/use-service-request"
-import { getServiceRequest } from "@/lib/service"
 import {
   convertServiceRequestFormToRJSFSchema,
   generateUiSchema,
 } from "@/lib/utils"
-import { ServiceRequest } from "@/types/service-request"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 
 interface UseServiceRequestInfoOptions {
   serviceRequestId: string
