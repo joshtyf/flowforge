@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
+	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/gookit/event"
 	"github.com/gorilla/mux"
 	"github.com/joshtyf/flowforge/src/database"
@@ -60,7 +62,9 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/pipeline", isAuthenticated(validateCreatePipelineRequest(handleCreatePipeline(s.mongoClient)))).Methods("POST").Headers("Content-Type", "application/json")
 
 	// User
-	r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.psqlClient))).Methods("Get")
+	r.Handle("/api/user", isAuthenticated(handleGetUserById(s.psqlClient))).Methods("GET")
+	// TODO: review the need for this route
+	// r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.psqlClient))).Methods("GET")
 	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.psqlClient))).Methods("POST").Headers("Content-Type", "application/json")
 
 	// Organisation
@@ -492,8 +496,11 @@ func handleGetAllServiceRequestsForOrganisation(client *mongo.Client) http.Handl
 
 func handleGetUserById(client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		user_id := vars["userId"]
+		// vars := mux.Vars(r)
+		// user_id := vars["userId"]
+		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		user_id := token.RegisteredClaims.Subject
+
 		user, err := database.NewUser(client).GetUserById(user_id)
 		if err != nil {
 			logger.Error("[GetUserById] Unable to retrieve user", map[string]interface{}{"err": err})
