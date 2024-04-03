@@ -55,7 +55,7 @@ const UserActionsDropdown = ({ username }: UserActionsDropdownProps) => {
 }
 
 interface NavbarProps {
-  toggleSidebar: () => void
+  toggleSidebar?: () => void
   username: string
 }
 
@@ -63,9 +63,12 @@ export default function Navbar({ toggleSidebar, username }: NavbarProps) {
   return (
     <div className="flex-col  md:flex">
       <div className="flex h-16 border-b items-center px-4">
-        <Button variant="ghost" size="icon" onClick={toggleSidebar}>
-          <Menu />
-        </Button>
+        {/* TODO: how to re-use Navbar component but exclude the toggle btn? */}
+        {toggleSidebar && (
+          <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+            <Menu />
+          </Button>
+        )}
         <div className="ml-auto w-1/10">
           <UserActionsDropdown username={username} />
         </div>
