@@ -16,6 +16,7 @@ import (
 	"github.com/joshtyf/flowforge/src/database/models"
 	"github.com/joshtyf/flowforge/src/events"
 	"github.com/joshtyf/flowforge/src/logger"
+	"github.com/joshtyf/flowforge/src/util"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -55,6 +56,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/service_request/{requestId}/cancel", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleCancelStartedServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PUT")
 	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleStartServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PUT")
 	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(getOrgIdFromRequestBody(isOrgAdmin(s.psqlClient, handleApproveServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/{requestId}/logs/{stepName}", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetStepExecutionLogs(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
 
 	// Pipeline
 	// TODO: @joshtyf need to integrate orgId in some way into these routes or the pipeline model, esp for the post method.
@@ -561,5 +563,69 @@ func handleDeleteMembership(logger logger.ServerLogger, client *sql.DB) http.Han
 			return
 		}
 		encode[any](w, r, http.StatusOK, nil)
+	})
+}
+
+func handleGetStepExecutionLogs(l logger.ServerLogger, psqlClient *sql.DB) http.Handler {
+	type ResponseBody struct {
+		StepName   string   `json:"step_name"`
+		Logs       []string `json:"logs"`
+		EndOfLogs  bool     `json:"end_of_logs"`
+		NextOffset int      `json:"next_offset"`
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Initialise variables
+		vars := mux.Vars(r)
+		stepName := vars["stepName"]
+		serviceRequestId := vars["requestId"]
+		offset, err := extractQueryParam[int](r.URL.Query(), "offset", false, 0, integerConverter)
+		if err != nil {
+			l.Error(fmt.Sprintf("unable to extract offset from query params: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOffset, http.StatusBadRequest))
+			return
+		}
+		if offset < 0 {
+			l.Error(fmt.Sprintf("invalid offset: %d", offset))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOffset, http.StatusBadRequest))
+			return
+		}
+
+		// Fetch log file
+		f, err := logger.FindExecutorLogFile(serviceRequestId, stepName)
+		if err != nil {
+			l.Error(fmt.Sprintf("unable to get log file: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		defer f.Close()
+
+		// Scan logs from offset
+		logs, err := util.ScanFileFromOffset(f, offset)
+		if err != nil {
+			l.Error(fmt.Sprintf("unable to scan log file: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+
+		// Prepare response
+		stepEvent, err := database.NewServiceRequestEvent(psqlClient).GetLatestEvent(serviceRequestId, stepName)
+		if err != nil {
+			l.Error(fmt.Sprintf("unable to get latest event: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		endOfLogs := stepEvent.EventType != models.STEP_STARTED
+		response := ResponseBody{
+			StepName:  stepName,
+			Logs:      logs,
+			EndOfLogs: endOfLogs,
+		}
+		if endOfLogs {
+			response.NextOffset = -1
+		} else {
+			response.NextOffset = offset + len(logs)
+		}
+
+		encode(w, r, http.StatusOK, response)
 	})
 }

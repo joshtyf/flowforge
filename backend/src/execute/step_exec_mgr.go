@@ -94,8 +94,7 @@ func (srm *ExecutionManager) handleNewServiceRequestEvent(e event.Event) error {
 	}
 
 	// Create log directory
-	log_dir := fmt.Sprintf("%s/%s", logger.BaseLogDir, serviceRequest.Id.Hex())
-	err = os.MkdirAll(log_dir, 0755)
+	err = logger.CreateExecutorLogDir(serviceRequest.Id.Hex())
 	if err != nil {
 		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
 		return err
@@ -128,8 +127,9 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 	}
 
 	// Create a log file for the current step
+	// TODO: file is not persisted in Docker container
 	f, err := os.OpenFile(
-		fmt.Sprintf("%s/%s/%s.log", logger.BaseLogDir, serviceRequest.Id.Hex(), step.StepName),
+		logger.CreateExecutorLogFilePath(serviceRequest.Id.Hex(), step.StepName),
 		os.O_RDWR|os.O_CREATE|os.O_APPEND,
 		0644,
 	)

@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 )
 
 const (
-	BaseLogDir = "./executor_logs"
+	baseLogDir = "./executor_logs"
 
 	errGettingServiceReqFromCtxMsg = "error getting service request from context"
 	errGettingStepFromCtxMsg       = "error getting step from context"
@@ -15,6 +16,18 @@ const (
 	httpResponseStatusMsg          = "status code: %d"
 	waitingForApprovalMsg          = "waiting for approval"
 )
+
+func CreateExecutorLogDir(serviceRequestId string) error {
+	return os.MkdirAll(fmt.Sprintf("%s/%s", baseLogDir, serviceRequestId), 0755)
+}
+
+func CreateExecutorLogFilePath(serviceRequestId, stepName string) string {
+	return fmt.Sprintf("%s/%s/%s.log", baseLogDir, serviceRequestId, stepName)
+}
+
+func FindExecutorLogFile(serviceRequestId, stepName string) (*os.File, error) {
+	return os.Open(fmt.Sprintf("%s/%s/%s.log", baseLogDir, serviceRequestId, stepName))
+}
 
 type ExecutorLogger struct {
 	logger *log.Logger
