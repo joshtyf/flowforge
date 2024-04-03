@@ -2,9 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"errors"
-
-	"github.com/joshtyf/flowforge/src/logger"
 )
 
 var (
@@ -59,9 +56,11 @@ var (
 									AND org_id = $3`
 )
 
+// TODO: figure out how to log this
 func txnRollback(tx *sql.Tx) {
-	err := tx.Rollback()
-	if !errors.Is(err, sql.ErrTxDone) {
-		logger.Error("[Rollback] Error on rollback", map[string]interface{}{"err": err})
-	}
+	tx.Rollback()
+	// err := tx.Rollback()
+	// if !errors.Is(err, sql.ErrTxDone) {
+	// logger.Error("[Rollback] Error on rollback", map[string]interface{}{"err": err})
+	// }
 }

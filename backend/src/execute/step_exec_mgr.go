@@ -3,6 +3,7 @@ package execute
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -17,6 +18,7 @@ import (
 )
 
 type ExecutionManager struct {
+	logger      logger.ServerLogger
 	mongoClient *mongo.Client
 	psqlClient  *sql.DB
 	executors   map[models.PipelineStepType]*stepExecutor
@@ -30,17 +32,21 @@ func WithStepExecutor(step stepExecutor) ExecutionManagerConfig {
 	}
 }
 
-func NewStepExecutionManager(mongoClient *mongo.Client, psqlClient *sql.DB, configs ...ExecutionManagerConfig) (*ExecutionManager, error) {
+func NewStepExecutionManager(mongoClient *mongo.Client, psqlClient *sql.DB, logger logger.ServerLogger, configs ...ExecutionManagerConfig) (*ExecutionManager, error) {
 	if mongoClient == nil {
 		return nil, fmt.Errorf("mongo client is nil")
 	}
 	if psqlClient == nil {
 		return nil, fmt.Errorf("psql client is nil")
 	}
+	if logger == nil {
+		return nil, fmt.Errorf("logger is nil")
+	}
 	srm := &ExecutionManager{
 		executors:   map[models.PipelineStepType]*stepExecutor{},
 		mongoClient: mongoClient,
 		psqlClient:  psqlClient,
+		logger:      logger,
 	}
 	for _, c := range configs {
 		c(srm)
@@ -55,42 +61,42 @@ func (srm *ExecutionManager) Start() {
 }
 
 func (srm *ExecutionManager) handleNewServiceRequestEvent(e event.Event) error {
-	logger.Info("[ServiceRequestManager] Handling new service request event", nil)
+	srm.logger.Info("handling service request event")
 	serviceRequest := e.(*events.NewServiceRequestEvent).ServiceRequest()
 	if serviceRequest == nil {
-		logger.Error("[ServiceRequestManager] Service request is nil", nil)
+		srm.logger.Error(fmt.Sprintf("event %s missing data: %s", e.Name(), "service request"))
 		return fmt.Errorf("service request is nil")
 	}
 	// Fetch the pipeline so that we know what steps to execute
 	pipeline, err := database.NewPipeline(srm.mongoClient).GetById(serviceRequest.PipelineId)
 	if err != nil {
-		logger.Error("[ServiceRequestManager] Error getting pipeline", map[string]interface{}{"err": err})
+		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
 	}
 
 	// Get the first step and its executor
 	firstStep := pipeline.GetPipelineStep(pipeline.FirstStepName)
 	if firstStep == nil {
-		logger.Error("[ServiceRequestManager] No first step found", map[string]interface{}{"step": pipeline.FirstStepName})
+		srm.logger.Error(fmt.Sprintf("missing pipeline step: %s", pipeline.FirstStepName))
 		return fmt.Errorf("no first step found")
 	}
 	currExecutor := srm.executors[firstStep.StepType]
 	if currExecutor == nil {
 		// TODO: Handle error
-		logger.Error("[ServiceRequestManager] No executor found for first step", map[string]interface{}{"step": firstStep.StepName})
+		srm.logger.Error(fmt.Sprintf("missing executor for step: %s", firstStep.StepName))
 		return fmt.Errorf("no executor found for first step")
 	}
 
 	// Update the service request status to running
 	err = database.NewServiceRequest(srm.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Running)
 	if err != nil {
-		logger.Error("[ServiceRequestManager] Error updating service request status", map[string]interface{}{"err": err})
+		srm.logger.Error(fmt.Sprintf("failed to run service request %s: %s", serviceRequest.Id.Hex(), err))
 		return err
 	}
 
 	// Create log directory
 	err = logger.CreateExecutorLogDir(serviceRequest.Id.Hex())
 	if err != nil {
-		logger.Error("[ServiceRequestManager] Error creating log folder", map[string]interface{}{"err": err})
+		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
 		return err
 	}
 
@@ -116,7 +122,7 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 		StepName:         step.StepName,
 	})
 	if err != nil {
-		logger.Error("[ServiceRequestManager] Error creating service request event", map[string]interface{}{"err": err})
+		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
 		return err
 	}
 
@@ -128,12 +134,12 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 		0644,
 	)
 	if err != nil {
-		logger.Error("[ServiceRequestManager] Error opening log file", map[string]interface{}{"err": err})
+		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
 		return err
 	}
 	defer func() {
 		if err := f.Close(); err != nil {
-			logger.Error("[ServiceRequestManager] Error closing log file", map[string]interface{}{"err": err})
+			srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
 		}
 	}()
 	executor_logger := logger.NewExecutorLogger(io.MultiWriter(os.Stdout, f), step.StepName)
@@ -141,7 +147,7 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 	// Execute the current step
 	_, err = (*executor).execute(executeCtx, executor_logger)
 	if err != nil {
-		logger.Error("[ServiceRequestManager] Error executing step", map[string]interface{}{"step": (*executor).getStepType(), "err": err})
+		srm.logger.Error(fmt.Sprintf("error encountered while executing step %s: %s", step.StepName, err))
 		// TODO: Handle error
 		return err
 	}
@@ -150,16 +156,16 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 }
 
 func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
-	logger.Info("[ServiceRequestManager] Handling step completed event", nil)
+	srm.logger.Info("handling step completed event")
 	completedStepEvent := e.(*events.StepCompletedEvent)
 	completedStep := completedStepEvent.CompletedStep()
 	if completedStep == nil {
-		logger.Error("[ServiceRequestManager] Completed step is nil", nil)
+		srm.logger.Error(fmt.Sprintf("event %s missing data: %s", e.Name(), "completed step"))
 		return fmt.Errorf("completed step is nil")
 	}
 	serviceRequest := completedStepEvent.ServiceRequest()
 	if serviceRequest == nil {
-		logger.Error("[ServiceRequestManager] Service request is nil", nil)
+		srm.logger.Error(fmt.Sprintf("event %s missing data: %s", e.Name(), "service request"))
 		return fmt.Errorf("service request is nil")
 	}
 
@@ -172,7 +178,7 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 	})
 	if err != nil {
 		// TODO: not sure if we should return here. We need to handle the error better
-		logger.Error("[ServiceRequestManager] Error creating service request event", map[string]interface{}{"err": err})
+		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
 		return err
 	}
 
@@ -181,26 +187,30 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 		if err != nil {
 			// TODO: Handle error
 			// Need to ensure idempotency or figure out a rollback solution
-			logger.Error("[ServiceRequestManager] Error updating service request status", map[string]interface{}{"err": err})
+			srm.logger.Error(fmt.Sprintf("failed to mark service request %s successful: %s", serviceRequest.Id.Hex(), err))
 		}
 		return nil
 	}
 	pipeline, err := database.NewPipeline(srm.mongoClient).GetById(serviceRequest.PipelineId)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		srm.logger.Error(fmt.Sprintf("pipeline not found: %s", serviceRequest.PipelineId))
+		return err
+	}
 	if err != nil {
-		logger.Error("[ServiceRequestManager] Error getting pipeline", map[string]interface{}{"err": err})
+		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
 		return err
 	}
 
 	// Set the current executor to the next executor
 	nextStep := pipeline.GetPipelineStep(completedStep.NextStepName)
 	if nextStep == nil {
-		logger.Error("[ServiceRequestManager] No next step found", map[string]interface{}{"step": completedStep.NextStepName})
+		srm.logger.Error(fmt.Sprintf("missing pipeline step: %s", completedStep.NextStepName))
 		return fmt.Errorf("no next step found")
 	}
 	nextExecutor := srm.executors[nextStep.StepType]
 	if nextExecutor == nil {
 		// TODO: Handle error
-		logger.Error("[ServiceRequestManager] No executor found for next step", map[string]interface{}{"step": nextStep.StepName})
+		srm.logger.Error(fmt.Sprintf("missing executor for step: %s", nextStep.StepName))
 		return fmt.Errorf("no executor found for next step")
 	}
 

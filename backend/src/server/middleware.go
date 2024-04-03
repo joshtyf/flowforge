@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -22,18 +23,18 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func validateCreatePipelineRequest(next http.Handler) http.Handler {
+func validateCreatePipelineRequest(next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pipeline, err := decode[models.PipelineModel](r)
 		if err != nil {
-			logger.Error("[ValidateCreatePipelineRequest] Error decoding pipeline from request body", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 			encode(w, r, http.StatusBadRequest, err)
 			return
 		}
 
 		err = validation.ValidatePipeline(&pipeline)
 		if err != nil {
-			logger.Error("[ValidateCreatePipelineRequest] Error validating pipeline", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("failed to validate pipeline: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(err, http.StatusBadRequest))
 			return
 		}
@@ -63,17 +64,17 @@ func (c CustomClaims) HasPermission(expectedPermission string) bool {
 	return false
 }
 
-func isAuthenticated(next http.Handler) http.Handler {
+func isAuthenticated(next http.Handler, logger logger.ServerLogger) http.Handler {
 	// TODO: implement a proper flag pattern
 	env := os.Getenv("ENV")
 	if env == "dev" {
-		logger.Info("[Authentication] Skipping authentication in dev environment", nil)
+		logger.Warn("skipping authentication in dev environment")
 		return next
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		issuerURL, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/")
 		if err != nil {
-			logger.Error("[Authentication] Failed to parse the issuer url", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("failed to parse the issuer url: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
@@ -93,13 +94,13 @@ func isAuthenticated(next http.Handler) http.Handler {
 			validator.WithAllowedClockSkew(time.Minute),
 		)
 		if err != nil {
-			logger.Error("[Authentication] Failed to set up jwt validator", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("failed to set up jwt validator: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 
 		errorHandler := func(w http.ResponseWriter, r *http.Request, err error) {
-			logger.Error("[Authentication] Encountered error while validating JWT", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("failed to validate jwt: %s", err))
 			encode(w, r, http.StatusUnauthorized, newHandlerError(ErrUnableToValidateJWT, http.StatusUnauthorized))
 		}
 
@@ -113,17 +114,18 @@ func isAuthenticated(next http.Handler) http.Handler {
 }
 
 // TODO: To be tested once frontend is ready
-func isAuthorisedAdmin(next http.Handler) http.Handler {
+func isAuthorisedAdmin(next http.Handler, logger logger.ServerLogger) http.Handler {
 	env := os.Getenv("ENV")
 	if env == "dev" {
-		logger.Info("[Authorization] Skipping admin check in dev environment", nil)
+		logger.Warn("skipping admin check in dev environment")
 		return next
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 		claims := token.CustomClaims.(*CustomClaims)
-		if !claims.HasPermission("approve:pipeline_step") {
-			logger.Error("[Authorization] User not authorized admin", nil)
+		requiredPermission := "approve:pipeline_step"
+		if !claims.HasPermission(requiredPermission) {
+			logger.Error(fmt.Sprintf("unauthorized: missing permission %s", requiredPermission))
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}
@@ -131,22 +133,22 @@ func isAuthorisedAdmin(next http.Handler) http.Handler {
 	})
 }
 
-func isOrgOwner(postgresClient *sql.DB, next http.Handler) http.Handler {
+func isOrgOwner(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		org_id := r.Context().Value(util.OrgContextKey{}).(int)
 		membership, err := getMembership(org_id, postgresClient, r)
 		if errors.Is(err, sql.ErrNoRows) {
-			logger.Error("[Authorization] User not authorized owner", nil)
+			logger.Error("user not authorized owner")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		} else if err != nil {
-			logger.Error("[Authorization] Error encountered while verifying ownership", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("unable to verify ownership: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 
 		if membership.Role != models.Owner {
-			logger.Error("[Authorization] User not authorized owner", nil)
+			logger.Error("user not authorized owner")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}
@@ -155,22 +157,22 @@ func isOrgOwner(postgresClient *sql.DB, next http.Handler) http.Handler {
 	})
 }
 
-func isOrgAdmin(postgresClient *sql.DB, next http.Handler) http.Handler {
+func isOrgAdmin(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		org_id := r.Context().Value(util.OrgContextKey{}).(int)
 		membership, err := getMembership(org_id, postgresClient, r)
 		if errors.Is(err, sql.ErrNoRows) {
-			logger.Error("[Authorization] User not authorized member", nil)
+			logger.Error("user not authorized admin")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		} else if err != nil {
-			logger.Error("[Authorization] Error encountered while verifying admin role", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("unable to verify admin role: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 
 		if membership.Role == models.Member {
-			logger.Error("[Authorization] User not authorized admin", nil)
+			logger.Error("user not authorized admin")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}
@@ -179,16 +181,16 @@ func isOrgAdmin(postgresClient *sql.DB, next http.Handler) http.Handler {
 	})
 }
 
-func isOrgMember(postgresClient *sql.DB, next http.Handler) http.Handler {
+func isOrgMember(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		org_id := r.Context().Value(util.OrgContextKey{}).(int)
 		_, err := getMembership(org_id, postgresClient, r)
 		if errors.Is(err, sql.ErrNoRows) {
-			logger.Error("[Authorization] User not authorized member", nil)
+			logger.Error("user not authorized member")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		} else if err != nil {
-			logger.Error("[Authorization] Error encountered while verifying membership", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("unable to verify membership: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
@@ -197,18 +199,18 @@ func isOrgMember(postgresClient *sql.DB, next http.Handler) http.Handler {
 	})
 }
 
-func getOrgIdFromQuery(next http.Handler) http.Handler {
+func getOrgIdFromQuery(next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var org_id int
 		var err error
 		if q := r.URL.Query().Get("org_id"); q == "" {
-			logger.Error("[Authorization] Org Id does not exist in query", nil)
+			logger.Error("org id does not exist in query")
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrUnauthorised, http.StatusBadRequest))
 			return
 		} else {
 			org_id, err = strconv.Atoi(q)
 			if err != nil {
-				logger.Error("[Authorization] Failed to parse Org Id as integer", nil)
+				logger.Error(fmt.Sprintf("failed to parse org id as integer: %s", err))
 				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
 				return
 			}
@@ -219,19 +221,19 @@ func getOrgIdFromQuery(next http.Handler) http.Handler {
 	})
 }
 
-func getOrgIdFromPath(next http.Handler) http.Handler {
+func getOrgIdFromPath(next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var org_id int
 		var err error
 		vars := mux.Vars(r)
 		if id := vars["organisationId"]; id == "" {
-			logger.Error("[Authorization] Org Id does not exist in path", nil)
+			logger.Error("org id does not exist in path")
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrUnauthorised, http.StatusBadRequest))
 			return
 		} else {
 			org_id, err = strconv.Atoi(id)
 			if err != nil {
-				logger.Error("[Authorization] Failed to parse Org Id as integer", nil)
+				logger.Error(fmt.Sprintf("failed to parse org id as integer: %s", err))
 				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
 				return
 			}
@@ -242,21 +244,21 @@ func getOrgIdFromPath(next http.Handler) http.Handler {
 	})
 }
 
-func getOrgIdFromRequestBody(next http.Handler) http.Handler {
+func getOrgIdFromRequestBody(next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		type OrgId struct {
 			OrganisationId int `json:"org_id"`
 		}
 		org, err := decode[OrgId](r)
 		if err != nil {
-			logger.Error("[Authorization] Unable to parse request body into json", nil)
+			logger.Error("unable to parse request body into json")
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
 			return
 		}
 		org_id := org.OrganisationId
 
 		if org_id == 0 {
-			logger.Error("[Authorization] Org Id does not exist in request body", nil)
+			logger.Error("org id does not exist in request body")
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrUnauthorised, http.StatusBadRequest))
 			return
 		}
@@ -266,18 +268,18 @@ func getOrgIdFromRequestBody(next http.Handler) http.Handler {
 	})
 }
 
-func getOrgIdUsingSrId(mongoClient *mongo.Client, next http.Handler) http.Handler {
+func getOrgIdUsingSrId(mongoClient *mongo.Client, next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var org_id int
 		vars := mux.Vars(r)
 		if sr_id := vars["requestId"]; sr_id == "" {
-			logger.Error("[Authorization] Service Request Id does not exist in path", nil)
+			logger.Error("service request id does not exist in path")
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrUnauthorised, http.StatusBadRequest))
 			return
 		} else {
 			sr, err := database.NewServiceRequest(mongoClient).GetById(sr_id)
 			if err != nil {
-				logger.Error("[Authorization] Failed to retrieve service request by service request id", nil)
+				logger.Error(fmt.Sprintf("failed to retrieve service request by service request id: %s", err))
 				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
 				return
 			}
@@ -290,38 +292,38 @@ func getOrgIdUsingSrId(mongoClient *mongo.Client, next http.Handler) http.Handle
 	})
 }
 
-func validateMembershipChange(postgresClient *sql.DB, next http.Handler) http.Handler {
+func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		org_id := r.Context().Value(util.OrgContextKey{}).(int)
 		membership, err := getMembership(org_id, postgresClient, r)
 		if err != nil {
-			logger.Error("[Authorization] Error getting requestor membership", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("unable to get requestor membership: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
 			return
 		}
 
 		mm, err := decode[models.MembershipModel](r)
 		if err != nil {
-			logger.Error("[Authorization] Unable to parse json request body", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
 
 		if mm.Role == models.Owner && membership.Role == models.Admin {
-			logger.Error("[Authorization] User not authorized to grant/delete ownership", nil)
+			logger.Error("user not authorized to grant/delete ownership")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}
 
 		subjectMembership, err := database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(mm.UserId, mm.OrgId)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			logger.Error("[Authorization] Error encountered while verifying subject role", map[string]interface{}{"err": err})
+			logger.Error(fmt.Sprintf("unable to verify subject role: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 
 		if subjectMembership != nil && subjectMembership.Role == models.Owner && membership.Role == models.Admin {
-			logger.Error("[Authorization] User not authorized to alter/delete ownership", nil)
+			logger.Error("user not authorized to alter/delete ownership")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}
