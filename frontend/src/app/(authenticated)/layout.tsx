@@ -50,6 +50,7 @@ export default function AuthenticatedLayout({
 
   return (
     <UserContext.Provider value={userProfile}>
+      {/* TODO: refactor into separate component */}
       {!hasCookie("org_id") ? (
         <div className="">
           <Navbar username={userProfile.nickname ?? ""} />
