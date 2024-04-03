@@ -43,27 +43,31 @@ export default function ServiceRequestView({
   viewOnly = false,
   formData,
 }: ServiceRequestViewProps) {
-  const backNavigationEnabled = router && returnRoute
   const isSubmitEnabled = handleSubmit && !viewOnly
   return (
     <>
       <div className="flex flex-col justify-start py-10">
         <HeaderAccessory />
         <div className="flex items-baseline space-x-2 pt-5">
-          {backNavigationEnabled && (
+          {router && (
             <Button
               size="icon"
               variant="ghost"
-              onClick={() => router.push(returnRoute)}
+              onClick={() => {
+                if (returnRoute) {
+                  router.push(returnRoute)
+                } else {
+                  router.back()
+                }
+              }}
             >
               <ChevronLeft />
             </Button>
           )}
+
           <p className="font-bold text-3xl">{pipelineName}</p>
         </div>
-        <p
-          className={`text-lg pt-3 ${backNavigationEnabled && "ml-12"} text-gray-500`}
-        >
+        <p className={`text-lg pt-3 ${router && "ml-12"} text-gray-500`}>
           {pipelineDescription}
         </p>
       </div>
