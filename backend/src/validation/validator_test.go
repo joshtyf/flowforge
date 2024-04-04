@@ -237,88 +237,99 @@ func TestValidateFormField(t *testing.T) {
 		expected        error
 	}{
 		{
-			"Valid text field",
+			"Valid input field",
 			models.FormField{
-				Name: "text", Type: models.TextField,
+				Name: "input", Title: "form", Type: models.InputField,
 			},
 			nil,
 		},
 		{
-			"Valid dropdown field",
+			"Valid select field",
 			models.FormField{
-				Name: "dropdown", Type: models.DropdownField, Values: []string{"test1", "test2"},
+				Name: "select", Title: "Select", Type: models.SelectField, Options: []string{"test1", "test2"},
 			},
 			nil,
 		},
 		{
 			"Valid checkbox field",
 			models.FormField{
-				Name: "checkbox", Type: models.CheckboxField, Values: []string{"test1", "test2"},
+				Name: "checkbox", Title: "Checkbox", Type: models.CheckboxField, Options: []string{"test1", "test2"},
 			},
 			nil,
 		},
-		{
-			"Valid option field",
-			models.FormField{
-				Name: "option", Type: models.OptionField, Values: []string{"test1", "test2"},
-			},
-			nil,
-		},
+
 		{
 			"Form field missing name",
 			models.FormField{
-				Type: models.TextField,
+				Title: "form",
+				Type:  models.InputField,
 			},
 			NewMissingRequiredFieldError("name"),
 		},
 		{
-			"Form field missing type",
+			"Form field missing title",
 			models.FormField{
 				Name: "test",
+				Type: models.InputField,
+			},
+			NewMissingRequiredFieldError("title"),
+		},
+		{
+			"Form field missing type",
+			models.FormField{
+				Name:  "test",
+				Title: "Test",
 			},
 			NewMissingRequiredFieldError("type"),
 		},
 		{
-			"Dropdown field nil values",
+			"Select field nil options",
 			models.FormField{
-				Name: "dropdown", Type: models.DropdownField,
+				Name: "select", Title: "Select", Type: models.SelectField,
 			},
-			NewMissingRequiredFieldError("values"),
+			NewMissingRequiredFieldError("options"),
 		},
 		{
-			"Checkbox field nil values",
+			"Checkbox field nil options",
 			models.FormField{
-				Name: "checkbox", Type: models.CheckboxField,
+				Name: "checkbox", Title: "Checkbox", Type: models.CheckboxField,
 			},
-			NewMissingRequiredFieldError("values"),
+			NewMissingRequiredFieldError("options"),
 		},
 		{
-			"Option field nil values",
+			"Select field 0 options",
 			models.FormField{
-				Name: "option", Type: models.OptionField,
+				Name: "select", Title: "Checkbox", Type: models.SelectField, Options: []string{},
 			},
-			NewMissingRequiredFieldError("values"),
+			NewMissingRequiredFieldError("options"),
 		},
 		{
-			"Dropdown field 0 values",
+			"Checkbox field 0 options",
 			models.FormField{
-				Name: "dropdown", Type: models.DropdownField, Values: []string{},
+				Name: "checkbox", Title: "Checkbox", Type: models.CheckboxField, Options: []string{},
 			},
-			NewMissingRequiredFieldError("values"),
+			NewMissingRequiredFieldError("options"),
 		},
 		{
-			"Checkbox field 0 values",
+			"Select field options contains empty string",
 			models.FormField{
-				Name: "checkbox", Type: models.CheckboxField, Values: []string{},
+				Name: "select", Title: "Checkbox", Type: models.SelectField, Options: []string{"Option 1", "", "Option 3"},
 			},
-			NewMissingRequiredFieldError("values"),
+			NewInvalidFieldError("options"),
 		},
 		{
-			"Option field 0 values",
+			"Checkbox field options contains empty string",
 			models.FormField{
-				Name: "Option", Type: models.OptionField, Values: []string{},
+				Name: "checkbox", Title: "Checkbox", Type: models.CheckboxField, Options: []string{"Option 1", "", "Option 3"},
 			},
-			NewMissingRequiredFieldError("values"),
+			NewInvalidFieldError("options"),
+		},
+		{
+			"Checkbox field has required as true",
+			models.FormField{
+				Name: "checkbox", Title: "Checkbox", Required: true, Type: models.CheckboxField, Options: []string{"Option 1", "Option 2"},
+			},
+			NewInvalidFieldError("required"),
 		},
 	}
 	for _, tc := range testcases {
@@ -340,10 +351,11 @@ func TestValidateFormField(t *testing.T) {
 		})
 	}
 }
-func TestTextFieldDataValidator(t *testing.T) {
+func TestInputFieldDataValidator(t *testing.T) {
 	formField := models.FormField{
-		Name: "test",
-		Type: models.TextField,
+		Name:  "test",
+		Title: "Test",
+		Type:  models.InputField,
 	}
 	testCases := []struct {
 		testDescription string
@@ -352,43 +364,43 @@ func TestTextFieldDataValidator(t *testing.T) {
 		expected        error
 	}{
 		{
-			"Valid text field",
+			"Valid input field",
 			formField,
 			"test",
 			nil,
 		},
 		{
-			"Empty text field",
+			"Empty input field",
 			formField,
 			"",
 			nil,
 		},
 		{
-			"Data of type int for text field",
+			"Data of type int for input field",
 			formField,
 			1,
 			NewInvalidFormDataTypeError("test", "string"),
 		},
 		{
-			"Data of type float for text field",
+			"Data of type float for input field",
 			formField,
 			1.0,
 			NewInvalidFormDataTypeError("test", "string"),
 		},
 		{
-			"Data of type bool for text field",
+			"Data of type bool for input field",
 			formField,
 			true,
 			NewInvalidFormDataTypeError("test", "string"),
 		},
 		{
-			"Data of type []string for text field",
+			"Data of type []string for input field",
 			formField,
 			[]string{"test"},
 			NewInvalidFormDataTypeError("test", "string"),
 		},
 		{
-			"Data of type map[string]string for text field",
+			"Data of type map[string]string for input field",
 			formField,
 			map[string]string{"test": "test"},
 			NewInvalidFormDataTypeError("test", "string"),
@@ -396,7 +408,7 @@ func TestTextFieldDataValidator(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.testDescription, func(t *testing.T) {
-			validator := FormFieldDataValidator(defaultTextFieldDataValidator)
+			validator := FormFieldDataValidator(defaultInputFieldDataValidator)
 			err := validator.validate(tc.field, tc.value)
 			if err == nil {
 				if tc.expected != nil {
@@ -415,11 +427,12 @@ func TestTextFieldDataValidator(t *testing.T) {
 	}
 }
 
-func TestDropdownFieldDataValidator(t *testing.T) {
+func TestSelectFieldDataValidator(t *testing.T) {
 	formField := models.FormField{
-		Name:   "test",
-		Type:   models.DropdownField,
-		Values: []string{"test1", "test2", "test3"},
+		Name:    "test",
+		Title:   "Test",
+		Type:    models.SelectField,
+		Options: []string{"test1", "test2", "test3"},
 	}
 	testcases := []struct {
 		testDescription string
@@ -428,55 +441,55 @@ func TestDropdownFieldDataValidator(t *testing.T) {
 		expected        error
 	}{
 		{
-			"Valid dropdown value (1)",
+			"Valid select value (1)",
 			formField,
 			"test1",
 			nil,
 		},
 		{
-			"Valid dropdown value (2)",
+			"Valid select value (2)",
 			formField,
 			"test2",
 			nil,
 		},
 		{
-			"Valid dropdown value (3)",
+			"Valid select value (3)",
 			formField,
 			"test3",
 			nil,
 		},
 		{
-			"Invalid dropdown value",
+			"Invalid select value",
 			formField,
 			"test4",
-			NewInvalidSelectedFormDataError(formField.Values, "test4"),
+			NewInvalidSelectedFormDataError(formField.Options, "test4"),
 		},
 		{
-			"Data of type int for dropdown field",
+			"Data of type int for select field",
 			formField,
 			1,
 			NewInvalidFormDataTypeError("test", "string"),
 		},
 		{
-			"Data of type float for dropdown field",
+			"Data of type float for select field",
 			formField,
 			1.0,
 			NewInvalidFormDataTypeError("test", "string"),
 		},
 		{
-			"Data of type bool for dropdown field",
+			"Data of type bool for select field",
 			formField,
 			true,
 			NewInvalidFormDataTypeError("test", "string"),
 		},
 		{
-			"Data of type []string for dropdown field",
+			"Data of type []string for select field",
 			formField,
 			[]string{"test"},
 			NewInvalidFormDataTypeError("test", "string"),
 		},
 		{
-			"Data of type map[string]string for dropdown field",
+			"Data of type map[string]string for select field",
 			formField,
 			map[string]string{"test": "test"},
 			NewInvalidFormDataTypeError("test", "string"),
@@ -485,96 +498,7 @@ func TestDropdownFieldDataValidator(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.testDescription, func(t *testing.T) {
-			validator := FormFieldDataValidator(defaultDropdownFieldDataValidator)
-			err := validator.validate(tc.field, tc.value)
-			if err == nil {
-				if tc.expected != nil {
-					t.Errorf("Expected error %v, got nil", tc.expected)
-				}
-				return
-			}
-			if tc.expected == nil {
-				t.Errorf("Expected no error, got %v", err)
-				return
-			}
-			if err.Error() != tc.expected.Error() {
-				t.Errorf("Expected %v, got %v", tc.expected, err)
-			}
-		})
-	}
-}
-
-func TestOptionFieldDataValidator(t *testing.T) {
-	formField := models.FormField{
-		Name:   "test",
-		Type:   models.OptionField,
-		Values: []string{"test1", "test2", "test3"},
-	}
-	testcases := []struct {
-		testDescription string
-		field           models.FormField
-		value           any
-		expected        error
-	}{
-		{
-			"Valid option value (1)",
-			formField,
-			"test1",
-			nil,
-		},
-		{
-			"Valid option value (2)",
-			formField,
-			"test2",
-			nil,
-		},
-		{
-			"Valid option value (3)",
-			formField,
-			"test3",
-			nil,
-		},
-		{
-			"Invalid option value",
-			formField,
-			"test4",
-			NewInvalidSelectedFormDataError(formField.Values, "test4"),
-		},
-		{
-			"Data of type int for option field",
-			formField,
-			1,
-			NewInvalidFormDataTypeError("test", "string"),
-		},
-		{
-			"Data of type float for option field",
-			formField,
-			1.0,
-			NewInvalidFormDataTypeError("test", "string"),
-		},
-		{
-			"Data of type bool for option field",
-			formField,
-			true,
-			NewInvalidFormDataTypeError("test", "string"),
-		},
-		{
-			"Data of type []string for option field",
-			formField,
-			[]string{"test"},
-			NewInvalidFormDataTypeError("test", "string"),
-		},
-		{
-			"Data of type map[string]string for option field",
-			formField,
-			map[string]string{"test": "test"},
-			NewInvalidFormDataTypeError("test", "string"),
-		},
-	}
-
-	for _, tc := range testcases {
-		t.Run(tc.testDescription, func(t *testing.T) {
-			validator := FormFieldDataValidator(defaultOptionFieldDataValidator)
+			validator := FormFieldDataValidator(defaultSelectFieldDataValidator)
 			err := validator.validate(tc.field, tc.value)
 			if err == nil {
 				if tc.expected != nil {
@@ -595,9 +519,10 @@ func TestOptionFieldDataValidator(t *testing.T) {
 
 func TestCheckboxFieldDataValidator(t *testing.T) {
 	formField := models.FormField{
-		Name:   "test",
-		Type:   models.CheckboxField,
-		Values: []string{"test1", "test2", "test3"},
+		Name:    "test",
+		Title:   "Test",
+		Type:    models.CheckboxField,
+		Options: []string{"test1", "test2", "test3"},
 	}
 	testcases := []struct {
 		testDescription string
@@ -612,7 +537,7 @@ func TestCheckboxFieldDataValidator(t *testing.T) {
 			nil,
 		},
 		{
-			"Valid multiple checkbox values",
+			"Valid multiple checkbox options",
 			formField,
 			[]string{"test1", "test2"},
 			nil,
@@ -621,13 +546,13 @@ func TestCheckboxFieldDataValidator(t *testing.T) {
 			"Invalid checkbox value",
 			formField,
 			[]string{"test4"},
-			NewInvalidSelectedFormDataError(formField.Values, "test4"),
+			NewInvalidSelectedFormDataError(formField.Options, "test4"),
 		},
 		{
-			"Invalid multiple checkbox values",
+			"Invalid multiple checkbox options",
 			formField,
 			[]string{"test1", "test4"},
-			NewInvalidSelectedFormDataError(formField.Values, "test4"),
+			NewInvalidSelectedFormDataError(formField.Options, "test4"),
 		},
 		{
 			"Data of type string for checkbox field",
@@ -694,8 +619,8 @@ func TestValidateFormData_RequiredFieldsValidation(t *testing.T) {
 			"Form with zero required fields. Form data has all fields",
 			models.Form{
 				Fields: []models.FormField{
-					{Name: "test", Type: models.TextField, IsRequired: false},
-					{Name: "test2", Type: models.TextField, IsRequired: false},
+					{Name: "test", Type: models.InputField, Required: false},
+					{Name: "test2", Type: models.InputField, Required: false},
 				},
 			},
 			models.FormData{
@@ -709,8 +634,8 @@ func TestValidateFormData_RequiredFieldsValidation(t *testing.T) {
 			"Form with zero required fields. Form data has no fields",
 			models.Form{
 				Fields: []models.FormField{
-					{Name: "test", Type: models.TextField, IsRequired: false},
-					{Name: "test2", Type: models.TextField, IsRequired: false},
+					{Name: "test", Type: models.InputField, Required: false},
+					{Name: "test2", Type: models.InputField, Required: false},
 				},
 			},
 			models.FormData{},
@@ -721,8 +646,8 @@ func TestValidateFormData_RequiredFieldsValidation(t *testing.T) {
 			"Form with zero required fields. Form data has some fields",
 			models.Form{
 				Fields: []models.FormField{
-					{Name: "test", Type: models.TextField, IsRequired: false},
-					{Name: "test2", Type: models.TextField, IsRequired: false},
+					{Name: "test", Type: models.InputField, Required: false},
+					{Name: "test2", Type: models.InputField, Required: false},
 				},
 			},
 			models.FormData{
@@ -735,8 +660,8 @@ func TestValidateFormData_RequiredFieldsValidation(t *testing.T) {
 			"Form with one required field. Form data has all fields",
 			models.Form{
 				Fields: []models.FormField{
-					{Name: "test", Type: models.TextField, IsRequired: true},
-					{Name: "test2", Type: models.TextField, IsRequired: false},
+					{Name: "test", Type: models.InputField, Required: true},
+					{Name: "test2", Type: models.InputField, Required: false},
 				},
 			},
 			models.FormData{
@@ -750,8 +675,8 @@ func TestValidateFormData_RequiredFieldsValidation(t *testing.T) {
 			"Form with one required field. Form data has no fields",
 			models.Form{
 				Fields: []models.FormField{
-					{Name: "test", Type: models.TextField, IsRequired: true},
-					{Name: "test2", Type: models.TextField, IsRequired: false},
+					{Name: "test", Type: models.InputField, Required: true},
+					{Name: "test2", Type: models.InputField, Required: false},
 				},
 			},
 			models.FormData{},
@@ -762,8 +687,8 @@ func TestValidateFormData_RequiredFieldsValidation(t *testing.T) {
 			"Form with one required field. Form data has required field",
 			models.Form{
 				Fields: []models.FormField{
-					{Name: "test", Type: models.TextField, IsRequired: true},
-					{Name: "test2", Type: models.TextField, IsRequired: false},
+					{Name: "test", Type: models.InputField, Required: true},
+					{Name: "test2", Type: models.InputField, Required: false},
 				},
 			},
 			models.FormData{
@@ -776,8 +701,8 @@ func TestValidateFormData_RequiredFieldsValidation(t *testing.T) {
 			"Form with one required field. Form data does not have field",
 			models.Form{
 				Fields: []models.FormField{
-					{Name: "test", Type: models.TextField, IsRequired: true},
-					{Name: "test2", Type: models.TextField, IsRequired: false},
+					{Name: "test", Type: models.InputField, Required: true},
+					{Name: "test2", Type: models.InputField, Required: false},
 				},
 			},
 			models.FormData{
@@ -790,8 +715,8 @@ func TestValidateFormData_RequiredFieldsValidation(t *testing.T) {
 			"Form with multiple required fields. Form data has all fields",
 			models.Form{
 				Fields: []models.FormField{
-					{Name: "test", Type: models.TextField, IsRequired: true},
-					{Name: "test2", Type: models.TextField, IsRequired: true},
+					{Name: "test", Type: models.InputField, Required: true},
+					{Name: "test2", Type: models.InputField, Required: true},
 				},
 			},
 			models.FormData{
@@ -805,8 +730,8 @@ func TestValidateFormData_RequiredFieldsValidation(t *testing.T) {
 			"Form with multiple required fields. Form data has no fields",
 			models.Form{
 				Fields: []models.FormField{
-					{Name: "test", Type: models.TextField, IsRequired: true},
-					{Name: "test2", Type: models.TextField, IsRequired: true},
+					{Name: "test", Type: models.InputField, Required: true},
+					{Name: "test2", Type: models.InputField, Required: true},
 				},
 			},
 			models.FormData{},
@@ -817,8 +742,8 @@ func TestValidateFormData_RequiredFieldsValidation(t *testing.T) {
 			"Form with multiple required fields. Form data has some fields",
 			models.Form{
 				Fields: []models.FormField{
-					{Name: "test", Type: models.TextField, IsRequired: true},
-					{Name: "test2", Type: models.TextField, IsRequired: true},
+					{Name: "test", Type: models.InputField, Required: true},
+					{Name: "test2", Type: models.InputField, Required: true},
 				},
 			},
 			models.FormData{
@@ -831,9 +756,9 @@ func TestValidateFormData_RequiredFieldsValidation(t *testing.T) {
 			"Form only has 3 fields. Form data has more",
 			models.Form{
 				Fields: []models.FormField{
-					{Name: "test", Type: models.TextField, IsRequired: true},
-					{Name: "test2", Type: models.TextField, IsRequired: true},
-					{Name: "test3", Type: models.TextField, IsRequired: true},
+					{Name: "test", Type: models.InputField, Required: true},
+					{Name: "test2", Type: models.InputField, Required: true},
+					{Name: "test3", Type: models.InputField, Required: true},
 				},
 			},
 			models.FormData{
@@ -888,11 +813,12 @@ func TestValidateFormData_ValidatorsCalledOnce(t *testing.T) {
 		formData                   models.FormData
 	}{
 		{
-			"Test text field validator called",
-			models.TextField,
+			"Test input field validator called",
+			models.InputField,
 			models.Form{
 				Fields: []models.FormField{
-					{Name: "test", Type: models.TextField},
+					{Name: "test", Title: "Test",
+						Type: models.InputField},
 				},
 			},
 			models.FormData{
@@ -904,7 +830,8 @@ func TestValidateFormData_ValidatorsCalledOnce(t *testing.T) {
 			models.CheckboxField,
 			models.Form{
 				Fields: []models.FormField{
-					{Name: "test", Type: models.CheckboxField, Values: []string{"test1"}},
+					{Name: "test", Title: "Test",
+						Type: models.CheckboxField, Options: []string{"test1"}},
 				},
 			},
 			models.FormData{
@@ -912,23 +839,12 @@ func TestValidateFormData_ValidatorsCalledOnce(t *testing.T) {
 			},
 		},
 		{
-			"Test dropdown field validator called",
-			models.DropdownField,
+			"Test select field validator called",
+			models.SelectField,
 			models.Form{
 				Fields: []models.FormField{
-					{Name: "test", Type: models.DropdownField, Values: []string{"test1"}},
-				},
-			},
-			models.FormData{
-				"test": "test1",
-			},
-		},
-		{
-			"Test option field validator called",
-			models.OptionField,
-			models.Form{
-				Fields: []models.FormField{
-					{Name: "test", Type: models.OptionField, Values: []string{"test1"}},
+					{Name: "test", Title: "Test",
+						Type: models.SelectField, Options: []string{"test1"}},
 				},
 			},
 			models.FormData{

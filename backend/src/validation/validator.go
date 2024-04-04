@@ -68,13 +68,27 @@ func ValidateFormField(f models.FormField) error {
 	if f.Name == "" {
 		return NewMissingRequiredFieldError("name")
 	}
+	if f.Title == "" {
+		return NewMissingRequiredFieldError("title")
+	}
 	if f.Type == "" {
 		return NewMissingRequiredFieldError("type")
 	}
-	if f.Type == models.DropdownField || f.Type == models.OptionField || f.Type == models.CheckboxField {
-		if f.Values == nil || len(f.Values) == 0 {
-			return NewMissingRequiredFieldError("values")
+	if f.Type == models.SelectField || f.Type == models.CheckboxField {
+		if f.Options == nil || len(f.Options) == 0 {
+			return NewMissingRequiredFieldError("options")
 		}
+		for _, option := range f.Options {
+			if option == "" {
+				return NewInvalidFieldError("options")
+			}
+		}
+	}
+	if f.Type == models.CheckboxField {
+		if f.Required {
+			return NewInvalidFieldError("required")
+		}
+
 	}
 	return nil
 }
@@ -85,8 +99,8 @@ func (f FormFieldDataValidator) validate(field models.FormField, data any) error
 	return f(field, data)
 }
 
-// Default text field validator
-func defaultTextFieldDataValidator(field models.FormField, data any) error {
+// Default input field validator
+func defaultInputFieldDataValidator(field models.FormField, data any) error {
 	if _, ok := data.(string); !ok {
 		return NewInvalidFormDataTypeError(field.Name, "string")
 	}
@@ -94,27 +108,14 @@ func defaultTextFieldDataValidator(field models.FormField, data any) error {
 	return nil
 }
 
-// Default dropdown field validator
-func defaultDropdownFieldDataValidator(field models.FormField, data any) error {
+// Default select field validator
+func defaultSelectFieldDataValidator(field models.FormField, data any) error {
 	dataStr, ok := data.(string)
 	if !ok {
 		return NewInvalidFormDataTypeError(field.Name, "string")
 	}
-	if !helper.StringInSlice(dataStr, field.Values) {
-		return NewInvalidSelectedFormDataError(field.Values, dataStr)
-	}
-
-	return nil
-}
-
-// Default option field validator
-func defaultOptionFieldDataValidator(field models.FormField, data any) error {
-	dataStr, ok := data.(string)
-	if !ok {
-		return NewInvalidFormDataTypeError(field.Name, "string")
-	}
-	if !helper.StringInSlice(dataStr, field.Values) {
-		return NewInvalidSelectedFormDataError(field.Values, dataStr)
+	if !helper.StringInSlice(dataStr, field.Options) {
+		return NewInvalidSelectedFormDataError(field.Options, dataStr)
 	}
 
 	return nil
@@ -127,8 +128,8 @@ func defaultCheckboxFieldDataValidator(field models.FormField, data any) error {
 		return NewInvalidFormDataTypeError(field.Name, "[]string")
 	}
 	for _, s := range dataStrings {
-		if !helper.StringInSlice(s, field.Values) {
-			return NewInvalidSelectedFormDataError(field.Values, s)
+		if !helper.StringInSlice(s, field.Options) {
+			return NewInvalidSelectedFormDataError(field.Options, s)
 		}
 	}
 	return nil
@@ -142,9 +143,8 @@ func NewFormDataValidator(customValidators *map[models.FormFieldType]FormFieldDa
 	validator := &FormDataValidator{
 		// Initialize with default field validators
 		fieldDataValidators: map[models.FormFieldType]FormFieldDataValidator{
-			models.TextField:     FormFieldDataValidator(defaultTextFieldDataValidator),
-			models.DropdownField: FormFieldDataValidator(defaultDropdownFieldDataValidator),
-			models.OptionField:   FormFieldDataValidator(defaultOptionFieldDataValidator),
+			models.InputField:    FormFieldDataValidator(defaultInputFieldDataValidator),
+			models.SelectField:   FormFieldDataValidator(defaultSelectFieldDataValidator),
 			models.CheckboxField: FormFieldDataValidator(defaultCheckboxFieldDataValidator),
 		},
 	}
@@ -160,7 +160,7 @@ func (v *FormDataValidator) Validate(formData *models.FormData, form *models.For
 	for _, field := range form.Fields {
 		fieldData, ok := (*formData)[field.Name]
 		if !ok {
-			if field.IsRequired {
+			if field.Required {
 				return NewMissingRequiredFieldError(field.Name)
 			} else {
 				continue
