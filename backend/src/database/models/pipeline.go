@@ -22,7 +22,7 @@ type FormField struct {
 	Required    bool          `bson:"required" json:"required"`
 	MinLength   int           `bson:"min_length" json:"min_length"`
 	Placeholder string        `bson:"placeholder" json:"placeholder"`
-	Options     []string      `bson:"option" json:"option"`
+	Options     []string      `bson:"options" json:"options"`
 	Default     string        `bson:"default" json:"default"`
 }
 
