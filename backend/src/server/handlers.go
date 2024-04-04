@@ -17,6 +17,7 @@ import (
 	"github.com/joshtyf/flowforge/src/events"
 	"github.com/joshtyf/flowforge/src/logger"
 	"github.com/joshtyf/flowforge/src/util"
+	"github.com/joshtyf/flowforge/src/validation"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -367,6 +368,20 @@ func handleCreatePipeline(logger logger.ServerLogger, client *mongo.Client) http
 			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
+		}
+		if pipeline.Form.Fields == nil {
+			logger.Error("missing form field")
+			encode(w, r, http.StatusUnprocessableEntity, newHandlerError(ErrJsonParseError, http.StatusUnprocessableEntity))
+			return
+		}
+
+		for _, element := range pipeline.Form.Fields {
+			err = validation.ValidateFormField(element)
+			if err != nil {
+				logger.Error(fmt.Sprintf("invalid form field: %s", err))
+				encode(w, r, http.StatusBadRequest, newHandlerError(err, http.StatusUnprocessableEntity))
+				return
+			}
 		}
 
 		pipeline.CreatedOn = time.Now()
