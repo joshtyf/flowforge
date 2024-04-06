@@ -19,7 +19,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const [render, setRender] = useState(false)
   useEffect(() => {
     if (!hasCookie("org_id")) {
-      router.push("/organizations")
+      router.push("/organization")
     } else {
       setRender(true)
     }
