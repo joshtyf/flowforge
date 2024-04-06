@@ -1,7 +1,9 @@
 "use client"
 
 import Navbar from "@/components/layouts/navbar"
-import { hasCookie } from "cookies-next"
+import { getUserProfile } from "@/lib/auth0"
+import { UserProfile } from "@/types/user-profile"
+import { getCookie, hasCookie } from "cookies-next"
 import { useRouter } from "next/navigation"
 import { ReactNode, useEffect, useState } from "react"
 
@@ -22,10 +24,22 @@ export default function AuthenticatedLayout({
     }
   }, [router])
 
+  const [userProfile, setUserProfile] = useState<UserProfile>()
+  useEffect(() => {
+    getUserProfile(getCookie("access_token") as string)
+      .then((userProfile) => setUserProfile(userProfile))
+      .catch((error) => {
+        console.log(error)
+      })
+  })
+
   return (
     render && (
       <>
-        <Navbar username={"joshua"} enableSidebarToggle={false} />
+        <Navbar
+          username={userProfile?.nickname ?? ""}
+          enableSidebarToggle={false}
+        />
         {children}
       </>
     )
