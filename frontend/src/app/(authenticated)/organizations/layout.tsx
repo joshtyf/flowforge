@@ -25,7 +25,7 @@ export default function AuthenticatedLayout({
   return (
     render && (
       <>
-        <Navbar username={"joshua"} />
+        <Navbar username={"joshua"} enableSidebarToggle={false} />
         {children}
       </>
     )
