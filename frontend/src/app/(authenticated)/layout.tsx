@@ -4,9 +4,10 @@ import { getCookie, hasCookie } from "cookies-next"
 import { useRouter } from "next/navigation"
 import { ReactNode, useEffect } from "react"
 
-type AuthenticatedLayoutProps = {
+interface AuthenticatedLayoutProps {
   children: ReactNode
 }
+
 export default function AuthenticatedLayout({
   children,
 }: AuthenticatedLayoutProps) {
