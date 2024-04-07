@@ -77,13 +77,13 @@ func (sr *ServiceRequest) UpdateStatus(id string, status models.ServiceRequestSt
 }
 
 type GetServiceRequestFilters struct {
-	Status []string
+	Statuses []string
 }
 
 func (sr *ServiceRequest) GetAllServiceRequestsForOrgId(orgId int, filters GetServiceRequestFilters) ([]*models.ServiceRequestModel, error) {
 	query := bson.M{"org_id": orgId}
-	if len(filters.Status) > 0 {
-		query["status"] = bson.M{"$in": filters.Status}
+	if len(filters.Statuses) > 0 {
+		query["status"] = bson.M{"$in": filters.Statuses}
 	}
 	result, err := sr.c.Database(DatabaseName).Collection("service_requests").Find(
 		context.Background(),

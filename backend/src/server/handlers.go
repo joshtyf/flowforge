@@ -489,7 +489,7 @@ func handleGetServiceRequestsByOrganisation(logger logger.ServerLogger, client *
 					return
 				}
 			}
-			queryFilters.Status = statuses
+			queryFilters.Statuses = statuses
 		}
 
 		logger.Info(fmt.Sprintf("querying for service requests: org_id=%d, query_filters=%v", orgId, queryFilters))
