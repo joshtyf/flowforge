@@ -481,7 +481,15 @@ func handleGetServiceRequestsByOrganisation(logger logger.ServerLogger, client *
 		statusFilters, err := extractQueryParam[string](r.URL.Query(), "status", false, "", stringConverter)
 		queryFilters := database.GetServiceRequestFilters{}
 		if statusFilters != "" {
-			queryFilters.Status = strings.Split(statusFilters, ",")
+			statuses := strings.Split(statusFilters, ",")
+			for _, status := range statuses {
+				if !models.ValidateServiceRequestStatus(status) {
+					logger.Error(fmt.Sprintf("invalid status filter: %s", status))
+					encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidServiceRequestStatus, http.StatusBadRequest))
+					return
+				}
+			}
+			queryFilters.Status = statuses
 		}
 
 		logger.Info(fmt.Sprintf("querying for service requests: org_id=%d, query_filters=%v", orgId, queryFilters))
