@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
@@ -471,12 +470,13 @@ func handleCreateMembership(logger logger.ServerLogger, client *sql.DB) http.Han
 
 func handleGetServiceRequestsByOrganisation(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		orgId, err := strconv.Atoi(r.URL.Query().Get("org_id"))
+		orgId, err := extractQueryParam[int](r.URL.Query(), "org_id", false, -1, integerConverter)
 		if err != nil {
-			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			logger.Error(fmt.Sprintf("unable to extract org_id from query params: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
 			return
 		}
+
 		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestsForOrgId(orgId)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
