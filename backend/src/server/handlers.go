@@ -90,19 +90,6 @@ func handleHealthCheck(l logger.ServerLogger) http.Handler {
 	})
 }
 
-// TODO: review if is required
-func handleGetAllServiceRequest(logger logger.ServerLogger, client *mongo.Client) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		allsr, err := database.NewServiceRequest(client).GetAll()
-		if err != nil {
-			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
-			return
-		}
-		encode(w, r, http.StatusOK, allsr)
-	})
-}
-
 func handleGetServiceRequest(logger logger.ServerLogger, mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
 	type ResponseBodyStep struct {
 		Name         string           `json:"name"`
