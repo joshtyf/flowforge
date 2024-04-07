@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
@@ -477,7 +478,14 @@ func handleGetServiceRequestsByOrganisation(logger logger.ServerLogger, client *
 			return
 		}
 
-		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestsForOrgId(orgId)
+		statusFilters, err := extractQueryParam[string](r.URL.Query(), "status", false, "", stringConverter)
+		queryFilters := database.GetServiceRequestFilters{}
+		if statusFilters != "" {
+			queryFilters.Status = strings.Split(statusFilters, ",")
+		}
+
+		logger.Info(fmt.Sprintf("querying for service requests: org_id=%d, query_filters=%v", orgId, queryFilters))
+		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestsForOrgId(orgId, queryFilters)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
