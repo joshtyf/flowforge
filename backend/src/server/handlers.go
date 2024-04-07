@@ -482,6 +482,7 @@ func handleCreateMembership(logger logger.ServerLogger, client *sql.DB) http.Han
 func handleGetServiceRequestsByOrganisation(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var userId string
+		// TODO: improve this logic
 		if os.Getenv("ENV") == "dev" {
 			id, err := extractQueryParam(r.URL.Query(), "user_id", false, "", stringConverter)
 			if err != nil {
