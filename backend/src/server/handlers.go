@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -181,6 +182,15 @@ func handleCreateServiceRequest(logger logger.ServerLogger, mongoClient *mongo.C
 		srm.CreatedOn = time.Now()
 		srm.LastUpdated = time.Now()
 		srm.Status = models.NotStarted
+
+		// TODO: improve this logic
+		if os.Getenv("ENV") == "dev" {
+			srm.UserId = "123456"
+		} else {
+			token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+			userId := token.RegisteredClaims.Subject
+			srm.UserId = userId
+		}
 
 		res, err := database.NewServiceRequest(mongoClient).Create(&srm)
 		if err != nil {
