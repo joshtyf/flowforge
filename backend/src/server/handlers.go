@@ -479,6 +479,11 @@ func handleGetServiceRequestsByOrganisation(logger logger.ServerLogger, client *
 		}
 
 		statusFilters, err := extractQueryParam[string](r.URL.Query(), "status", false, "", stringConverter)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to extract status from query params: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidServiceRequestStatus, http.StatusBadRequest))
+			return
+		}
 		queryFilters := database.GetServiceRequestFilters{}
 		if statusFilters != "" {
 			statuses := strings.Split(statusFilters, ",")
