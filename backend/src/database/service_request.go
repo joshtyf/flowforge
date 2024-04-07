@@ -76,8 +76,19 @@ func (sr *ServiceRequest) UpdateStatus(id string, status models.ServiceRequestSt
 	return err
 }
 
-func (sr *ServiceRequest) GetAllServiceRequestsForOrgId(orgId int) ([]*models.ServiceRequestModel, error) {
-	result, err := sr.c.Database(DatabaseName).Collection("service_requests").Find(context.Background(), bson.M{"org_id": orgId})
+type GetServiceRequestFilters struct {
+	Status []string
+}
+
+func (sr *ServiceRequest) GetAllServiceRequestsForOrgId(orgId int, filters GetServiceRequestFilters) ([]*models.ServiceRequestModel, error) {
+	query := bson.M{"org_id": orgId}
+	if len(filters.Status) > 0 {
+		query["status"] = bson.M{"$in": filters.Status}
+	}
+	result, err := sr.c.Database(DatabaseName).Collection("service_requests").Find(
+		context.Background(),
+		query,
+	)
 	if err != nil {
 		return nil, err
 	}
