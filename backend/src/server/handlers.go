@@ -481,8 +481,19 @@ func handleCreateMembership(logger logger.ServerLogger, client *sql.DB) http.Han
 
 func handleGetServiceRequestsByOrganisation(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
-		userId := token.RegisteredClaims.Subject
+		var userId string
+		if os.Getenv("ENV") == "dev" {
+			id, err := extractQueryParam(r.URL.Query(), "user_id", false, "", stringConverter)
+			if err != nil {
+				logger.Error(fmt.Sprintf("error encountered while extracting user id: %s", err))
+				encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidUserId, http.StatusBadRequest))
+				return
+			}
+			userId = id
+		} else {
+			token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+			userId = token.RegisteredClaims.Subject
+		}
 
 		orgId, err := extractQueryParam[int](r.URL.Query(), "org_id", false, -1, integerConverter)
 		if err != nil {
