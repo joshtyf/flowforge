@@ -33,6 +33,7 @@ type FormData map[string]any
 
 type ServiceRequestModel struct {
 	Id              primitive.ObjectID   `bson:"_id,omitempty" json:"id,omitempty"`
+	UserId          string               `bson:"user_id" json:"user_id"`
 	OrganisationId  int                  `bson:"org_id" json:"org_id"`
 	PipelineId      string               `bson:"pipeline_id" json:"pipeline_id"` // should we use primitive.ObjectID here?
 	PipelineVersion int                  `bson:"pipeline_version" json:"pipeline_version"`
