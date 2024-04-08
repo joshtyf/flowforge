@@ -1,13 +1,7 @@
 import { Pipeline } from "./pipeline"
 import { JsonFormComponents } from "./json-form-components"
 
-type ServiceRequestForm = {
-  user_id: string
-  user_name: string
-  name: string
-  description: string
-  form?: JsonFormComponents
-}
+type ServiceRequestForm = object
 
 enum ServiceRequestStatus {
   NOT_STARTED = "Not Started",
@@ -32,6 +26,8 @@ type ServiceRequestStep = {
 type ServiceRequest = {
   id: string
   pipeline_id: string
+  pipeline_name: string
+  pipeline_description?: string
   pipeline_version: string
   status: ServiceRequestStatus
   created_on: string
@@ -39,6 +35,7 @@ type ServiceRequest = {
   created_by?: string
   last_updated: string
   remarks: string
+  form: JsonFormComponents
   form_data: ServiceRequestForm
   steps?: ServiceRequestStep[]
   currentStep?: ServiceRequestStep

@@ -68,7 +68,9 @@ export const generateUiSchema = (jsonFormComponents?: JsonFormComponents) => {
 
   for (const item in jsonFormComponents) {
     const itemOptions = jsonFormComponents[item]
-
+    if (!itemOptions) {
+      throw new Error("Form item not found for item: " + item)
+    }
     switch (itemOptions.type) {
       case "input":
         uiSchema[item] = {

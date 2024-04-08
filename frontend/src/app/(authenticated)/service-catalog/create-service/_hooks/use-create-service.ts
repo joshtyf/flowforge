@@ -114,18 +114,12 @@ const useCreateService = ({ router }: UseCreateServiceProps) => {
 
   const handleSubmitForm = (values: z.infer<typeof createServiceSchema>) => {
     const { description, form, name, pipeline } = values
-    console.log("Submitting:", {
-      name,
-      description,
-      form: JSON.parse(form),
-      pipeline: JSON.parse(pipeline),
-    })
 
-    // TODO: add formJson into the api call as a parameter once ready
     const formJson: JsonFormComponents = JSON.parse(form)
     const pipelineJson: Pipeline = {
       pipeline_name: name,
       pipeline_description: description,
+      form: formJson,
       ...JSON.parse(pipeline),
     }
 

@@ -5,27 +5,37 @@ import { ChevronLeft } from "lucide-react"
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
 
 interface ServiceRequestSkeletonViewProps {
-  router: AppRouterInstance
+  router?: AppRouterInstance
+  returnRoute?: string
 }
 
 export default function ServiceRequestSkeletonView({
   router,
+  returnRoute,
 }: ServiceRequestSkeletonViewProps) {
   return (
     <>
       <div className="flex flex-col justify-start py-10">
         <HeaderAccessory />
         <div className="flex items-baseline space-x-2 mt-5">
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => router.push("/service-catalog")}
-          >
-            <ChevronLeft />
-          </Button>
+          {router && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => {
+                if (returnRoute) {
+                  router.push(returnRoute)
+                } else {
+                  router.back()
+                }
+              }}
+            >
+              <ChevronLeft />
+            </Button>
+          )}
           <Skeleton className="w-[250px] h-[35px]" />
         </div>
-        <Skeleton className="w-[400px] h-[20px] mt-3 ml-12" />
+        <Skeleton className={`w-[400px] h-[20px] mt-3 ${router && "ml-12"}`} />
       </div>
       <div className="w-full flex justify-center pt-5">
         <div className="w-4/5 space-y-8">

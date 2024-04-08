@@ -32,7 +32,6 @@ function Step({ name, status }: StepProps) {
     ${status === ServiceRequestStatus.COMPLETED ? "[&:not(:last-child):after]:bg-green-300" : "[&:not(:last-child):after]:bg-gray-300"}
     [&:not(:last-child):after]:-order-1`}
     >
-      {/* TODO: Add tooltip to show status*/}
       <div
         className={cn(
           `w-[2rem] h-[2rem] flex justify-center items-center ${statusBadgeVariant(

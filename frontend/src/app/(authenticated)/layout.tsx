@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 import { ReactNode, useEffect, useMemo, useState } from "react"
 import { UserProfile } from "@/types/user-profile"
 import { getUserProfile } from "@/lib/auth0"
+import apiClient from "@/lib/apiClient"
 
 interface AuthenticatedLayoutProps {
   children: ReactNode
@@ -40,6 +41,8 @@ export default function AuthenticatedLayout({
           setUserProfile(userProfile)
         }
       )
+      // Set auth_token to API Client headers
+      apiClient.defaults.headers.Authorization = `Bearer ${getCookie("access_token") as string}`
       // To resolve Hydration UI mismatch issue
       setRender(true)
     }

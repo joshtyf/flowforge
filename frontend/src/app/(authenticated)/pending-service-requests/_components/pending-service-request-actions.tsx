@@ -6,18 +6,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal } from "lucide-react"
+import { useState } from "react"
+import { ApproveConfirmationDialog } from "./approve-confirmation-dialog"
+import { RejectConfirmationDialog } from "./reject-confirmation-dialog"
+import ServiceRequestDetailsDialog from "@/components/layouts/service-request-details-dialog"
+import { ServiceRequest } from "@/types/service-request"
 
-interface ApproveServiceRequestActionsProps {
-  pipelineId: string
-  approveRequest: (pipelineId: string) => void
-  rejectRequest: (pipelineId: string) => void
+interface PendingServiceRequestActionsProps {
+  serviceRequest: ServiceRequest
+  approveRequest: (serviceRequestId: string) => void
+  rejectRequest: (serviceRequestId: string, remarks?: string) => void
 }
 
-export default function ApproveServiceRequestActions({
-  pipelineId,
+export default function PendingServiceRequestActions({
+  serviceRequest,
   approveRequest,
   rejectRequest,
-}: ApproveServiceRequestActionsProps) {
+}: PendingServiceRequestActionsProps) {
+  const [openDetailsDialog, setOpenDetailsDialog] = useState(false)
+  const [openApproveConfirmationDialog, setOpenApproveConfirmationDialog] =
+    useState(false)
+  const [openRejectConfirmationDialog, setOpenRejectConfirmationDialog] =
+    useState(false)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -26,11 +36,19 @@ export default function ApproveServiceRequestActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
+        <DropdownMenuItem
+          onClick={() => {
+            setOpenDetailsDialog(true)
+          }}
+        >
+          <Button variant="ghost">View Details</Button>
+        </DropdownMenuItem>
+
         <DropdownMenuItem>
           <Button
             variant="ghost"
             className="text-green-700 hover:text-green-500"
-            onClick={() => approveRequest(pipelineId)}
+            onClick={() => setOpenApproveConfirmationDialog(true)}
           >
             Approve
           </Button>
@@ -40,12 +58,29 @@ export default function ApproveServiceRequestActions({
           <Button
             variant="ghost"
             className="text-red-700 hover:text-red-500"
-            onClick={() => rejectRequest(pipelineId)}
+            onClick={() => setOpenRejectConfirmationDialog(true)}
           >
             Reject
           </Button>
         </DropdownMenuItem>
       </DropdownMenuContent>
+      <ServiceRequestDetailsDialog
+        serviceRequest={serviceRequest}
+        open={openDetailsDialog}
+        setOpen={setOpenDetailsDialog}
+      />
+      <ApproveConfirmationDialog
+        open={openApproveConfirmationDialog}
+        setOpen={setOpenApproveConfirmationDialog}
+        onApprove={() => approveRequest(serviceRequest.id)}
+      />
+      <RejectConfirmationDialog
+        open={openRejectConfirmationDialog}
+        setOpen={setOpenRejectConfirmationDialog}
+        onReject={(remarks?: string) =>
+          rejectRequest(serviceRequest.id, remarks)
+        }
+      />
     </DropdownMenu>
   )
 }

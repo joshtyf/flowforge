@@ -1,4 +1,6 @@
 import { toast } from "@/components/ui/use-toast"
+import useOrganisationId from "@/hooks/use-organisation-id"
+import usePipeline from "@/hooks/use-pipeline"
 import { createServiceRequest, getPipeline } from "@/lib/service"
 import {
   convertServiceRequestFormToRJSFSchema,
@@ -8,9 +10,9 @@ import { JsonFormComponents } from "@/types/json-form-components"
 import { Pipeline } from "@/types/pipeline"
 import { IChangeEvent } from "@rjsf/core"
 import { RJSFSchema } from "@rjsf/utils"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
-interface UseServiceRequestOptions {
+interface UseServiceRequestFormOptions {
   pipelineId: string
 }
 
@@ -40,37 +42,28 @@ const DUMMY_SERVICE_REQUEST_FORM: JsonFormComponents = {
   },
 }
 
-const useServiceRequest = ({ pipelineId }: UseServiceRequestOptions) => {
-  const [service, setService] = useState<Pipeline>()
-  const [isLoadingForm, setIsLoadingForm] = useState(true)
+const useServiceRequestForm = ({
+  pipelineId,
+}: UseServiceRequestFormOptions) => {
+  const { pipeline: service, isPipelineLoading: isLoadingForm } = usePipeline({
+    pipelineId,
+  })
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
-
-  useEffect(() => {
-    getPipeline(pipelineId)
-      .then((data) => {
-        // TODO: To remove once data contains form and description
-        data.form = DUMMY_SERVICE_REQUEST_FORM
-        data.pipeline_description = "Pipeline description"
-        setService(data)
-      })
-      .catch((err) => {
-        console.log(err)
-        toast({
-          title: "Fetching Service Error",
-          description: "Failed to fetch the service for service request.",
-          variant: "destructive",
-        })
-      })
-      .finally(() => {
-        setIsLoadingForm(false)
-      })
-  }, [pipelineId])
-
-  const handleSubmit = (data: IChangeEvent<object, RJSFSchema, object>) => {
+  const { organisationId } = useOrganisationId()
+  const handleCreateServiceRequest = (
+    data: IChangeEvent<object, RJSFSchema, object>
+  ) => {
+    const { formData } = data
     setIsSubmittingRequest(true)
-    // TODO: Add validations if needed
-    // TODO: Add submission of form data
-    createServiceRequest(pipelineId)
+    if (!formData) {
+      toast({
+        title: "No Form Data Error",
+        description: "Form data cannot be found.",
+        variant: "destructive",
+      })
+      return
+    }
+    createServiceRequest(organisationId, pipelineId, formData, service?.version)
       .then((data) => {
         toast({
           title: "Request Submission Successful",
@@ -93,17 +86,21 @@ const useServiceRequest = ({ pipelineId }: UseServiceRequestOptions) => {
       })
   }
 
-  const uiSchema = generateUiSchema(service?.form)
-  const rjsfSchema = convertServiceRequestFormToRJSFSchema(service?.form)
+  const uiSchema = useMemo(() => generateUiSchema(service?.form), [service])
+  const rjsfSchema = useMemo(
+    () => convertServiceRequestFormToRJSFSchema(service?.form),
+    [service]
+  )
 
   return {
-    service,
+    pipelineName: service?.pipeline_name,
+    pipelineDescription: service?.pipeline_description,
     rjsfSchema,
     uiSchema,
-    handleSubmit,
+    handleSubmit: handleCreateServiceRequest,
     isLoadingForm,
     isSubmittingRequest,
   }
 }
 
-export default useServiceRequest
+export default useServiceRequestForm

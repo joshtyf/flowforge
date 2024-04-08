@@ -1,5 +1,4 @@
 import { ServiceRequest } from "@/types/service-request"
-import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -15,7 +14,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import Link from "next/link"
-import Stepper from "./stepper"
+import Stepper from "../../app/(authenticated)/service-request-dashboard/_components/stepper"
 import { ExternalLink } from "lucide-react"
 
 interface ServiceRequestDetailsProps {
@@ -41,8 +40,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
             <Tooltip delayDuration={300}>
               <TooltipTrigger>
                 <Link
-                  // TODO: Insert logs page URL
-                  href={`#`}
+                  href={`/service-request-info/${serviceRequestId}`}
                   className="hover:underline hover:text-blue-500 flex space-x-1"
                 >
                   <p>{serviceRequestId}</p>
@@ -50,7 +48,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
                 </Link>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Go to logs</p>
+                <p>Go to Service Request Form Details</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -92,7 +90,6 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
 
 interface ServiceRequestDetailsDialogProps {
   serviceRequest: ServiceRequest
-  //   children: React.ReactNode
   open: boolean
   setOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -104,9 +101,9 @@ export default function ServiceRequestDetailsDialog({
 }: ServiceRequestDetailsDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
+      <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{`${serviceRequest.form_data.name} Details`}</DialogTitle>
+          <DialogTitle>{`${serviceRequest?.pipeline_name} Details`}</DialogTitle>
         </DialogHeader>
         <ServiceRequestDetails serviceRequest={serviceRequest} />
       </DialogContent>
