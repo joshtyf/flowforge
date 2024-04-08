@@ -31,16 +31,16 @@ func NewMissingRequiredFieldError(fieldName string) *MissingRequiredFieldError {
 	}
 }
 
-type InvalidFieldError struct {
+type InvalidPropertyError struct {
 	fieldName string
 }
 
-func (e *InvalidFieldError) Error() string {
+func (e *InvalidPropertyError) Error() string {
 	return fmt.Sprintf("invalid value found for field: '%s'", e.fieldName)
 }
 
-func NewInvalidFieldError(fieldName string) *InvalidFieldError {
-	return &InvalidFieldError{
+func NewInvalidPropertyValue(fieldName string) *InvalidPropertyError {
+	return &InvalidPropertyError{
 		fieldName: fieldName,
 	}
 }

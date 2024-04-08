@@ -80,13 +80,13 @@ func ValidateFormField(f models.FormField) error {
 		}
 		for _, option := range f.Options {
 			if option == "" {
-				return NewInvalidFieldError("options")
+				return NewInvalidPropertyValue("options")
 			}
 		}
 	}
 	if f.Type == models.CheckboxField {
 		if f.Required {
-			return NewInvalidFieldError("required")
+			return NewInvalidPropertyValue("required")
 		}
 
 	}

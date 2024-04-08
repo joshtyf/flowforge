@@ -315,21 +315,21 @@ func TestValidateFormField(t *testing.T) {
 			models.FormField{
 				Name: "select", Title: "Checkbox", Type: models.SelectField, Options: []string{"Option 1", "", "Option 3"},
 			},
-			NewInvalidFieldError("options"),
+			NewInvalidPropertyValue("options"),
 		},
 		{
 			"Checkbox field options contains empty string",
 			models.FormField{
 				Name: "checkbox", Title: "Checkbox", Type: models.CheckboxField, Options: []string{"Option 1", "", "Option 3"},
 			},
-			NewInvalidFieldError("options"),
+			NewInvalidPropertyValue("options"),
 		},
 		{
 			"Checkbox field has required as true",
 			models.FormField{
 				Name: "checkbox", Title: "Checkbox", Required: true, Type: models.CheckboxField, Options: []string{"Option 1", "Option 2"},
 			},
-			NewInvalidFieldError("required"),
+			NewInvalidPropertyValue("required"),
 		},
 	}
 	for _, tc := range testcases {
