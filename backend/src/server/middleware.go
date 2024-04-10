@@ -65,12 +65,6 @@ func (c CustomClaims) HasPermission(expectedPermission string) bool {
 }
 
 func isAuthenticated(next http.Handler, logger logger.ServerLogger) http.Handler {
-	// TODO: implement a proper flag pattern
-	env := os.Getenv("ENV")
-	if env == "dev" {
-		logger.Warn("skipping authentication in dev environment")
-		return next
-	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		issuerURL, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/")
 		if err != nil {
@@ -115,11 +109,6 @@ func isAuthenticated(next http.Handler, logger logger.ServerLogger) http.Handler
 
 // TODO: To be tested once frontend is ready
 func isAuthorisedAdmin(next http.Handler, logger logger.ServerLogger) http.Handler {
-	env := os.Getenv("ENV")
-	if env == "dev" {
-		logger.Warn("skipping admin check in dev environment")
-		return next
-	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 		claims := token.CustomClaims.(*CustomClaims)
@@ -183,26 +172,19 @@ func isOrgAdmin(postgresClient *sql.DB, next http.Handler, logger logger.ServerL
 
 func isOrgMember(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO: implement a proper flag pattern
-		env := os.Getenv("ENV")
-		if env == "dev" {
-			logger.Warn("skipping isOrgMember check in dev environment")
-			next.ServeHTTP(w, r)
-		} else {
-			org_id := r.Context().Value(util.OrgContextKey{}).(int)
-			_, err := getMembership(org_id, postgresClient, r)
-			if errors.Is(err, sql.ErrNoRows) {
-				logger.Error("user not authorized member")
-				encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
-				return
-			} else if err != nil {
-				logger.Error(fmt.Sprintf("unable to verify membership: %s", err))
-				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
-				return
-			}
-
-			next.ServeHTTP(w, r)
+		org_id := r.Context().Value(util.OrgContextKey{}).(int)
+		_, err := getMembership(org_id, postgresClient, r)
+		if errors.Is(err, sql.ErrNoRows) {
+			logger.Error("user not authorized member")
+			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			return
+		} else if err != nil {
+			logger.Error(fmt.Sprintf("unable to verify membership: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
 		}
+
+		next.ServeHTTP(w, r)
 	})
 }
 
@@ -341,7 +323,6 @@ func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger 
 func getMembership(org_id int, postgresClient *sql.DB, r *http.Request) (*models.MembershipModel, error) {
 	token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 	userId := token.RegisteredClaims.Subject
-
 	mm, err := database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(userId, org_id)
 	if err != nil {
 		return nil, err
