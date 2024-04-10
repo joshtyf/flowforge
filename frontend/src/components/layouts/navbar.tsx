@@ -71,7 +71,6 @@ export default function Navbar({
   return (
     <div className="flex-col  md:flex">
       <div className="flex h-16 border-b items-center px-4">
-        {/* TODO: how to re-use Navbar component but exclude the toggle btn? */}
         {enableSidebarToggle && (
           <Button variant="ghost" size="icon" onClick={toggleSidebar}>
             <Menu />
