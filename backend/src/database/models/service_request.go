@@ -15,12 +15,25 @@ const (
 	Failure    ServiceRequestStatus = "Failure"
 	Canceled   ServiceRequestStatus = "Canceled"
 	NotStarted ServiceRequestStatus = "Not Started"
+	// NOTE: update allServiceRequestStatuses when adding new status
 )
+
+var allServiceRequestStatuses = []ServiceRequestStatus{Pending, Running, Success, Failure, Canceled, NotStarted}
+
+func ValidateServiceRequestStatus(status string) bool {
+	for _, s := range allServiceRequestStatuses {
+		if s == ServiceRequestStatus(status) {
+			return true
+		}
+	}
+	return false
+}
 
 type FormData map[string]any
 
 type ServiceRequestModel struct {
 	Id              primitive.ObjectID   `bson:"_id,omitempty" json:"id,omitempty"`
+	UserId          string               `bson:"user_id" json:"user_id"`
 	OrganisationId  int                  `bson:"org_id" json:"org_id"`
 	PipelineId      string               `bson:"pipeline_id" json:"pipeline_id"` // should we use primitive.ObjectID here?
 	PipelineVersion int                  `bson:"pipeline_version" json:"pipeline_version"`

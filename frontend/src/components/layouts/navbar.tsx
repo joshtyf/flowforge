@@ -1,6 +1,4 @@
-import React from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, LucideUser, Menu } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,10 +6,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import Link from "next/link"
+import apiClient from "@/lib/apiClient"
 import { getAuth0LogoutLink } from "@/lib/auth0"
-import { useRouter } from "next/navigation"
 import { deleteCookie } from "cookies-next"
+import { ChevronDown, LucideUser, Menu } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface UserActionsDropdownProps {
   username: string
@@ -20,7 +19,9 @@ interface UserActionsDropdownProps {
 const UserActionsDropdown = ({ username }: UserActionsDropdownProps) => {
   const router = useRouter()
   const logout = () => {
+    // Reset auth token upon logout
     deleteCookie("access_token")
+    delete apiClient.defaults.headers.Authorization
     router.push(getAuth0LogoutLink())
   }
   return (
@@ -55,17 +56,24 @@ const UserActionsDropdown = ({ username }: UserActionsDropdownProps) => {
 }
 
 interface NavbarProps {
-  toggleSidebar: () => void
+  toggleSidebar?: () => void
   username: string
+  enableSidebarToggle?: boolean
 }
 
-export default function Navbar({ toggleSidebar, username }: NavbarProps) {
+export default function Navbar({
+  toggleSidebar,
+  username,
+  enableSidebarToggle = true,
+}: NavbarProps) {
   return (
     <div className="flex-col  md:flex">
       <div className="flex h-16 border-b items-center px-4">
-        <Button variant="ghost" size="icon" onClick={toggleSidebar}>
-          <Menu />
-        </Button>
+        {enableSidebarToggle && (
+          <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+            <Menu />
+          </Button>
+        )}
         <div className="ml-auto w-1/10">
           <UserActionsDropdown username={username} />
         </div>

@@ -66,3 +66,8 @@ func extractQueryParam[T any](queryParams url.Values, key string, emptyStringAll
 func integerConverter(s string) (int, error) {
 	return strconv.Atoi(s)
 }
+
+// Helper function to return the string as is. Used when the URL query param is expected to be a string.
+func stringConverter(s string) (string, error) {
+	return s, nil
+}

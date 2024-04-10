@@ -1,7 +1,7 @@
-import React from "react"
+import "@/styles/globals.css"
 import type { Metadata } from "next"
 import { Poppins } from "next/font/google"
-import "@/styles/globals.css"
+import React from "react"
 
 const font = Poppins({ weight: "400", subsets: ["latin"] })
 
