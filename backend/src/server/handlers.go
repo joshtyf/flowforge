@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -181,6 +182,15 @@ func handleCreateServiceRequest(logger logger.ServerLogger, mongoClient *mongo.C
 		srm.CreatedOn = time.Now()
 		srm.LastUpdated = time.Now()
 		srm.Status = models.NotStarted
+
+		// TODO: improve this logic
+		if os.Getenv("ENV") == "dev" {
+			srm.UserId = "123456"
+		} else {
+			token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+			userId := token.RegisteredClaims.Subject
+			srm.UserId = userId
+		}
 
 		res, err := database.NewServiceRequest(mongoClient).Create(&srm)
 		if err != nil {
@@ -471,6 +481,21 @@ func handleCreateMembership(logger logger.ServerLogger, client *sql.DB) http.Han
 
 func handleGetServiceRequestsByOrganisation(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var userId string
+		// TODO: improve this logic
+		if os.Getenv("ENV") == "dev" {
+			id, err := extractQueryParam(r.URL.Query(), "user_id", false, "", stringConverter)
+			if err != nil {
+				logger.Error(fmt.Sprintf("error encountered while extracting user id: %s", err))
+				encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidUserId, http.StatusBadRequest))
+				return
+			}
+			userId = id
+		} else {
+			token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+			userId = token.RegisteredClaims.Subject
+		}
+
 		orgId, err := extractQueryParam[int](r.URL.Query(), "org_id", false, -1, integerConverter)
 		if err != nil {
 			logger.Error(fmt.Sprintf("unable to extract org_id from query params: %s", err))
@@ -492,8 +517,8 @@ func handleGetServiceRequestsByOrganisation(logger logger.ServerLogger, client *
 			queryFilters.Statuses = strings.Split(statusFilters, ",")
 		}
 
-		logger.Info(fmt.Sprintf("querying for service requests: org_id=%d, query_filters=%v", orgId, queryFilters))
-		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestsForOrgId(orgId, queryFilters)
+		logger.Info(fmt.Sprintf("querying for service requests: user_id=%s org_id=%d, query_filters=%v", userId, orgId, queryFilters))
+		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestsForOrgId(userId, orgId, queryFilters)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))

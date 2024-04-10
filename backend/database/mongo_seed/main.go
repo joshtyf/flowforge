@@ -68,6 +68,7 @@ func main() {
 	}
 	serviceRequest := models.ServiceRequestModel{
 		Id:              serviceReqId,
+		UserId:          "123456",
 		PipelineId:      pipelineIdInHex,
 		PipelineVersion: 1,
 		Status:          models.Success,
