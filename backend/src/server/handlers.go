@@ -49,7 +49,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/healthcheck", handleHealthCheck(s.logger)).Methods("GET")
 
 	// Service Request
-	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromQuery(isOrgMember(s.psqlClient, handleGetServiceRequestsByOrganisation(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("GET")
+	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromQuery(isOrgMember(s.psqlClient, handleGetServiceRequestsByOrganization(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("GET")
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
 	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromRequestBody(isOrgMember(s.psqlClient, handleCreateServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(getOrgIdFromRequestBody(isOrgMember(s.psqlClient, handleUpdateServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
@@ -70,9 +70,9 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	// r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.psqlClient))).Methods("GET")
 	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 
-	// Organisation
-	r.Handle("/api/organisation", isAuthenticated(handleCreateOrganisation(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
-	r.Handle("/api/organization", isAuthenticated(handleGetOrganisationsForUser(s.logger, s.psqlClient), s.logger)).Methods("GET")
+	// Organization
+	r.Handle("/api/organization", isAuthenticated(handleCreateOrganization(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/organization", isAuthenticated(handleGetOrganizationsForUser(s.logger, s.psqlClient), s.logger)).Methods("GET")
 
 	// Membership
 	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgAdmin(s.psqlClient, handleCreateMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
@@ -436,9 +436,9 @@ func handleUserLogin(logger logger.ServerLogger, client *sql.DB) http.Handler {
 	})
 }
 
-func handleCreateOrganisation(logger logger.ServerLogger, client *sql.DB) http.Handler {
+func handleCreateOrganization(logger logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		om, err := decode[models.OrganisationModel](r)
+		om, err := decode[models.OrganizationModel](r)
 		if err != nil {
 			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
@@ -447,10 +447,10 @@ func handleCreateOrganisation(logger logger.ServerLogger, client *sql.DB) http.H
 		org, err := database.NewOrganization(client).Create(&om)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationCreateFail, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganizationCreateFail, http.StatusInternalServerError))
 			return
 		}
-		logger.Info(fmt.Sprintf("%s %s created", "organisation", fmt.Sprint(org.OrgId)))
+		logger.Info(fmt.Sprintf("%s %s created", "organization", fmt.Sprint(org.OrgId)))
 		encode(w, r, http.StatusCreated, org)
 	})
 }
@@ -474,7 +474,7 @@ func handleCreateMembership(logger logger.ServerLogger, client *sql.DB) http.Han
 	})
 }
 
-func handleGetServiceRequestsByOrganisation(logger logger.ServerLogger, client *mongo.Client) http.Handler {
+func handleGetServiceRequestsByOrganization(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 		userId := token.RegisteredClaims.Subject
@@ -482,7 +482,7 @@ func handleGetServiceRequestsByOrganisation(logger logger.ServerLogger, client *
 		orgId, err := extractQueryParam[int](r.URL.Query(), "org_id", false, -1, integerConverter)
 		if err != nil {
 			logger.Error(fmt.Sprintf("unable to extract org_id from query params: %s", err))
-			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganizationId, http.StatusBadRequest))
 			return
 		}
 
@@ -634,7 +634,7 @@ func handleGetStepExecutionLogs(l logger.ServerLogger, psqlClient *sql.DB) http.
 	})
 }
 
-func handleGetOrganisationsForUser(logger logger.ServerLogger, client *sql.DB) http.Handler {
+func handleGetOrganizationsForUser(logger logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 		userId := token.RegisteredClaims.Subject
@@ -642,7 +642,7 @@ func handleGetOrganisationsForUser(logger logger.ServerLogger, client *sql.DB) h
 		orgs, err := database.NewOrganization(client).GetAllOrgsByUserId(userId)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationRetrieve, http.StatusInternalServerError))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganizationRetrieve, http.StatusInternalServerError))
 			return
 		}
 		encode(w, r, http.StatusOK, orgs)

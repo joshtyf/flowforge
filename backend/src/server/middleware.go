@@ -215,7 +215,7 @@ func getOrgIdFromPath(next http.Handler, logger logger.ServerLogger) http.Handle
 		var org_id int
 		var err error
 		vars := mux.Vars(r)
-		if id := vars["organisationId"]; id == "" {
+		if id := vars["organizationId"]; id == "" {
 			logger.Error("org id does not exist in path")
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrUnauthorised, http.StatusBadRequest))
 			return
@@ -236,7 +236,7 @@ func getOrgIdFromPath(next http.Handler, logger logger.ServerLogger) http.Handle
 func getOrgIdFromRequestBody(next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		type OrgId struct {
-			OrganisationId int `json:"org_id"`
+			OrganizationId int `json:"org_id"`
 		}
 		org, err := decode[OrgId](r)
 		if err != nil {
@@ -244,7 +244,7 @@ func getOrgIdFromRequestBody(next http.Handler, logger logger.ServerLogger) http
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
 			return
 		}
-		org_id := org.OrganisationId
+		org_id := org.OrganizationId
 
 		if org_id == 0 {
 			logger.Error("org id does not exist in request body")
@@ -273,7 +273,7 @@ func getOrgIdUsingSrId(mongoClient *mongo.Client, next http.Handler, logger logg
 				return
 			}
 
-			org_id = sr.OrganisationId
+			org_id = sr.OrganizationId
 		}
 
 		r = r.Clone(context.WithValue(r.Context(), util.OrgContextKey{}, org_id))

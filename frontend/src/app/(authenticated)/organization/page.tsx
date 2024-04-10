@@ -6,7 +6,7 @@ import { setCookie } from "cookies-next"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
-export default function OrganisationsPage() {
+export default function OrganizationsPage() {
   const [organizations, setOrganizations] = useState<Organization[]>([])
   const [loading, setLoading] = useState(true)
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function OrganisationsPage() {
   const router = useRouter()
   return (
     <div className="mt-20 flex flex-col justify-center items-center">
-      <p className="mb-8 text-2xl">Your Organisations</p>
+      <p className="mb-8 text-2xl">Your Organizations</p>
       {loading ? (
         <p className="mt-10">Loading...</p>
       ) : (
