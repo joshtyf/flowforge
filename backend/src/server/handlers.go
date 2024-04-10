@@ -528,13 +528,6 @@ func handleGetUserById(logger logger.ServerLogger, client *sql.DB) http.Handler 
 			return
 		}
 
-		orgs, err := database.NewOrganization(client).GetAllOrgsByUserId(user.UserId)
-		if err != nil {
-			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationRetrieve, http.StatusInternalServerError))
-			return
-		}
-		user.Organisations = orgs
 		encode(w, r, http.StatusCreated, user)
 	})
 }
