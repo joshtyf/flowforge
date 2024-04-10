@@ -1,6 +1,4 @@
-import React from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, LucideUser, Menu } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,11 +6,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import Link from "next/link"
-import { getAuth0LogoutLink } from "@/lib/auth0"
-import { useRouter } from "next/navigation"
-import { deleteCookie } from "cookies-next"
 import apiClient from "@/lib/apiClient"
+import { getAuth0LogoutLink } from "@/lib/auth0"
+import { deleteCookie } from "cookies-next"
+import { ChevronDown, LucideUser, Menu } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface UserActionsDropdownProps {
   username: string
