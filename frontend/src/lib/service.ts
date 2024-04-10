@@ -56,3 +56,9 @@ export async function approveServiceRequest(
     org_id: organisationId,
   })
 }
+
+/* Organization */
+
+export async function getAllOrgsForUser() {
+  return apiClient.get("/organization").then((res) => res.data)
+}
