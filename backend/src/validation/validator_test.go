@@ -324,13 +324,6 @@ func TestValidateFormField(t *testing.T) {
 			},
 			NewInvalidPropertyValue("options"),
 		},
-		{
-			"Checkbox field has required as true",
-			models.FormField{
-				Name: "checkbox", Title: "Checkbox", Required: true, Type: models.CheckboxField, Options: []string{"Option 1", "Option 2"},
-			},
-			NewInvalidPropertyValue("required"),
-		},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.testDescription, func(t *testing.T) {

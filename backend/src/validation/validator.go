@@ -84,12 +84,6 @@ func ValidateFormField(f models.FormField) error {
 			}
 		}
 	}
-	if f.Type == models.CheckboxField {
-		if f.Required {
-			return NewInvalidPropertyValue("required")
-		}
-
-	}
 	return nil
 }
 
