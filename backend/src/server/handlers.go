@@ -72,6 +72,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 
 	// Organisation
 	r.Handle("/api/organisation", isAuthenticated(handleCreateOrganisation(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/organization", isAuthenticated(handleGetOrganisationsForUser(s.logger, s.psqlClient), s.logger)).Methods("GET")
 
 	// Membership
 	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgAdmin(s.psqlClient, handleCreateMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
@@ -630,5 +631,20 @@ func handleGetStepExecutionLogs(l logger.ServerLogger, psqlClient *sql.DB) http.
 		}
 
 		encode(w, r, http.StatusOK, response)
+	})
+}
+
+func handleGetOrganisationsForUser(logger logger.ServerLogger, client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		userId := token.RegisteredClaims.Subject
+
+		orgs, err := database.NewOrganization(client).GetAllOrgsByUserId(userId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganisationRetrieve, http.StatusInternalServerError))
+			return
+		}
+		encode(w, r, http.StatusOK, orgs)
 	})
 }
