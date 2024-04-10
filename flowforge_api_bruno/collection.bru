@@ -1,5 +1,9 @@
-headers {
-  Authorization: Bearer {{access_token}}
+auth {
+  mode: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
 }
 
 script:pre-request {
