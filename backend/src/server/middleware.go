@@ -323,7 +323,6 @@ func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger 
 func getMembership(org_id int, postgresClient *sql.DB, r *http.Request) (*models.MembershipModel, error) {
 	token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 	userId := token.RegisteredClaims.Subject
-	fmt.Println(userId)
 	mm, err := database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(userId, org_id)
 	if err != nil {
 		return nil, err
