@@ -1,0 +1,15 @@
+meta {
+  name: all service requests
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{HOST}}/service_request?org_id=1
+  body: none
+  auth: none
+}
+
+query {
+  org_id: 1
+}
