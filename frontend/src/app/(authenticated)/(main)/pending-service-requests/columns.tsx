@@ -4,7 +4,7 @@ import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
-import ApproveServiceRequestActions from "./_components/pending-service-request-actions"
+import PendingServiceRequestActions from "./_components/pending-service-request-actions"
 import { StatusBadge } from "@/components/layouts/status-badge"
 import { ExternalLink } from "lucide-react"
 
@@ -19,7 +19,7 @@ export const pendingServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
   },
   {
     id: "service_name",
-    header: "Service",
+    header: "Service Name",
     cell: ({ row }) => {
       const serviceRequest: ServiceRequest = row.original
       return (
@@ -27,7 +27,7 @@ export const pendingServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
           href={`/service-catalog/${serviceRequest.pipeline_id}`}
           className="hover:underline hover:text-blue-500 flex space-x-2"
         >
-          <p>{serviceRequest.form_data.name}</p>
+          <p>{serviceRequest.pipeline_name}</p>
           <ExternalLink className="w-5 h-5" />
         </Link>
       )
@@ -59,12 +59,19 @@ export const pendingServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
-      const pipelineId: string = row.getValue("pipeline_id")
+      const serviceRequest: ServiceRequest = row.original
       return (
-        <ApproveServiceRequestActions
-          pipelineId={pipelineId}
-          approveRequest={(pipelineId: string) => {}}
-          rejectRequest={(pipelineId: string) => {}}
+        <PendingServiceRequestActions
+          serviceRequest={serviceRequest}
+          approveRequest={(serviceRequestId: string) => {
+            // TODO: Replace with actual approval action
+            console.log("Approve service request for:", serviceRequestId)
+          }}
+          rejectRequest={(serviceRequestId: string, remarks?: string) => {
+            // TODO: Replace with actual rejection action
+            console.log("Reject service request for: ", serviceRequestId)
+            console.log("Remarks: ", remarks)
+          }}
         />
       )
     },

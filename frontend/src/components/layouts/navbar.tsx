@@ -12,6 +12,7 @@ import Link from "next/link"
 import { getAuth0LogoutLink } from "@/lib/auth0"
 import { useRouter } from "next/navigation"
 import { deleteCookie } from "cookies-next"
+import apiClient from "@/lib/apiClient"
 
 interface UserActionsDropdownProps {
   username: string
@@ -20,7 +21,9 @@ interface UserActionsDropdownProps {
 const UserActionsDropdown = ({ username }: UserActionsDropdownProps) => {
   const router = useRouter()
   const logout = () => {
+    // Reset auth token upon logout
     deleteCookie("access_token")
+    delete apiClient.defaults.headers.Authorization
     router.push(getAuth0LogoutLink())
   }
   return (

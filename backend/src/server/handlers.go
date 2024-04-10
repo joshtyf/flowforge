@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
+	"strings"
 	"time"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
@@ -87,19 +87,6 @@ func handleHealthCheck(l logger.ServerLogger) http.Handler {
 			return
 		}
 		encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
-	})
-}
-
-// TODO: review if is required
-func handleGetAllServiceRequest(logger logger.ServerLogger, client *mongo.Client) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		allsr, err := database.NewServiceRequest(client).GetAll()
-		if err != nil {
-			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
-			return
-		}
-		encode(w, r, http.StatusOK, allsr)
 	})
 }
 
@@ -484,13 +471,29 @@ func handleCreateMembership(logger logger.ServerLogger, client *sql.DB) http.Han
 
 func handleGetServiceRequestsByOrganisation(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		orgId, err := strconv.Atoi(r.URL.Query().Get("org_id"))
+		orgId, err := extractQueryParam[int](r.URL.Query(), "org_id", false, -1, integerConverter)
 		if err != nil {
-			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			logger.Error(fmt.Sprintf("unable to extract org_id from query params: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganisationId, http.StatusBadRequest))
 			return
 		}
-		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestsForOrgId(orgId)
+
+		statusFilters, err := extractQueryParam[string](r.URL.Query(), "status", false, "", stringConverter)
+		queryFilters := database.GetServiceRequestFilters{}
+		if statusFilters != "" {
+			statuses := strings.Split(statusFilters, ",")
+			for _, status := range statuses {
+				if !models.ValidateServiceRequestStatus(status) {
+					logger.Error(fmt.Sprintf("invalid status filter: %s", status))
+					encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidServiceRequestStatus, http.StatusBadRequest))
+					return
+				}
+			}
+			queryFilters.Statuses = strings.Split(statusFilters, ",")
+		}
+
+		logger.Info(fmt.Sprintf("querying for service requests: org_id=%d, query_filters=%v", orgId, queryFilters))
+		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestsForOrgId(orgId, queryFilters)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))

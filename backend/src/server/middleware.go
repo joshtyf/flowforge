@@ -183,19 +183,26 @@ func isOrgAdmin(postgresClient *sql.DB, next http.Handler, logger logger.ServerL
 
 func isOrgMember(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		org_id := r.Context().Value(util.OrgContextKey{}).(int)
-		_, err := getMembership(org_id, postgresClient, r)
-		if errors.Is(err, sql.ErrNoRows) {
-			logger.Error("user not authorized member")
-			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
-			return
-		} else if err != nil {
-			logger.Error(fmt.Sprintf("unable to verify membership: %s", err))
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
-			return
-		}
+		// TODO: implement a proper flag pattern
+		env := os.Getenv("ENV")
+		if env == "dev" {
+			logger.Warn("skipping isOrgMember check in dev environment")
+			next.ServeHTTP(w, r)
+		} else {
+			org_id := r.Context().Value(util.OrgContextKey{}).(int)
+			_, err := getMembership(org_id, postgresClient, r)
+			if errors.Is(err, sql.ErrNoRows) {
+				logger.Error("user not authorized member")
+				encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+				return
+			} else if err != nil {
+				logger.Error(fmt.Sprintf("unable to verify membership: %s", err))
+				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+				return
+			}
 
-		next.ServeHTTP(w, r)
+			next.ServeHTTP(w, r)
+		}
 	})
 }
 

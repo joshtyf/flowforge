@@ -6,6 +6,7 @@ import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
 import { ExternalLink } from "lucide-react"
 import Link from "next/link"
+import ApprovedServiceRequestActions from "./_components/approved-service-request-actions"
 
 export const approvedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
   {
@@ -26,7 +27,7 @@ export const approvedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
           href={`/service-catalog/${serviceRequest.pipeline_id}`}
           className="hover:underline hover:text-blue-500 flex space-x-2"
         >
-          <p>{serviceRequest.form_data.name}</p>
+          <p>{serviceRequest.pipeline_name}</p>
           <ExternalLink className="w-5 h-5" />
         </Link>
       )
@@ -52,6 +53,14 @@ export const approvedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
       const dateIsoString: string = row.getValue("last_updated")
       const dateObject = new Date(dateIsoString)
       return formatTimeDifference(dateObject)
+    },
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    cell: ({ row }) => {
+      const serviceRequest: ServiceRequest = row.original
+      return <ApprovedServiceRequestActions serviceRequest={serviceRequest} />
     },
   },
 ]

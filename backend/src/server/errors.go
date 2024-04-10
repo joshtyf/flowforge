@@ -11,6 +11,7 @@ var (
 	ErrInvalidPipelineId  = errors.New("invalid pipeline id")
 
 	ErrInvalidServiceRequestId        = errors.New("invalid service request id")
+	ErrInvalidServiceRequestStatus    = errors.New("invalid service request status")
 	ErrServiceRequestNotStarted       = errors.New("service request not started")
 	ErrServiceRequestAlreadyStarted   = errors.New("service request already started")
 	ErrServiceRequestAlreadyCompleted = errors.New("service request already completed")

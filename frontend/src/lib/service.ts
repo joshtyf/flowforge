@@ -2,6 +2,8 @@ import { Pipeline } from "@/types/pipeline"
 import apiClient from "./apiClient"
 import { ServiceRequest } from "@/types/service-request"
 
+/* Pipeline */
+
 export async function createPipeline(pipeline: Pipeline): Promise<Pipeline> {
   return apiClient.post("/pipeline", pipeline)
 }
@@ -14,20 +16,30 @@ export async function getPipeline(pipelineId: string): Promise<Pipeline> {
   return apiClient.get(`/pipeline/${pipelineId}`).then((res) => res.data)
 }
 
+/* Service Request */
+
 export async function createServiceRequest(
+  organisationId: number,
   pipelineId: string,
-  pipelineVersion?: string,
+  formData: object,
+  pipelineVersion?: number,
   remarks?: string
 ): Promise<ServiceRequest> {
   return apiClient.post("/service_request", {
     pipeline_id: pipelineId,
     pipeline_version: pipelineVersion,
+    form_data: formData,
     remarks: remarks,
+    org_id: organisationId,
   })
 }
 
-export async function getAllServiceRequest(): Promise<ServiceRequest[]> {
-  return apiClient.post("/service_request")
+export async function getAllServiceRequest(
+  organisationId: number
+): Promise<ServiceRequest[]> {
+  return apiClient
+    .get("/service_request", { params: { org_id: organisationId } })
+    .then((res) => res.data)
 }
 
 export async function getServiceRequest(
@@ -36,8 +48,11 @@ export async function getServiceRequest(
   return apiClient.post(`/service_request/${serviceRequestId}`)
 }
 
-export async function approveServiceRequest(serviceRequestId: string) {
+export async function approveServiceRequest(
+  serviceRequestId: string,
+  organisationId: string
+) {
   return apiClient.post(`/service_request/${serviceRequestId}/approve`, {
-    step_name: "step2",
+    org_id: organisationId,
   })
 }

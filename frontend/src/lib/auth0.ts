@@ -5,7 +5,8 @@ export const getAuth0AuthorizeLink = () => {
     `https://${process.env.NEXT_PUBLIC_AUTH0_DOMAIN}/authorize?` +
     `client_id=${process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID}&` +
     `response_type=token&` +
-    `redirect_uri=${process.env.NEXT_PUBLIC_APP_BASE_URL}/login/callback&` + // TODO: update with production URL
+    `redirect_uri=${process.env.NEXT_PUBLIC_APP_BASE_URL}/login/callback&` +
+    `audience=${process.env.NEXT_PUBLIC_AUTH0_AUDIENCE}&` +
     `scope=openid%20profile%20email`
 
   return url

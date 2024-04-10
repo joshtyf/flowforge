@@ -89,7 +89,6 @@ export default function ServicesView({ services, router }: ServicesViewProps) {
           </div>
         ))}
       </div>
-      {/* TODO: Implement pagination logic */}
       <div className="w-full flex justify-center absolute bottom-0">
         <Pagination>
           <PaginationContent>

@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label"
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import Link from "next/link"
 import { ExternalLink } from "lucide-react"
-import Stepper from "./stepper"
+import Stepper from "@/app/(authenticated)/(main)/service-request-dashboard/_components/stepper"
 
 interface ServiceRequestDetailsProps {
   serviceRequest: ServiceRequest

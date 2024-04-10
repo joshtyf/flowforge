@@ -15,7 +15,19 @@ const (
 	Failure    ServiceRequestStatus = "Failure"
 	Canceled   ServiceRequestStatus = "Canceled"
 	NotStarted ServiceRequestStatus = "Not Started"
+	// NOTE: update allServiceRequestStatuses when adding new status
 )
+
+var allServiceRequestStatuses = []ServiceRequestStatus{Pending, Running, Success, Failure, Canceled, NotStarted}
+
+func ValidateServiceRequestStatus(status string) bool {
+	for _, s := range allServiceRequestStatuses {
+		if s == ServiceRequestStatus(status) {
+			return true
+		}
+	}
+	return false
+}
 
 type FormData map[string]any
 
