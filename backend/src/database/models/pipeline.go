@@ -23,7 +23,6 @@ type FormField struct {
 	Placeholder string        `bson:"placeholder" json:"placeholder"`
 	MinLength   int           `bson:"min_length" json:"min_length"`
 	Options     []string      `bson:"options" json:"options"`
-	Disabled    []string      `bson:"disabled" json:"disabled"`
 	Default     string        `bson:"default" json:"default"`
 }
 
