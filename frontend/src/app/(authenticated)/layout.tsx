@@ -1,5 +1,6 @@
 "use client"
 
+import apiClient from "@/lib/apiClient"
 import { getCookie, hasCookie } from "cookies-next"
 import { useRouter } from "next/navigation"
 import { ReactNode, useEffect, useState } from "react"
@@ -19,6 +20,7 @@ export default function AuthenticatedLayout({
     } else {
       setRender(true)
     }
+    apiClient.defaults.headers.Authorization = `Bearer ${getCookie("access_token") as string}`
   }, [router])
   return render && children
 }

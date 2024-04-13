@@ -1,23 +1,36 @@
-import { toast } from "@/components/ui/use-toast"
-import useOrganisationId from "@/hooks/use-organisation-id"
-import { getAllServiceRequest } from "@/lib/service"
-import {
-  ServiceRequest,
-  ServiceRequestStatus,
-  ServiceRequestStep,
-} from "@/types/service-request"
-import { useQuery } from "@tanstack/react-query"
+import { FormFieldType, JsonFormComponents } from "@/types/json-form-components"
+import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 
-const PIPELINE_1_DUMMY_STEPS: ServiceRequestStep[] = [
-  {
-    name: "Approval",
-    status: ServiceRequestStatus.NOT_STARTED,
-  },
-  {
-    name: "Create EC2",
-    status: ServiceRequestStatus.NOT_STARTED,
-  },
-]
+const DUMMY_PIPELINE_FORM: JsonFormComponents = {
+  fields: [
+    {
+      name: "input",
+      title: "Input",
+      description: "",
+      type: FormFieldType.INPUT,
+      required: true,
+      placeholder: "Enter text...",
+      min_length: 1,
+    },
+    {
+      name: "select",
+      title: "Select",
+      description: "",
+      type: FormFieldType.SELECT,
+      required: true,
+      placeholder: "Select an option",
+      options: ["Option 1", "Option 2", "Option 3"],
+      default: "Option 1",
+    },
+    {
+      name: "checkbox",
+      title: "Checkbox",
+      description: "",
+      type: FormFieldType.CHECKBOXES,
+      options: ["Option 1", "Option 2", "Option 3"],
+    },
+  ],
+}
 
 const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
   {
@@ -30,7 +43,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     created_on: "2024-02-21T19:50:01",
     last_updated: "2024-02-21T19:50:01",
     remarks: "Remarks",
-    form: {},
+    form: DUMMY_PIPELINE_FORM,
     form_data: {},
     steps: [
       {
@@ -69,7 +82,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     created_on: "2024-02-21T18:50:01",
     last_updated: "2024-02-21T18:50:01",
     remarks: "Remarks",
-    form: {},
+    form: DUMMY_PIPELINE_FORM,
     form_data: {},
     steps: [
       {
@@ -93,7 +106,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     created_on: "2024-02-21T17:00:00",
     last_updated: "2024-02-21T17:00:00",
     remarks: "Remarks",
-    form: {},
+    form: DUMMY_PIPELINE_FORM,
     form_data: {},
     steps: [
       {
@@ -116,7 +129,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     created_on: "2024-02-21T00:00:00",
     last_updated: "2024-02-21T00:00:00",
     remarks: "",
-    form: {},
+    form: DUMMY_PIPELINE_FORM,
     form_data: {},
     steps: [
       {
@@ -139,7 +152,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     created_on: "2024-02-21T00:00:00",
     last_updated: "2024-02-21T00:00:00",
     remarks: "",
-    form: {},
+    form: DUMMY_PIPELINE_FORM,
     form_data: {},
     steps: [
       {
@@ -162,7 +175,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     created_on: "2024-02-20T00:00:00",
     last_updated: "2024-02-20T00:00:00",
     remarks: "",
-    form: {},
+    form: DUMMY_PIPELINE_FORM,
     form_data: {},
     steps: [
       {
@@ -184,7 +197,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     created_on: "2024-02-10T00:00:00",
     last_updated: "2024-02-10T00:00:00",
     remarks: "",
-    form: {},
+    form: DUMMY_PIPELINE_FORM,
     form_data: {},
     steps: [
       {

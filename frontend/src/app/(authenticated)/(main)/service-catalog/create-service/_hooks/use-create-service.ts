@@ -6,26 +6,46 @@ import { KeyboardEvent, useState } from "react"
 import { validateFormSchema } from "../_utils/validation"
 import { createPipeline } from "@/lib/service"
 import { Pipeline } from "@/types/pipeline"
-import { JsonFormComponents } from "@/types/json-form-components"
+import {
+  FormCheckboxes,
+  FormComponent,
+  FormFieldType,
+  FormInput,
+  FormSelect,
+  JsonFormComponents,
+} from "@/types/json-form-components"
 import { toast } from "@/components/ui/use-toast"
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
 
-const DEFAULT_FORM = {
-  input: { title: "", description: "", type: "input", required: true },
-  select: {
-    title: "",
-    description: "",
-    type: "select",
-    required: true,
-    options: ["Option 1", "Option 2", "Option 3"],
-  },
-  checkBoxes: {
-    title: "",
-    description: "",
-    type: "checkboxes",
-    required: false,
-    options: ["Option 1", "Option 2", "Option 3"],
-  },
+const DEFAULT_FORM: JsonFormComponents = {
+  fields: [
+    {
+      name: "",
+      title: "",
+      description: "",
+      type: FormFieldType.INPUT,
+      required: true,
+      min_length: 1,
+      placeholder: "Enter text...",
+    } as FormInput,
+    {
+      name: "",
+      title: "",
+      description: "",
+      type: FormFieldType.SELECT,
+      required: true,
+      options: ["Option 1", "Option 2", "Option 3"],
+      default: "Option 1",
+      placeholder: "Select an option",
+    } as FormSelect,
+    {
+      name: "",
+      title: "",
+      description: "",
+      type: FormFieldType.CHECKBOXES,
+      options: ["Option 1", "Option 2", "Option 3"],
+    } as FormCheckboxes,
+  ],
 }
 
 const DEFAULT_PIPELINE = {
@@ -116,6 +136,7 @@ const useCreateService = ({ router }: UseCreateServiceProps) => {
     const { description, form, name, pipeline } = values
 
     const formJson: JsonFormComponents = JSON.parse(form)
+
     const pipelineJson: Pipeline = {
       pipeline_name: name,
       pipeline_description: description,
