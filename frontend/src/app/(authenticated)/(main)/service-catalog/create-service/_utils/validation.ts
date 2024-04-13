@@ -142,7 +142,7 @@ function checkForFormAttributeTypes(
         typeof inputItem.min_length !== "number"
       ) {
         errorMessages.push(
-          `minLength of form item '${formItemName}' can only be number.`
+          `min_length of form item '${formItemName}' can only be number.`
         )
       }
 
