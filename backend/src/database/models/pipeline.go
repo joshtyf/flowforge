@@ -9,9 +9,9 @@ import (
 type FormFieldType string
 
 const (
-	InputField    FormFieldType = "INPUT"
-	SelectField   FormFieldType = "SELECT"
-	CheckboxField FormFieldType = "CHECKBOX"
+	InputField    FormFieldType = "input"
+	SelectField   FormFieldType = "select"
+	CheckboxField FormFieldType = "checkboxes"
 )
 
 type FormField struct {
