@@ -22,9 +22,9 @@ var (
 	ErrInvalidUserId          = errors.New("invalid user id")
 	ErrUserCreateFail         = errors.New("failed to create user")
 	ErrUserRetrieve           = errors.New("failed to retrieve user")
-	ErrOrganisationRetrieve   = errors.New("failed to retrieve user organisations")
-	ErrOrganisationCreateFail = errors.New("failed to create organisation")
-	ErrInvalidOrganisationId  = errors.New("invalid organisation id")
+	ErrOrganizationRetrieve   = errors.New("failed to retrieve user organizations")
+	ErrOrganizationCreateFail = errors.New("failed to create organization")
+	ErrInvalidOrganizationId  = errors.New("invalid organization id")
 
 	ErrMembershipCreateFail = errors.New("failed to create membership")
 	ErrMembershipUpdateFail = errors.New("failed to update membership")

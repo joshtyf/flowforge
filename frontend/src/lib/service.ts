@@ -19,7 +19,7 @@ export async function getPipeline(pipelineId: string): Promise<Pipeline> {
 /* Service Request */
 
 export async function createServiceRequest(
-  organisationId: number,
+  organizationId: number,
   pipelineId: string,
   formData: object,
   pipelineVersion?: number,
@@ -30,15 +30,15 @@ export async function createServiceRequest(
     pipeline_version: pipelineVersion,
     form_data: formData,
     remarks: remarks,
-    org_id: organisationId,
+    org_id: organizationId,
   })
 }
 
 export async function getAllServiceRequest(
-  organisationId: number
+  organizationId: number
 ): Promise<ServiceRequest[]> {
   return apiClient
-    .get("/service_request", { params: { org_id: organisationId } })
+    .get("/service_request", { params: { org_id: organizationId } })
     .then((res) => res.data)
 }
 
@@ -50,9 +50,15 @@ export async function getServiceRequest(
 
 export async function approveServiceRequest(
   serviceRequestId: string,
-  organisationId: string
+  organizationId: string
 ) {
   return apiClient.post(`/service_request/${serviceRequestId}/approve`, {
-    org_id: organisationId,
+    org_id: organizationId,
   })
+}
+
+/* Organization */
+
+export async function getAllOrgsForUser() {
+  return apiClient.get("/organization").then((res) => res.data)
 }
