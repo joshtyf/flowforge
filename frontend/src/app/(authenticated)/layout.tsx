@@ -21,6 +21,7 @@ export default function AuthenticatedLayout({
       apiClient.defaults.headers.Authorization = `Bearer ${getCookie("access_token") as string}`
       setRender(true)
     }
+    apiClient.defaults.headers.Authorization = `Bearer ${getCookie("access_token") as string}`
   }, [router])
   return render && children
 }

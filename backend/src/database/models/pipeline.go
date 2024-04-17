@@ -9,19 +9,21 @@ import (
 type FormFieldType string
 
 const (
-	TextField     FormFieldType = "TEXT"
-	DropdownField FormFieldType = "DROPDOWN"
-	OptionField   FormFieldType = "OPTION"
-	CheckboxField FormFieldType = "CHECKBOX"
+	InputField    FormFieldType = "input"
+	SelectField   FormFieldType = "select"
+	CheckboxField FormFieldType = "checkboxes"
 )
 
 type FormField struct {
 	Name        string        `bson:"name" json:"name"`
-	Type        FormFieldType `bson:"type" json:"type"`
-	IsRequired  bool          `bson:"is_required" json:"is_required"`
-	Placeholder string        `bson:"placeholder" json:"placeholder"`
+	Title       string        `bson:"title" json:"title"`
 	Description string        `bson:"description" json:"description"`
-	Values      []string      `bson:"values" json:"values"`
+	Type        FormFieldType `bson:"type" json:"type"`
+	Required    bool          `bson:"required" json:"required"`
+	Placeholder string        `bson:"placeholder" json:"placeholder"`
+	MinLength   int           `bson:"min_length" json:"min_length"`
+	Options     []string      `bson:"options" json:"options"`
+	Default     string        `bson:"default" json:"default"`
 }
 
 type Form struct {

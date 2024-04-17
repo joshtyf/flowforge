@@ -1,36 +1,39 @@
 import useServiceRequest from "@/hooks/use-service-request"
-import {
-  convertServiceRequestFormToRJSFSchema,
-  generateUiSchema,
-} from "@/lib/utils"
-import { JsonFormComponents } from "@/types/json-form-components"
+import { generateUiSchema } from "@/lib/rjsf-utils"
+import { convertServiceRequestFormToRJSFSchema } from "@/lib/rjsf-utils"
+import { FormFieldType, JsonFormComponents } from "@/types/json-form-components"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { useMemo } from "react"
 
 const DUMMY_PIPELINE_FORM: JsonFormComponents = {
-  input: {
-    title: "Input",
-    type: "input",
-    description: "Input Description with minimum length 1",
-    minLength: 1,
-    required: true,
-    placeholder: "Input placeholder...",
-  },
-  select: {
-    title: "Select Option",
-    type: "select",
-    placeholder: "Select placeholder",
-    description: "Dropdown selection with default value as Item 1",
-    options: ["Item 1", "Item 2", "Item 3"],
-    required: true,
-  },
-  checkboxes: {
-    title: "Checkboxes",
-    type: "checkboxes",
-    description: "You can select more than 1 item",
-    options: ["Item 1", "Item 2", "Item 3"],
-    required: false,
-  },
+  fields: [
+    {
+      name: "input",
+      title: "Input",
+      description: "",
+      type: FormFieldType.INPUT,
+      required: true,
+      placeholder: "Enter text...",
+      min_length: 1,
+    },
+    {
+      name: "select",
+      title: "Select",
+      description: "",
+      type: FormFieldType.SELECT,
+      required: true,
+      placeholder: "Select an option",
+      options: ["Option 1", "Option 2", "Option 3"],
+      default: "Option 1",
+    },
+    {
+      name: "checkbox",
+      title: "Checkbox",
+      description: "",
+      type: FormFieldType.CHECKBOXES,
+      options: ["Option 1", "Option 2", "Option 3"],
+    },
+  ],
 }
 
 const DUMMY_SR_FORM_DATA = {

@@ -1,27 +1,52 @@
-import { isJson } from "@/lib/utils"
+import { isArrayValuesString, isArrayValuesUnique, isJson } from "@/lib/utils"
 import {
   FormCheckboxes,
   FormComponent,
-  FormComponentWithOptions,
+  FormFieldType,
   FormInput,
   FormSelect,
+  JsonFormComponents,
+  Options,
 } from "@/types/json-form-components"
+
+const isNameUnique = (field: FormComponent[]) => {
+  return new Set(field.map((f) => f.name)).size === field.length
+}
+
+const checkForName = (formItems: FormComponent[], errorMessages: string[]) => {
+  for (let i = 0; i < formItems.length; i++) {
+    const formItem = formItems[i]
+    const { name } = formItem
+    if (!name) {
+      errorMessages.push(`Please define a name for form item ${i + 1}`)
+    }
+  }
+
+  if (!isNameUnique(formItems)) {
+    errorMessages.push("Please ensure that name is unique for the form items.")
+  }
+}
 
 const isFormAttribute = (
   formItemAttribute: string
 ): formItemAttribute is keyof FormComponent => {
   return (
+    formItemAttribute === "name" ||
     formItemAttribute === "title" ||
     formItemAttribute === "description" ||
-    formItemAttribute === "type" ||
-    formItemAttribute === "required"
+    formItemAttribute === "type"
   )
 }
 
 const isInputFormAttribute = (
   formItemAttribute: string
 ): formItemAttribute is keyof FormInput => {
-  return isFormAttribute(formItemAttribute) || formItemAttribute === "minLength"
+  return (
+    isFormAttribute(formItemAttribute) ||
+    formItemAttribute === "min_length" ||
+    formItemAttribute === "required" ||
+    formItemAttribute === "placeholder"
+  )
 }
 
 const isSelectFormAttribute = (
@@ -29,8 +54,8 @@ const isSelectFormAttribute = (
 ): formItemAttribute is keyof FormSelect => {
   return (
     isFormAttribute(formItemAttribute) ||
+    formItemAttribute === "required" ||
     formItemAttribute === "options" ||
-    formItemAttribute === "disabled" ||
     formItemAttribute === "default" ||
     formItemAttribute === "placeholder"
   )
@@ -39,11 +64,7 @@ const isSelectFormAttribute = (
 const isCheckboxesFormAttribute = (
   formItemAttribute: string
 ): formItemAttribute is keyof FormCheckboxes => {
-  return (
-    isFormAttribute(formItemAttribute) ||
-    formItemAttribute === "options" ||
-    formItemAttribute === "disabled"
-  )
+  return isFormAttribute(formItemAttribute) || formItemAttribute === "options"
 }
 
 function checkForUnexpectedFormAttributes(
@@ -54,21 +75,21 @@ function checkForUnexpectedFormAttributes(
   const formItemObject = formItem as FormComponent
   for (const formItemAttribute in formItemObject) {
     if (
-      formItemObject.type === "input" &&
+      formItemObject.type === FormFieldType.INPUT &&
       !isInputFormAttribute(formItemAttribute)
     ) {
       errorMessages.push(
         `Not allowed to add '${formItemAttribute}' attribute to input form item '${formItemName}'`
       )
     } else if (
-      formItemObject.type === "select" &&
+      formItemObject.type === FormFieldType.SELECT &&
       !isSelectFormAttribute(formItemAttribute)
     ) {
       errorMessages.push(
         `Not allowed to add '${formItemAttribute}' attribute to select form item '${formItemName}'`
       )
     } else if (
-      formItemObject.type === "checkboxes" &&
+      formItemObject.type === FormFieldType.CHECKBOXES &&
       !isCheckboxesFormAttribute(formItemAttribute)
     ) {
       errorMessages.push(
@@ -84,17 +105,19 @@ function checkForMissingFormAttributes(
   errorMessages: string[]
 ) {
   const { title, description, type } = formItem as FormComponent
-  if (title === undefined) {
+
+  if (!title) {
     errorMessages.push(`title is missing from form item '${formItemName}'`)
   }
 
+  // Check for undefined equality directly as empty string is allowed
   if (description === undefined) {
     errorMessages.push(
       `description is missing from form item '${formItemName}'`
     )
   }
 
-  if (type === undefined) {
+  if (!type) {
     errorMessages.push(`type is missing from form item '${formItemName}'`)
   }
 }
@@ -104,43 +127,55 @@ function checkForFormAttributeTypes(
   formItem: object,
   errorMessages: string[]
 ) {
-  const { title, description, type, required } = formItem as FormComponent
+  const { title, description, type } = formItem as FormComponent
   if (typeof title !== "string" || typeof description !== "string") {
     errorMessages.push(
       `title and description of form item '${formItemName}' can only be string.`
     )
   }
 
-  if (type !== "input" && type !== "select" && type !== "checkboxes") {
-    errorMessages.push(
-      `type of form item '${formItemName}' can only be 'input', 'select' or 'checkboxes'.`
-    )
-  }
+  switch (type) {
+    case FormFieldType.INPUT: {
+      const inputItem = formItem as FormInput
+      if (
+        inputItem.min_length !== undefined &&
+        typeof inputItem.min_length !== "number"
+      ) {
+        errorMessages.push(
+          `min_length of form item '${formItemName}' can only be number.`
+        )
+      }
 
-  if (required !== undefined && typeof required !== "boolean") {
-    errorMessages.push(
-      `required of form item '${formItemName}' can only be boolean.`
-    )
-  }
-
-  if (type === "input") {
-    const inputItem = formItem as FormInput
-    if (
-      inputItem.minLength !== undefined &&
-      typeof inputItem.minLength !== "number"
-    ) {
-      errorMessages.push(
-        `minLength of form item '${formItemName}' can only be number.`
-      )
+      if (
+        inputItem.required !== undefined &&
+        typeof inputItem.required !== "boolean"
+      ) {
+        errorMessages.push(
+          `required of form item '${formItemName}' can only be boolean.`
+        )
+      }
+      break
     }
-  } else if (type === "select" || type === "checkboxes") {
-    const selectItem = formItem as FormComponentWithOptions
-    if (
-      selectItem.disabled !== undefined &&
-      typeof selectItem.disabled !== "boolean"
-    ) {
+    case FormFieldType.SELECT: {
+      const selectItem = formItem as FormSelect
+      if (
+        selectItem.required !== undefined &&
+        typeof selectItem.required !== "boolean"
+      ) {
+        errorMessages.push(
+          `required of form item '${formItemName}' can only be boolean.`
+        )
+      }
+      break
+    }
+    case FormFieldType.CHECKBOXES: {
+      const checkboxesItem = formItem as FormCheckboxes
+
+      break
+    }
+    default: {
       errorMessages.push(
-        `disabled of form item '${formItemName}' can only be boolean.`
+        `type of form item '${formItemName}' can only be 'input', 'select' or 'checkboxes'.`
       )
     }
   }
@@ -153,10 +188,10 @@ function checkForEmptyAttributes(
 ) {
   const { title, type } = formItem as FormComponent
   if (!title) {
-    errorMessages.push(`Form item name for '${formItemName}' cannot be empty`)
+    errorMessages.push(`Form item title for '${formItemName}' cannot be empty`)
   }
-  if (type === "select" || type === "checkboxes") {
-    const formWithOptions = formItem as FormComponentWithOptions
+  if (type === FormFieldType.SELECT || type === FormFieldType.CHECKBOXES) {
+    const formWithOptions = formItem as Options
     const { options } = formWithOptions
     if (!options) {
       errorMessages.push(
@@ -170,30 +205,69 @@ function checkForEmptyAttributes(
   }
 }
 
+function checkForFormAttributesValues(
+  formItemName: string,
+  formItem: object,
+  errorMessages: string[]
+) {
+  const { type } = formItem as FormComponent
+
+  switch (type) {
+    case FormFieldType.INPUT: {
+      break
+    }
+    case FormFieldType.SELECT:
+    case FormFieldType.CHECKBOXES: {
+      const { options } = formItem as Options
+      if (!isArrayValuesUnique(options)) {
+        errorMessages.push(`Option values for '${formItemName}' must be unique`)
+      }
+
+      if (!isArrayValuesString(options)) {
+        errorMessages.push(
+          `Option values for '${formItemName}' can only be string`
+        )
+      }
+      break
+    }
+    default:
+      break
+  }
+}
+
 export function validateFormSchema(jsonString: string) {
   if (!isJson(jsonString)) {
     return []
   }
 
-  const formJson = JSON.parse(jsonString)
+  const formJson: JsonFormComponents = JSON.parse(
+    jsonString
+  ) as JsonFormComponents
   const errorList: string[] = []
-  for (const formItemName in formJson) {
-    const formItem = formJson[formItemName]
+  if (!formJson.fields) {
+    errorList.push("Please define 'fields' in the form")
+    return errorList
+  }
 
+  checkForName(formJson.fields, errorList)
+
+  for (const formItem of formJson.fields) {
+    const formItemName = formItem.name
     if (
-      formItem.type !== "input" &&
-      formItem.type !== "select" &&
-      formItem.type !== "checkboxes"
+      formItem.type !== FormFieldType.INPUT &&
+      formItem.type !== FormFieldType.SELECT &&
+      formItem.type !== FormFieldType.CHECKBOXES
     ) {
       errorList.push(
         `Please define a type for form item '${formItemName}' (Only 'input', 'select' and 'checkboxes' type are supported)`
       )
     }
 
-    checkForUnexpectedFormAttributes(formItemName, formItem, errorList)
-    checkForMissingFormAttributes(formItemName, formItem, errorList)
-    checkForFormAttributeTypes(formItemName, formItem, errorList)
-    checkForEmptyAttributes(formItemName, formItem, errorList)
+    checkForUnexpectedFormAttributes(formItem.name, formItem, errorList)
+    checkForMissingFormAttributes(formItem.name, formItem, errorList)
+    checkForFormAttributeTypes(formItem.name, formItem, errorList)
+    checkForEmptyAttributes(formItem.name, formItem, errorList)
+    checkForFormAttributesValues(formItem.name, formItem, errorList)
   }
 
   return errorList

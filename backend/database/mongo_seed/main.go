@@ -49,6 +49,31 @@ func main() {
 				IsTerminalStep: true,
 			},
 		},
+		Form: models.Form{Fields: []models.FormField{
+			{
+				Name:        "field1",
+				Title:       "Field 1",
+				Type:        models.InputField,
+				Required:    true,
+				Placeholder: "Enter text...",
+				MinLength:   1,
+			},
+			{
+				Name:        "field2",
+				Title:       "Field 2",
+				Type:        models.SelectField,
+				Required:    true,
+				Placeholder: "Select an option",
+				Options:     []string{"Option 1", "Option 2", "Option 3"},
+				Default:     "Option 1",
+			},
+			{
+				Name:    "field3",
+				Title:   "Field 3",
+				Type:    models.CheckboxField,
+				Options: []string{"Option 1", "Option 2", "Option 3"},
+			},
+		}},
 	}
 
 	res, err := database.NewPipeline(c).Create(&pipeline)

@@ -31,6 +31,20 @@ func NewMissingRequiredFieldError(fieldName string) *MissingRequiredFieldError {
 	}
 }
 
+type InvalidPropertyError struct {
+	fieldName string
+}
+
+func (e *InvalidPropertyError) Error() string {
+	return fmt.Sprintf("invalid value found for field: '%s'", e.fieldName)
+}
+
+func NewInvalidPropertyValue(fieldName string) *InvalidPropertyError {
+	return &InvalidPropertyError{
+		fieldName: fieldName,
+	}
+}
+
 func (e *MissingRequiredFieldError) Error() string {
 	return fmt.Sprintf("missing required field: '%s'", e.fieldName)
 }

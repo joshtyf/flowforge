@@ -1,40 +1,48 @@
+export enum FormFieldType {
+  INPUT = "input",
+  SELECT = "select",
+  CHECKBOXES = "checkboxes",
+}
+
 type FormComponent = {
+  name: string
   title: string
   description: string
-  type: "input" | "select" | "checkboxes"
-  required?: boolean
+  type: FormFieldType
 }
 
 type FormInput = FormComponent & {
-  minLength?: number
-  type: "input"
+  type: FormFieldType.INPUT
+  required?: boolean
+  min_length?: number
   placeholder?: string
 }
 
-type FormComponentWithOptions = FormComponent & {
+type Options = {
   options: string[]
-  disabled?: string[]
 }
 
-type FormSelect = FormComponentWithOptions & {
-  type: "select"
-  default?: string
-  placeholder?: string
-}
+type FormSelect = FormComponent &
+  Options & {
+    type: FormFieldType.SELECT
+    required?: boolean
+    default?: string
+    placeholder?: string
+  }
 
-type FormCheckboxes = FormComponentWithOptions & {
-  type: "checkboxes"
-  required?: false
-}
+type FormCheckboxes = FormComponent &
+  Options & {
+    type: FormFieldType.CHECKBOXES
+  }
 
 type JsonFormComponents = {
-  [key: string]: FormInput | FormSelect | FormCheckboxes
+  fields: (FormInput | FormSelect | FormCheckboxes)[]
 }
 
 export type {
   FormComponent,
-  FormComponentWithOptions,
   FormInput,
+  Options,
   FormSelect,
   FormCheckboxes,
   JsonFormComponents,
