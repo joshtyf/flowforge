@@ -1,5 +1,5 @@
 import { toast } from "@/components/ui/use-toast"
-import useOrganisationId from "@/hooks/use-organisation-id"
+import useOrganizationId from "@/hooks/use-organization-id"
 import usePipeline from "@/hooks/use-pipeline"
 import { createServiceRequest, getPipeline } from "@/lib/service"
 import { generateUiSchema } from "@/lib/rjsf-utils"
@@ -52,7 +52,7 @@ const useServiceRequestForm = ({
     pipelineId,
   })
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
-  const { organisationId } = useOrganisationId()
+  const { organizationId } = useOrganizationId()
   const handleCreateServiceRequest = (
     data: IChangeEvent<object, RJSFSchema, object>
   ) => {
@@ -66,7 +66,7 @@ const useServiceRequestForm = ({
       })
       return
     }
-    createServiceRequest(organisationId, pipelineId, formData, service?.version)
+    createServiceRequest(organizationId, pipelineId, formData, service?.version)
       .then((data) => {
         toast({
           title: "Request Submission Successful",

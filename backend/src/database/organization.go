@@ -15,7 +15,7 @@ func NewOrganization(c *sql.DB) *Organization {
 	return &Organization{c: c}
 }
 
-func (o *Organization) Create(org *models.OrganisationModel) (*models.OrganisationModel, error) {
+func (o *Organization) Create(org *models.OrganizationModel) (*models.OrganizationModel, error) {
 	tx, err := o.c.BeginTx(context.Background(), nil)
 	if err != nil {
 		return nil, err
@@ -38,16 +38,16 @@ func (o *Organization) Create(org *models.OrganisationModel) (*models.Organisati
 	return org, nil
 }
 
-func (o *Organization) GetAllOrgsByUserId(user_id string) ([]*models.OrganisationModel, error) {
+func (o *Organization) GetAllOrgsByUserId(user_id string) ([]*models.OrganizationModel, error) {
 	rows, err := o.c.Query(SelectOrganizationsStatement, user_id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	oms := []*models.OrganisationModel{}
+	oms := []*models.OrganizationModel{}
 	for rows.Next() {
-		om := &models.OrganisationModel{}
+		om := &models.OrganizationModel{}
 		if err := rows.Scan(&om.OrgId, &om.Name, &om.Owner, &om.CreatedOn, &om.Deleted); err != nil {
 			return nil, err
 		}
@@ -59,9 +59,9 @@ func (o *Organization) GetAllOrgsByUserId(user_id string) ([]*models.Organisatio
 	return oms, nil
 }
 
-func (o *Organization) GetOrgByOwnerAndOrgId(user_id string, org_id int) (*models.OrganisationModel, error) {
-	om := &models.OrganisationModel{}
-	if err := o.c.QueryRow(SelectOrganisationByUserAndOrgIdStatement, org_id, user_id).Scan(&om.OrgId, &om.Name, &om.Owner, &om.CreatedOn, &om.Deleted); err != nil {
+func (o *Organization) GetOrgByOwnerAndOrgId(user_id string, org_id int) (*models.OrganizationModel, error) {
+	om := &models.OrganizationModel{}
+	if err := o.c.QueryRow(SelectOrganizationByUserAndOrgIdStatement, org_id, user_id).Scan(&om.OrgId, &om.Name, &om.Owner, &om.CreatedOn, &om.Deleted); err != nil {
 		return nil, err
 	}
 	return om, nil

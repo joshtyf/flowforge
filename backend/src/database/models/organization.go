@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-type OrganisationModel struct {
+type OrganizationModel struct {
 	OrgId     int       `json:"org_id"`
 	Name      string    `json:"name"`
 	Owner     string    `json:"owner"`

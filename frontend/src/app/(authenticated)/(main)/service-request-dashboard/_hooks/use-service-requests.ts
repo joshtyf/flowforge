@@ -214,11 +214,11 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
 
 const useServiceRequests = () => {
   // TODO: Integrate Service Request API by uncommenting below
-  // const { organisationId } = useOrganisationId()
+  // const { organizationId } = useOrganizationId()
   // const { isLoading, data: serviceRequests } = useQuery({
   //   queryKey: ["user_service_requests"],
   //   queryFn: () =>
-  //     getAllServiceRequest(organisationId).catch((err) => {
+  //     getAllServiceRequest(organizationId).catch((err) => {
   //       console.log(err)
   //       toast({
   //         title: "Fetching Service Requests Error",

@@ -18,6 +18,7 @@ export default function AuthenticatedLayout({
     if (!getCookie("loggedIn") || !hasCookie("access_token")) {
       router.push("/login")
     } else {
+      apiClient.defaults.headers.Authorization = `Bearer ${getCookie("access_token") as string}`
       setRender(true)
     }
     apiClient.defaults.headers.Authorization = `Bearer ${getCookie("access_token") as string}`

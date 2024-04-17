@@ -45,7 +45,7 @@ func main() {
 		logger.Info(fmt.Sprintf("inserted user: %v", user))
 	}
 
-	om := models.OrganisationModel{
+	om := models.OrganizationModel{
 		Name:  "Test Org",
 		Owner: "auth0|65ffab5c004e8d1620d06a64",
 	}

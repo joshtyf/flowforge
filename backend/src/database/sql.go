@@ -20,7 +20,7 @@ var (
 								WHERE user_id = $1
 								AND deleted = false`
 
-	// Organisation
+	// Organization
 	CreateOrganizationStatement = `INSERT INTO public."organization" (name, owner) 
 									VALUES ($1, $2) RETURNING org_id, created_on`
 
@@ -30,7 +30,7 @@ var (
 									WHERE user_id = $1
 									AND o.deleted = false`
 
-	SelectOrganisationByUserAndOrgIdStatement = `SELECT * FROM public."organization"
+	SelectOrganizationByUserAndOrgIdStatement = `SELECT * FROM public."organization"
 													WHERE org_id = $1
 													AND owner = $2
 													AND deleted = false`
