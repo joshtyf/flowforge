@@ -1,5 +1,9 @@
+import { toast } from "@/components/ui/use-toast"
+import useOrganizationId from "@/hooks/use-organization-id"
+import { getAllServiceRequest } from "@/lib/service"
 import { FormFieldType, JsonFormComponents } from "@/types/json-form-components"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
+import { useQuery } from "@tanstack/react-query"
 
 const DUMMY_PIPELINE_FORM: JsonFormComponents = {
   fields: [
@@ -213,24 +217,24 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
 ]
 
 const useServiceRequests = () => {
-  // TODO: Integrate Service Request API by uncommenting below
-  // const { organizationId } = useOrganizationId()
-  // const { isLoading, data: serviceRequests } = useQuery({
-  //   queryKey: ["user_service_requests"],
-  //   queryFn: () =>
-  //     getAllServiceRequest(organizationId).catch((err) => {
-  //       console.log(err)
-  //       toast({
-  //         title: "Fetching Service Requests Error",
-  //         description:
-  //           "Failed to fetch Service Requests for user. Please try again later.",
-  //         variant: "destructive",
-  //       })
-  //     }),
-  // })
+  const { organizationId } = useOrganizationId()
+  const { isLoading, data: serviceRequests } = useQuery({
+    queryKey: ["user_service_requests"],
+    queryFn: () =>
+      getAllServiceRequest(organizationId).catch((err) => {
+        console.log(err)
+        toast({
+          title: "Fetching Service Requests Error",
+          description:
+            "Failed to fetch Service Requests for user. Please try again later.",
+          variant: "destructive",
+        })
+      }),
+  })
+
   return {
-    serviceRequests: DUMMY_SERVICE_REQUESTS,
-    // isLoading
+    serviceRequests: serviceRequests,
+    isLoading,
   }
 }
 
