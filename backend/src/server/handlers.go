@@ -66,9 +66,9 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/pipeline", isAuthenticated(validateCreatePipelineRequest(handleCreatePipeline(s.logger, s.mongoClient), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 
 	// User
-	r.Handle("/api/user", isAuthenticated(handleGetUserById(s.logger, s.psqlClient), s.logger)).Methods("GET")
-	// TODO: review the need for this route
-	// r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.psqlClient))).Methods("GET")
+	// TODO: fix this
+	// r.Handle("/api/user", isAuthenticated(handleGetUserById(s.logger, s.psqlClient), s.logger)).Methods("GET")
+	r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.logger, s.psqlClient), s.logger)).Methods("GET")
 	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 
 	// Organization
@@ -528,10 +528,8 @@ func handleGetServiceRequestsByOrganization(logger logger.ServerLogger, client *
 
 func handleGetUserById(logger logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// user_id := vars["userId"]
-		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
-		userId := token.RegisteredClaims.Subject
-
+		vars := mux.Vars(r)
+		userId := vars["userId"]
 		user, err := database.NewUser(client).GetUserById(userId)
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error(fmt.Sprintf("%s %s not found", "user", userId))
