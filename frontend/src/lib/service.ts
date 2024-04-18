@@ -62,3 +62,7 @@ export async function approveServiceRequest(
 export async function getAllOrgsForUser() {
   return apiClient.get("/organization").then((res) => res.data)
 }
+
+export async function getUserById(userId: string): Promise<UserFromBackend> {
+  return apiClient.get(`/user/${userId}`).then((res) => res.data)
+}
