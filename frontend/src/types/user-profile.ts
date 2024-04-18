@@ -5,4 +5,13 @@ type UserProfile = {
   nickname?: string
 }
 
-export type { UserProfile }
+// TODO: This type should be moved to a shared location
+type UserFromBackend = {
+  user_id: string
+  name: string
+  identity_provider: string
+  created_on: Date
+  deleted: boolean
+}
+
+export type { UserProfile, UserFromBackend }
