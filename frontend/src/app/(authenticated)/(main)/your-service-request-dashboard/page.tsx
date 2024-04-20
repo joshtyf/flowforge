@@ -2,7 +2,7 @@
 
 import HeaderAccessory from "@/components/ui/header-accessory"
 import useServiceRequests from "./_hooks/use-service-requests"
-import { DataTable } from "@/components/layouts/data-table"
+import { DataTable } from "@/components/data-table/data-table"
 import { columns } from "./columns"
 
 export default function ServiceRequestDashboardPage() {

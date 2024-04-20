@@ -2,8 +2,8 @@
 
 import HeaderAccessory from "@/components/ui/header-accessory"
 import useOrgServiceRequests from "./_hooks/use-org-service-requests"
-import { pendingServiceRequestColumns } from "./columns"
-import { DataTable } from "@/components/layouts/data-table"
+import { orgServiceRequestColumns } from "./columns"
+import { DataTable } from "@/components/data-table/data-table"
 
 export default function ApproveServiceRequestPage() {
   const { serviceRequests } = useOrgServiceRequests()
@@ -16,10 +16,7 @@ export default function ApproveServiceRequestPage() {
         </p>
       </div>
       <div className="py-10">
-        <DataTable
-          columns={pendingServiceRequestColumns}
-          data={serviceRequests}
-        />
+        <DataTable columns={orgServiceRequestColumns} data={serviceRequests} />
       </div>
     </div>
   )
