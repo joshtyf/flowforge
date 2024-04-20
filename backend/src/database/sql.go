@@ -30,15 +30,22 @@ var (
 									WHERE user_id = $1
 									AND o.deleted = false`
 
-	SelectOrganizationByUserAndOrgIdStatement = `SELECT * FROM public."organization"
+	SelectOrganizationByOrgIdAndOwnerStatement = `SELECT * FROM public."organization"
 													WHERE org_id = $1
 													AND owner = $2
 													AND deleted = false`
 
-	DeleteOrganizationByUserAndOrgIdStatementStatement = `UPDATE public."organization"
+	UpdateOrganizationNameByOrgIdAndOwnerStatement = `UPDATE public."organization"
+										SET name = $1
+										WHERE org_id = $2
+										AND owner = $3
+										AND deleted = false`
+
+	DeleteOrganizationByOrgIdAndOwnerStatement = `UPDATE public."organization"
 															SET deleted = true
 															WHERE org_id = $1
-															AND owner = $2`
+															AND owner = $2
+															AND deleted = false`
 
 	// Membership
 	CreateMembershipStatement = `INSERT INTO public."membership" (user_id, org_id, role) 
