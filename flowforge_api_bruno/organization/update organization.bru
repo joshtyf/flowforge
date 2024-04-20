@@ -1,10 +1,10 @@
 meta {
-  name: delete organization
+  name: update organization
   type: http
-  seq: 3
+  seq: 4
 }
 
-delete {
+patch {
   url: {{HOST}}/organization
   body: json
   auth: none
@@ -12,6 +12,7 @@ delete {
 
 body:json {
   {
-      "org_id": 2
+    "org_id": 2,
+    "name": "new name"
   }
 }
