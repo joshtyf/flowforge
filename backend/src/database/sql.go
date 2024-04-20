@@ -35,6 +35,11 @@ var (
 													AND owner = $2
 													AND deleted = false`
 
+	DeleteOrganizationByUserAndOrgIdStatementStatement = `UPDATE public."organization"
+															SET deleted = true
+															WHERE org_id = $1
+															AND owner = $2`
+
 	// Membership
 	CreateMembershipStatement = `INSERT INTO public."membership" (user_id, org_id, role) 
 								  VALUES ($1, $2, $3) RETURNING joined_on`

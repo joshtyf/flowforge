@@ -74,6 +74,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	// Organization
 	r.Handle("/api/organization", isAuthenticated(handleCreateOrganization(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 	r.Handle("/api/organization", isAuthenticated(handleGetOrganizationsForUser(s.logger, s.psqlClient), s.logger)).Methods("GET")
+	r.Handle("/api/organization", isAuthenticated(getOrgIdFromRequestBody(isOrgOwner(s.psqlClient, handleDeleteOrganizationForOwner(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("DELETE").Headers("Content-Type", "application/json")
 
 	// Membership
 	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgAdmin(s.psqlClient, handleCreateMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
@@ -459,7 +460,9 @@ func handleCreateOrganization(logger logger.ServerLogger, client *sql.DB) http.H
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
-		org, err := database.NewOrganization(client).Create(&om)
+		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		userId := token.RegisteredClaims.Subject
+		org, err := database.NewOrganization(client).Create(userId, &om)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganizationCreateFail, http.StatusInternalServerError))
@@ -661,5 +664,25 @@ func handleGetOrganizationsForUser(logger logger.ServerLogger, client *sql.DB) h
 			return
 		}
 		encode(w, r, http.StatusOK, orgs)
+	})
+}
+
+func handleDeleteOrganizationForOwner(logger logger.ServerLogger, client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		om, err := decode[models.OrganizationModel](r)
+		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		userId := token.RegisteredClaims.Subject
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to parse json request body: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		_, err = database.NewOrganization(client).DeleteOrgByOwnerAndOrgId(userId, om.OrgId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to delete organization: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganizationDeleteFail, http.StatusInternalServerError))
+			return
+		}
+		encode[any](w, r, http.StatusOK, nil)
 	})
 }
