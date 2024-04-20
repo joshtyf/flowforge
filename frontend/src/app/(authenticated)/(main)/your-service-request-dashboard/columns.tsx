@@ -7,11 +7,18 @@ import Link from "next/link"
 import ServiceRequestActions from "./_components/service-request-actions"
 import { StatusBadge } from "@/components/layouts/status-badge"
 import { ExternalLink } from "lucide-react"
+import { DataTableColumnHeaderFilterableValue } from "@/components/data-table/data-table-column-header-filterable-value"
 
 export const columns: ColumnDef<ServiceRequest>[] = [
   {
     accessorKey: "status",
-    header: "Status",
+    header: ({ column }) => (
+      <DataTableColumnHeaderFilterableValue
+        column={column}
+        title="Status"
+        filterableValues={Object.values(ServiceRequestStatus)}
+      />
+    ),
     cell: ({ row }) => {
       const status: ServiceRequestStatus = row.getValue("status")
       return <StatusBadge status={status} />
