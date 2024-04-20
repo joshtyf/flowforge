@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils"
 import Link from "next/link"
 import React from "react"
 import { buttonVariants } from "../ui/button"
-import { GitBranchPlus, LibraryBig, Workflow, Shield } from "lucide-react"
+import { LibraryBig, Workflow, LockKeyhole } from "lucide-react"
 
 type LinkType = {
   title: string
@@ -34,7 +34,7 @@ const links: LinkType[] = [
   },
   {
     title: "Admin Service Request Dashboard",
-    icon: Shield,
+    icon: LockKeyhole,
     href: "/admin-service-requests-dashboard",
     variant: "ghost",
   },
