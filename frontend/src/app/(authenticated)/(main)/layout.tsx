@@ -48,7 +48,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
           suppressHydrationWarning
         >
           <Sidebar
-            className={` ${isSidebarOpen ? "min-w-[280px] w-[280px]" : "min-w-0 w-0"} overflow-x-hidden transition-width duration-300 ease-in-out`}
+            className={` ${isSidebarOpen ? "min-w-[300px] w-[300px]" : "min-w-0 w-0"} overflow-x-hidden transition-width duration-300 ease-in-out`}
           />
           <div className="w-full">
             <Navbar

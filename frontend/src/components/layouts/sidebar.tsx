@@ -2,15 +2,7 @@ import { cn } from "@/lib/utils"
 import Link from "next/link"
 import React from "react"
 import { buttonVariants } from "../ui/button"
-import {
-  CheckCircle2,
-  CircleEllipsis,
-  CircleSlash2,
-  GitBranchPlus,
-  LibraryBig,
-  Workflow,
-  XOctagon,
-} from "lucide-react"
+import { GitBranchPlus, LibraryBig, Workflow, Shield } from "lucide-react"
 
 type LinkType = {
   title: string
@@ -35,33 +27,15 @@ const links: LinkType[] = [
     variant: "ghost",
   },
   {
-    title: "Service Request Dashboard",
+    title: "Your Service Requests",
     icon: Workflow,
-    href: "/service-request-dashboard",
+    href: "/your-service-request-dashboard",
     variant: "ghost",
   },
   {
-    title: "Service Creation Dashboard",
-    icon: GitBranchPlus,
-    href: "#",
-    variant: "ghost",
-  },
-  {
-    title: "Pending Service Requests",
-    icon: CircleEllipsis,
-    href: "/pending-service-requests",
-    variant: "ghost",
-  },
-  {
-    title: "Approved Service Requests",
-    icon: CheckCircle2,
-    href: "/approved-service-requests",
-    variant: "ghost",
-  },
-  {
-    title: "Rejected Service Requests",
-    icon: XOctagon,
-    href: "/rejected-service-requests",
+    title: "Admin Service Request Dashboard",
+    icon: Shield,
+    href: "/admin-service-requests-dashboard",
     variant: "ghost",
   },
 ]

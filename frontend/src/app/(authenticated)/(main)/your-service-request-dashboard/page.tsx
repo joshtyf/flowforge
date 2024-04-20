@@ -11,7 +11,7 @@ export default function ServiceRequestDashboardPage() {
     <div className="flex flex-col justify-start py-10">
       <HeaderAccessory />
       <div className="flex items-baseline">
-        <p className="font-bold text-3xl pt-5">Service Request Dashboard</p>
+        <p className="font-bold text-3xl pt-5">Your Service Requests</p>
       </div>
       <div className="py-10">
         <DataTable columns={columns} data={serviceRequests} />

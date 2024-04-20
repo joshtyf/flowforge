@@ -1,23 +1,23 @@
 "use client"
 
 import HeaderAccessory from "@/components/ui/header-accessory"
-import { approvedServiceRequestColumns } from "./columns"
+import useOrgServiceRequests from "./_hooks/use-org-service-requests"
+import { pendingServiceRequestColumns } from "./columns"
 import { DataTable } from "@/components/layouts/data-table"
-import useApprovedServiceRequest from "./_hooks/use-approved-service-requests"
 
 export default function ApproveServiceRequestPage() {
-  const { serviceRequests } = useApprovedServiceRequest()
+  const { serviceRequests } = useOrgServiceRequests()
   return (
     <div className="flex flex-col justify-start py-10">
       <HeaderAccessory />
       <div className="flex items-baseline">
         <p className="font-bold text-3xl pt-5">
-          Your Approved Service Requests
+          Admin Service Request Dashboard
         </p>
       </div>
       <div className="py-10">
         <DataTable
-          columns={approvedServiceRequestColumns}
+          columns={pendingServiceRequestColumns}
           data={serviceRequests}
         />
       </div>

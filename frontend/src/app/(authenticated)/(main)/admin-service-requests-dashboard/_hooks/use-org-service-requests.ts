@@ -38,7 +38,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     pipeline_id: "65d48c02d62a1281c4f4ba3e",
     pipeline_name: "Service 1",
     pipeline_version: "0",
-    status: ServiceRequestStatus.RUNNING,
+    status: ServiceRequestStatus.PENDING,
     created_on: "2024-02-21T19:50:01",
     created_by: "User 1",
     last_updated: "2024-02-21T19:50:01",
@@ -48,11 +48,11 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     steps: [
       {
         name: "Approval",
-        status: ServiceRequestStatus.COMPLETED,
+        status: ServiceRequestStatus.PENDING,
       },
       {
         name: "Create EC2",
-        status: ServiceRequestStatus.RUNNING,
+        status: ServiceRequestStatus.NOT_STARTED,
       },
     ],
   },
@@ -61,7 +61,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     pipeline_id: "65d48c02d62a1281c4f4ba3e",
     pipeline_name: "Service 1",
     pipeline_version: "0",
-    status: ServiceRequestStatus.RUNNING,
+    status: ServiceRequestStatus.PENDING,
     created_on: "2024-02-21T18:50:01",
     created_by: "User 2",
     last_updated: "2024-02-21T18:50:01",
@@ -71,11 +71,11 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     steps: [
       {
         name: "Approval",
-        status: ServiceRequestStatus.COMPLETED,
+        status: ServiceRequestStatus.PENDING,
       },
       {
         name: "Create EC2",
-        status: ServiceRequestStatus.RUNNING,
+        status: ServiceRequestStatus.NOT_STARTED,
       },
     ],
   },
@@ -84,7 +84,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     pipeline_id: "65d48c02d62a1281c4f4ba3e",
     pipeline_name: "Service 1",
     pipeline_version: "0",
-    status: ServiceRequestStatus.SUCCESS,
+    status: ServiceRequestStatus.PENDING,
     created_on: "2024-02-21T17:00:00",
     created_by: "User 3",
     last_updated: "2024-02-21T17:00:00",
@@ -94,11 +94,11 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     steps: [
       {
         name: "Approval",
-        status: ServiceRequestStatus.COMPLETED,
+        status: ServiceRequestStatus.PENDING,
       },
       {
         name: "Create EC2",
-        status: ServiceRequestStatus.COMPLETED,
+        status: ServiceRequestStatus.NOT_STARTED,
       },
     ],
   },
@@ -107,7 +107,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     pipeline_id: "65d48c02d62a1281c4f4ba3e",
     pipeline_name: "Service 1",
     pipeline_version: "0",
-    status: ServiceRequestStatus.SUCCESS,
+    status: ServiceRequestStatus.RUNNING,
     created_on: "2024-02-21T00:00:00",
     created_by: "User 4",
     last_updated: "2024-02-21T00:00:00",
@@ -121,14 +121,60 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
       },
       {
         name: "Create EC2",
-        status: ServiceRequestStatus.COMPLETED,
+        status: ServiceRequestStatus.RUNNING,
+      },
+    ],
+  },
+  {
+    id: "5",
+    pipeline_id: "65d48c02d62a1281c4f4ba3e",
+    pipeline_name: "Service 1",
+    pipeline_version: "0",
+    status: ServiceRequestStatus.REJECTED,
+    created_on: "2024-02-20T00:00:00",
+    created_by: "User 1",
+    last_updated: "2024-02-20T00:00:00",
+    remarks: "",
+    form: DUMMY_PIPELINE_FORM,
+    form_data: {},
+    steps: [
+      {
+        name: "Approval",
+        status: ServiceRequestStatus.REJECTED,
+      },
+      {
+        name: "Create EC2",
+        status: ServiceRequestStatus.NOT_STARTED,
+      },
+    ],
+  },
+  {
+    id: "6",
+    pipeline_id: "65d48c02d62a1281c4f4ba3e",
+    pipeline_name: "Service 1",
+    pipeline_version: "0",
+    status: ServiceRequestStatus.REJECTED,
+    created_on: "2024-02-10T00:00:00",
+    created_by: "User 2",
+    last_updated: "2024-02-10T00:00:00",
+    remarks: "",
+    form: DUMMY_PIPELINE_FORM,
+    form_data: {},
+    steps: [
+      {
+        name: "Approval",
+        status: ServiceRequestStatus.REJECTED,
+      },
+      {
+        name: "Create EC2",
+        status: ServiceRequestStatus.NOT_STARTED,
       },
     ],
   },
 ]
 
-const useApprovedServiceRequest = () => {
+const useOrgServiceRequests = () => {
   return { serviceRequests: DUMMY_SERVICE_REQUESTS }
 }
 
-export default useApprovedServiceRequest
+export default useOrgServiceRequests
