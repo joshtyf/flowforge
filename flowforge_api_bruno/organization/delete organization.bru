@@ -1,0 +1,17 @@
+meta {
+  name: delete organization
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{HOST}}/organization
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "org_id": 5
+  }
+}

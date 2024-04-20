@@ -1,0 +1,17 @@
+meta {
+  name: create organization
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{HOST}}/organization
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "name": "test1"
+  }
+}
