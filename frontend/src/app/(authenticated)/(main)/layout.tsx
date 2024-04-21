@@ -38,7 +38,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       .catch((error) => {
         console.log(error)
       })
-  })
+  }, [])
 
   return (
     render && (
