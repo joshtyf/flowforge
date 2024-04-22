@@ -45,7 +45,9 @@ export async function getAllServiceRequest(
 export async function getServiceRequest(
   serviceRequestId: string
 ): Promise<ServiceRequest> {
-  return apiClient.get(`/service_request/${serviceRequestId}`)
+  return apiClient
+    .get(`/service_request/${serviceRequestId}`)
+    .then((res) => res.data)
 }
 
 export async function approveServiceRequest(

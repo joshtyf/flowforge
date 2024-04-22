@@ -6,11 +6,14 @@ type UseServiceRequestLogsOptions = {
 const useServiceRequestLogs = ({
   serviceRequestId,
 }: UseServiceRequestLogsOptions) => {
-  const serviceRequest = useServiceRequest({ serviceRequestId })
+  const { serviceRequest, isServiceRequestLoading } = useServiceRequest({
+    serviceRequestId,
+  })
 
   return {
     serviceRequestLogs: [],
-    serviceRequest,
+    serviceRequestSteps: serviceRequest?.steps ?? [],
+    isLoading: isServiceRequestLoading,
   }
 }
 
