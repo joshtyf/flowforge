@@ -1,6 +1,6 @@
 import React from "react"
 import { Column } from "@tanstack/react-table"
-import { ChevronsUpDown, EyeOff, SortAsc, SortDesc } from "lucide-react"
+import { EyeOff, Filter, ListFilter } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -13,33 +13,36 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
+export type FilterableOption<T> = {
+  value: T
+  name: string
+}
 
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
   column: Column<TData, TValue>
   title: string
-  filterableValues?: string[]
+  filterableOptions?: FilterableOption<TValue>[]
 }
 
 export function DataTableColumnHeaderFilterableValue<TData, TValue>({
   column,
   title,
   className,
-  filterableValues,
+  filterableOptions,
 }: DataTableColumnHeaderProps<TData, TValue>) {
   const [position, setPosition] = React.useState("all")
   if (!column.getCanSort()) {
     return <div className={cn(className)}>{title}</div>
   }
 
-  function renderLockIcon(): React.JSX.Element {
-    const sorted = column.getIsSorted()
-    if (sorted === "desc") {
-      return <SortDesc className="ml-2 h-4 w-4" />
-    } else if (sorted === "asc") {
-      return <SortAsc className=" ml-2 h-4 w-4" />
+  function renderFilterIcon(): React.JSX.Element {
+    const isFiltered = column.getIsFiltered()
+    if (isFiltered) {
+      return <ListFilter className="ml-2 h-4 w-4" />
+    } else {
+      return <Filter className=" ml-2 h-4 w-4" />
     }
-    return <ChevronsUpDown className="ml-2 h-4 w-4" />
   }
 
   return (
@@ -52,7 +55,7 @@ export function DataTableColumnHeaderFilterableValue<TData, TValue>({
             className="-ml-3 h-8 data-[state=open]:bg-accent"
           >
             <span>{title}</span>
-            {renderLockIcon()}
+            {renderFilterIcon()}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
@@ -63,16 +66,21 @@ export function DataTableColumnHeaderFilterableValue<TData, TValue>({
             >
               All
             </DropdownMenuRadioItem>
-            {filterableValues?.map((value) => (
+            {filterableOptions?.map((option) => (
               <DropdownMenuRadioItem
-                key={value}
-                onClick={() => column.setFilterValue(value)}
-                value={value.toLowerCase()}
+                key={option.name}
+                onClick={() => column.setFilterValue(option.value)}
+                value={option.name}
               >
-                {value}
+                {option.name}
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
+            <EyeOff className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+            Hide
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

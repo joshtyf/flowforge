@@ -16,7 +16,10 @@ export const columns: ColumnDef<ServiceRequest>[] = [
       <DataTableColumnHeaderFilterableValue
         column={column}
         title="Status"
-        filterableValues={Object.values(ServiceRequestStatus)}
+        filterableOptions={Object.values(ServiceRequestStatus).map((value) => ({
+          value,
+          name: value,
+        }))}
       />
     ),
     cell: ({ row }) => {
