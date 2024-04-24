@@ -10,7 +10,7 @@ import { useState } from "react"
 import { ApproveConfirmationDialog } from "./approve-confirmation-dialog"
 import { RejectConfirmationDialog } from "./reject-confirmation-dialog"
 import ServiceRequestDetailsDialog from "@/components/layouts/service-request-details-dialog"
-import { ServiceRequest } from "@/types/service-request"
+import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 
 interface PendingServiceRequestActionsProps {
   serviceRequest: ServiceRequest
@@ -44,7 +44,9 @@ export default function PendingServiceRequestActions({
           <Button variant="ghost">View Details</Button>
         </DropdownMenuItem>
 
-        <DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={serviceRequest.status !== ServiceRequestStatus.PENDING}
+        >
           <Button
             variant="ghost"
             className="text-green-700 hover:text-green-500"
@@ -53,7 +55,9 @@ export default function PendingServiceRequestActions({
             Approve
           </Button>
         </DropdownMenuItem>
-        <DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={serviceRequest.status !== ServiceRequestStatus.PENDING}
+        >
           {/* TODO: Add on click logic*/}
           <Button
             variant="ghost"

@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label"
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import Link from "next/link"
 import { ExternalLink } from "lucide-react"
-import Stepper from "@/app/(authenticated)/(main)/service-request-dashboard/_components/stepper"
+import PipelineStepper from "./pipeline-stepper"
 
 interface ServiceRequestDetailsProps {
   serviceRequest: ServiceRequest
@@ -82,7 +82,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
       </div>
       <div className="col-span-2">
         <Label className="text-muted-foreground">Steps</Label>
-        <Stepper steps={steps} />
+        <PipelineStepper steps={steps} />
       </div>
     </div>
   )

@@ -62,7 +62,7 @@ interface StepperProps {
   steps?: ServiceRequestStep[]
 }
 
-export default function Stepper({ steps }: StepperProps) {
+export default function PipelineStepper({ steps }: StepperProps) {
   return (
     <div className="flex justify-center">
       <ol className="flex flex-wrap py-2 space-x-[2rem]">
