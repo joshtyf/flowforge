@@ -1,12 +1,11 @@
-type UserProfile = {
+type Auth0UserProfile = {
   email?: string
   name?: string
   preferred_username?: string
   nickname?: string
 }
 
-// TODO: This type should be moved to a shared location
-type UserFromBackend = {
+type UserInfo = {
   user_id: string
   name: string
   identity_provider: string
@@ -14,4 +13,4 @@ type UserFromBackend = {
   deleted: boolean
 }
 
-export type { UserProfile, UserFromBackend }
+export type { Auth0UserProfile, UserInfo }
