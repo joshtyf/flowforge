@@ -111,7 +111,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     pipeline_id: "65d48c02d62a1281c4f4ba3e",
     pipeline_name: "Service 1",
     pipeline_version: "0",
-    status: ServiceRequestStatus.PENDING,
+    status: ServiceRequestStatus.RUNNING,
     created_on: "2024-02-21T00:00:00",
     created_by: "User 4",
     last_updated: "2024-02-21T00:00:00",
@@ -121,11 +121,11 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     steps: [
       {
         name: "Approval",
-        status: ServiceRequestStatus.PENDING,
+        status: ServiceRequestStatus.COMPLETED,
       },
       {
         name: "Create EC2",
-        status: ServiceRequestStatus.NOT_STARTED,
+        status: ServiceRequestStatus.RUNNING,
       },
     ],
   },
@@ -135,7 +135,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     pipeline_id: "65d48c02d62a1281c4f4ba3e",
     pipeline_name: "Service 1",
     pipeline_version: "0",
-    status: ServiceRequestStatus.PENDING,
+    status: ServiceRequestStatus.REJECTED,
     created_on: "2024-02-20T00:00:00",
     created_by: "User 1",
     last_updated: "2024-02-20T00:00:00",
@@ -145,7 +145,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     steps: [
       {
         name: "Approval",
-        status: ServiceRequestStatus.PENDING,
+        status: ServiceRequestStatus.REJECTED,
       },
       {
         name: "Create EC2",
@@ -159,7 +159,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     pipeline_id: "65d48c02d62a1281c4f4ba3e",
     pipeline_name: "Service 1",
     pipeline_version: "0",
-    status: ServiceRequestStatus.PENDING,
+    status: ServiceRequestStatus.REJECTED,
     created_on: "2024-02-10T00:00:00",
     created_by: "User 2",
     last_updated: "2024-02-10T00:00:00",
@@ -169,7 +169,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     steps: [
       {
         name: "Approval",
-        status: ServiceRequestStatus.PENDING,
+        status: ServiceRequestStatus.REJECTED,
       },
       {
         name: "Create EC2",
@@ -179,8 +179,8 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
   },
 ]
 
-const usePendingServiceRequest = () => {
+const useOrgServiceRequests = () => {
   return { serviceRequests: DUMMY_SERVICE_REQUESTS }
 }
 
-export default usePendingServiceRequest
+export default useOrgServiceRequests

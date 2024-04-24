@@ -1,17 +1,27 @@
 "use client"
 
-import { StatusBadge } from "@/components/layouts/status-badge"
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
-import { ExternalLink } from "lucide-react"
 import Link from "next/link"
-import RejectedServiceRequestActions from "./_components/rejected-service-request-actions"
+import ServiceRequestActions from "./_components/service-request-actions"
+import { StatusBadge } from "@/components/layouts/status-badge"
+import { ExternalLink } from "lucide-react"
+import { DataTableColumnHeaderFilterableValue } from "@/components/data-table/data-table-column-header-filterable-value"
 
-export const rejectedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
+export const columns: ColumnDef<ServiceRequest>[] = [
   {
     accessorKey: "status",
-    header: "Status",
+    header: ({ column }) => (
+      <DataTableColumnHeaderFilterableValue
+        column={column}
+        title="Status"
+        filterableOptions={Object.values(ServiceRequestStatus).map((value) => ({
+          value,
+          name: value,
+        }))}
+      />
+    ),
     cell: ({ row }) => {
       const status: ServiceRequestStatus = row.getValue("status")
       return <StatusBadge status={status} />
@@ -19,7 +29,7 @@ export const rejectedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
   },
   {
     id: "service_name",
-    header: "Service",
+    header: "Service Name",
     cell: ({ row }) => {
       const serviceRequest: ServiceRequest = row.original
       return (
@@ -43,10 +53,6 @@ export const rejectedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
     },
   },
   {
-    accessorKey: "created_by",
-    header: "Created By",
-  },
-  {
     accessorKey: "last_updated",
     header: "Last Updated",
     cell: ({ row }) => {
@@ -60,7 +66,12 @@ export const rejectedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
     header: "Actions",
     cell: ({ row }) => {
       const serviceRequest: ServiceRequest = row.original
-      return <RejectedServiceRequestActions serviceRequest={serviceRequest} />
+      return (
+        <ServiceRequestActions
+          serviceRequest={serviceRequest}
+          onCancelRequest={(pipelineId: string) => {}}
+        />
+      )
     },
   },
 ]

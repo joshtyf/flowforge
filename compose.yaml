@@ -8,7 +8,7 @@ services:
       context: frontend
     ports:
       - "3000:3000"
-    env_file: /frontend/.env.local
+    env_file: ./frontend/.env.local
     environment:
       - NEXT_PUBLIC_APP_ENV=${NEXT_PUBLIC_APP_ENV}
 
@@ -84,7 +84,14 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
       - MONGO_INITDB_DATABASE=flowforge_db
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)'", "--quiet"]
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--eval",
+          "'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)'",
+          "--quiet",
+        ]
       start_period: 30s
       start_interval: 5s
       interval: 60s

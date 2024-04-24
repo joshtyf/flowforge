@@ -1,17 +1,27 @@
 "use client"
 
-import { StatusBadge } from "@/components/layouts/status-badge"
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
-import { ExternalLink } from "lucide-react"
 import Link from "next/link"
-import ApprovedServiceRequestActions from "./_components/approved-service-request-actions"
+import PendingServiceRequestActions from "./_components/pending-service-request-actions"
+import { StatusBadge } from "@/components/layouts/status-badge"
+import { ExternalLink } from "lucide-react"
+import { DataTableColumnHeaderFilterableValue } from "@/components/data-table/data-table-column-header-filterable-value"
 
-export const approvedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
+export const orgServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
   {
     accessorKey: "status",
-    header: "Status",
+    header: ({ column }) => (
+      <DataTableColumnHeaderFilterableValue
+        column={column}
+        title="Status"
+        filterableOptions={Object.values(ServiceRequestStatus).map((value) => ({
+          value,
+          name: value,
+        }))}
+      />
+    ),
     cell: ({ row }) => {
       const status: ServiceRequestStatus = row.getValue("status")
       return <StatusBadge status={status} />
@@ -19,7 +29,7 @@ export const approvedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
   },
   {
     id: "service_name",
-    header: "Service",
+    header: "Service Name",
     cell: ({ row }) => {
       const serviceRequest: ServiceRequest = row.original
       return (
@@ -60,7 +70,20 @@ export const approvedServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
     header: "Actions",
     cell: ({ row }) => {
       const serviceRequest: ServiceRequest = row.original
-      return <ApprovedServiceRequestActions serviceRequest={serviceRequest} />
+      return (
+        <PendingServiceRequestActions
+          serviceRequest={serviceRequest}
+          approveRequest={(serviceRequestId: string) => {
+            // TODO: Replace with actual approval action
+            console.log("Approve service request for:", serviceRequestId)
+          }}
+          rejectRequest={(serviceRequestId: string, remarks?: string) => {
+            // TODO: Replace with actual rejection action
+            console.log("Reject service request for: ", serviceRequestId)
+            console.log("Remarks: ", remarks)
+          }}
+        />
+      )
     },
   },
 ]

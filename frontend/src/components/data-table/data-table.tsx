@@ -2,9 +2,12 @@
 
 import {
   ColumnDef,
+  SortingState,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
 
@@ -16,7 +19,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { DataTablePagination } from "./data-table-pagination"
+import { DataTablePagination } from "../layouts/data-table-pagination"
+import { useMemo, useState } from "react"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -27,10 +31,23 @@ export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
+  const [sorting, setSorting] = useState<SortingState>([])
+
+  // Memoize the data to prevent infinite table re-rendering due to state changes
+  // Read https://tanstack.com/table/latest/docs/faq
+  const memoizedData = useMemo(() => data ?? [], [data])
+  const memoizedColumns = useMemo(() => columns, [columns])
+
   const table = useReactTable({
-    data: data ?? [],
-    columns,
+    data: memoizedData,
+    columns: memoizedColumns,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
     getPaginationRowModel: getPaginationRowModel(),
   })
 
