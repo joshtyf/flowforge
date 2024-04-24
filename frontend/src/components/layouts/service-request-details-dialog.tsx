@@ -1,20 +1,24 @@
-import { ServiceRequest } from "@/types/service-request"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { Label } from "@/components/ui/label"
+import { getPipeline, getUserById } from "@/lib/service"
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
-import Link from "next/link"
+import { Pipeline } from "@/types/pipeline"
+import { ServiceRequest } from "@/types/service-request"
+import { UserInfo } from "@/types/user-profile"
 import { ExternalLink } from "lucide-react"
+import Link from "next/link"
+import { useEffect, useState } from "react"
 import PipelineStepper from "./pipeline-stepper"
 
 interface ServiceRequestDetailsProps {
@@ -22,6 +26,12 @@ interface ServiceRequestDetailsProps {
 }
 
 function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
+  const [user, setUser] = useState<UserInfo>()
+  useEffect(() => {
+    getUserById(serviceRequest.user_id)
+      .then((user) => setUser(user))
+      .catch((err) => console.log(err))
+  }, [serviceRequest.user_id])
   const {
     id: serviceRequestId,
     pipeline_version: pipelineVersion,
@@ -60,7 +70,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
       </div>
       <div>
         <Label className="text-muted-foreground">Created By</Label>
-        <p>{createdBy}</p>
+        <p>{user?.name}</p>
       </div>
       {steps?.some((step) => step.name === "Approval") && (
         <div>
@@ -99,11 +109,17 @@ export default function ServiceRequestDetailsDialog({
   open,
   setOpen,
 }: ServiceRequestDetailsDialogProps) {
+  const [pipeline, setPipeline] = useState<Pipeline>()
+  useEffect(() => {
+    getPipeline(serviceRequest.pipeline_id)
+      .then((pipeline) => setPipeline(pipeline))
+      .catch((err) => console.log(err))
+  })
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{`${serviceRequest?.pipeline_name} Details`}</DialogTitle>
+          <DialogTitle>{`${pipeline?.pipeline_name} Details`}</DialogTitle>
         </DialogHeader>
         <ServiceRequestDetails serviceRequest={serviceRequest} />
       </DialogContent>

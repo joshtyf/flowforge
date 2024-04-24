@@ -1,6 +1,6 @@
 import { toast } from "@/components/ui/use-toast"
 import useOrganizationId from "@/hooks/use-organization-id"
-import { getAllServiceRequest, getPipeline, getUserById } from "@/lib/service"
+import { getAllServiceRequest } from "@/lib/service"
 import { FormFieldType, JsonFormComponents } from "@/types/json-form-components"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { useQuery } from "@tanstack/react-query"
@@ -227,35 +227,8 @@ const useServiceRequests = () => {
   const { organizationId } = useOrganizationId()
   const { isLoading, data: serviceRequests } = useQuery({
     queryKey: ["user_service_requests"],
-    queryFn: async () => {
-      let serviceRequests
-      try {
-        serviceRequests = await getAllServiceRequest(organizationId)
-        // Fetch pipeline details for each service request
-        serviceRequests = await Promise.all(
-          serviceRequests.map(async (serviceRequest) => {
-            const pipelineId = serviceRequest.pipeline_id
-            const pipeline = await getPipeline(pipelineId)
-            return {
-              ...serviceRequest,
-              pipeline_name: pipeline.pipeline_name,
-              pipeline_description: pipeline.pipeline_description,
-            }
-          })
-        )
-        // Fetch user details for each service request
-        serviceRequests = await Promise.all(
-          serviceRequests.map(async (serviceRequest) => {
-            const userId = serviceRequest.user_id
-            const user = await getUserById(userId)
-            return {
-              ...serviceRequest,
-              created_by: user.name,
-            }
-          })
-        )
-        return serviceRequests
-      } catch (err) {
+    queryFn: () => {
+      return getAllServiceRequest(organizationId).catch((err) => {
         console.log(err)
         toast({
           title: "Fetching Service Requests Error",
@@ -263,7 +236,7 @@ const useServiceRequests = () => {
             "Failed to fetch Service Requests for user. Please try again later.",
           variant: "destructive",
         })
-      }
+      })
     },
   })
 
