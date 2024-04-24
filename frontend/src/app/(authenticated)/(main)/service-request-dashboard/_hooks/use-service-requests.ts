@@ -227,8 +227,35 @@ const useServiceRequests = () => {
   const { organizationId } = useOrganizationId()
   const { isLoading, data: serviceRequests } = useQuery({
     queryKey: ["user_service_requests"],
-    queryFn: () =>
-      getAllServiceRequest(organizationId).catch((err) => {
+    queryFn: async () => {
+      let serviceRequests
+      try {
+        serviceRequests = await getAllServiceRequest(organizationId)
+        // Fetch pipeline details for each service request
+        serviceRequests = await Promise.all(
+          serviceRequests.map(async (serviceRequest) => {
+            const pipelineId = serviceRequest.pipeline_id
+            const pipeline = await getPipeline(pipelineId)
+            return {
+              ...serviceRequest,
+              pipeline_name: pipeline.pipeline_name,
+              pipeline_description: pipeline.pipeline_description,
+            }
+          })
+        )
+        // Fetch user details for each service request
+        serviceRequests = await Promise.all(
+          serviceRequests.map(async (serviceRequest) => {
+            const userId = serviceRequest.user_id
+            const user = await getUserById(userId)
+            return {
+              ...serviceRequest,
+              created_by: user.name,
+            }
+          })
+        )
+        return serviceRequests
+      } catch (err) {
         console.log(err)
         toast({
           title: "Fetching Service Requests Error",
@@ -236,7 +263,8 @@ const useServiceRequests = () => {
             "Failed to fetch Service Requests for user. Please try again later.",
           variant: "destructive",
         })
-      }),
+      }
+    },
   })
 
   return {

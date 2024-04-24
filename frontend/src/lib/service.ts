@@ -38,27 +38,6 @@ export async function createServiceRequest(
 export async function getAllServiceRequest(
   organizationId: number
 ): Promise<ServiceRequest[]> {
-  const res = await apiClient.get("/service_request", {
-    params: { org_id: organizationId },
-  })
-  const serviceRequests = res.data
-  return Promise.all(
-    serviceRequests.map(
-      async (serviceRequest: ServiceRequest): Promise<ServiceRequest> => {
-        const pipelineId = serviceRequest.pipeline_id
-        const pipeline = await getPipeline(pipelineId)
-        const userId = (serviceRequest as unknown as { user_id: string })
-          .user_id
-        const user = await getUserById(userId)
-        return {
-          ...serviceRequest,
-          created_by: user.name, // TODO: Should return user id instead. Render the proper user name in the UI separately
-          pipeline_name: pipeline.pipeline_name, // TODO: Similar for pipeline
-          pipeline_description: pipeline.pipeline_description,
-        }
-      }
-    )
-  )
   return apiClient
     .get("/service_request", { params: { org_id: organizationId } })
     .then((res) => res.data)
