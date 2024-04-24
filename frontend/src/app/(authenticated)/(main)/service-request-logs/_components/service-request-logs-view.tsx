@@ -1,6 +1,6 @@
 "use client"
 
-import Stepper from "@/components/layouts/stepper"
+import PipelineStepper from "@/components/layouts/pipeline-stepper"
 import { Button } from "@/components/ui/button"
 import HeaderAccessory from "@/components/ui/header-accessory"
 import { ServiceRequestStep } from "@/types/service-request"
@@ -35,7 +35,7 @@ export default function ServiceRequestLogsView({
         </div>
       </div>
       <div>
-        <Stepper steps={serviceRequestSteps} />
+        <PipelineStepper steps={serviceRequestSteps} />
         <div className="bg-gray-900 text-green-300 border-none rounded-lg p-3 focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-mono h-[70vh] overflow-auto">
           Test logs
         </div>
