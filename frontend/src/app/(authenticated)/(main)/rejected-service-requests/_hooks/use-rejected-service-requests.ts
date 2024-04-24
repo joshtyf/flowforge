@@ -35,6 +35,7 @@ const DUMMY_PIPELINE_FORM: JsonFormComponents = {
 const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
   {
     id: "1",
+    user_id: "123456", // DUMMY
     pipeline_id: "65d48c02d62a1281c4f4ba3e",
     pipeline_name: "Service 1",
     pipeline_version: "0",
@@ -58,6 +59,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
   },
   {
     id: "2",
+    user_id: "123456", // DUMMY
     pipeline_id: "65d48c02d62a1281c4f4ba3e",
     pipeline_name: "Service 1",
     pipeline_version: "0",
@@ -81,6 +83,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
   },
   {
     id: "3",
+    user_id: "123456", // DUMMY
     pipeline_id: "65d48c02d62a1281c4f4ba3e",
     pipeline_name: "Service 1",
     pipeline_version: "0",
@@ -104,6 +107,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
   },
   {
     id: "4",
+    user_id: "123456", // DUMMY
     pipeline_id: "65d48c02d62a1281c4f4ba3e",
     pipeline_name: "Service 1",
     pipeline_version: "0",
