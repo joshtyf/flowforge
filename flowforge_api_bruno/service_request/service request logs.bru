@@ -1,0 +1,16 @@
+meta {
+  name: service request logs
+  type: http
+  seq: 3
+}
+
+get {
+  url: /api/service_request/{{serviceRequestId}}/logs/{{stepName}}
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  serviceRequestId: 66264e9e2c99d0e29aefc4a2
+  stepName: 
+}
