@@ -1,7 +1,7 @@
 import { Pipeline } from "@/types/pipeline"
+import { ServiceRequest } from "@/types/service-request"
+import { UserInfo } from "@/types/user-profile"
 import apiClient from "./apiClient"
-import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
-import { UserFromBackend } from "@/types/user-profile"
 
 /* Pipeline */
 
