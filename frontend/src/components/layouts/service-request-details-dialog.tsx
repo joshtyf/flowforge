@@ -114,7 +114,7 @@ export default function ServiceRequestDetailsDialog({
     getPipeline(serviceRequest.pipeline_id)
       .then((pipeline) => setPipeline(pipeline))
       .catch((err) => console.log(err))
-  })
+  }, [serviceRequest])
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
