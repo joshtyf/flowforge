@@ -1,0 +1,19 @@
+meta {
+  name: new service request
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:0.0.31.144/api/service_request
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  '{"pipeline_id": "8a7f3ebcd951246a5f0e9b87", "pipeline_version": 1, "remarks": "Some other remarks", "org_id": 1}
+}
