@@ -1,8 +1,5 @@
-"use client"
-
 import { DataTableColumnHeaderFilterableValue } from "@/components/data-table/data-table-column-header-filterable-value"
 import { StatusBadge } from "@/components/layouts/status-badge"
-import { getPipeline } from "@/lib/service"
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
@@ -10,7 +7,11 @@ import { ExternalLink } from "lucide-react"
 import Link from "next/link"
 import ServiceRequestActions from "./_components/service-request-actions"
 
-export const columns: ColumnDef<ServiceRequest>[] = [
+export type ColumnsType = ServiceRequest & {
+  pipelineName?: string
+}
+
+export const columns: ColumnDef<ColumnsType>[] = [
   {
     accessorKey: "status",
     header: ({ column }) => (
@@ -32,16 +33,16 @@ export const columns: ColumnDef<ServiceRequest>[] = [
     id: "service_name",
     header: "Service Name",
     cell: ({ row }) => {
-      const serviceRequest: ServiceRequest = row.original
-      getPipeline(serviceRequest.pipeline_id).then((pipeline) => (
+      const rowData: ColumnsType = row.original
+      return (
         <Link
-          href={`/service-catalog/${serviceRequest.pipeline_id}`}
+          href={`/service-catalog/${rowData.pipeline_id}`}
           className="hover:underline hover:text-blue-500 flex space-x-2"
         >
-          <p>{pipeline.pipeline_name}</p>
+          <p>{rowData.pipelineName}</p>
           <ExternalLink className="w-5 h-5" />
         </Link>
-      ))
+      )
     },
   },
   {
