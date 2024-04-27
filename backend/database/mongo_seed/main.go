@@ -96,7 +96,7 @@ func main() {
 		UserId:          "auth0|65e9dabff2dab546ed0c231e", // josh's user ID
 		PipelineId:      pipelineIdInHex,
 		PipelineVersion: 1,
-		Status:          models.Success,
+		Status:          models.COMPLETED,
 		OrganizationId:  1,
 		Remarks:         "This is a test service request.",
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
