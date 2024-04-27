@@ -50,7 +50,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/healthcheck", handleHealthCheck(s.logger)).Methods("GET")
 
 	// Service Request
-	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromQuery(isOrgMember(s.psqlClient, handleGetServiceRequestsByOrganization(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("GET")
+	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromQuery(isOrgMember(s.psqlClient, handleGetServiceRequestsByUserAndOrganization(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("GET")
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
 	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromRequestBody(isOrgMember(s.psqlClient, handleCreateServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(getOrgIdFromRequestBody(isOrgMember(s.psqlClient, handleUpdateServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
@@ -491,7 +491,7 @@ func handleCreateMembership(logger logger.ServerLogger, client *sql.DB) http.Han
 	})
 }
 
-func handleGetServiceRequestsByOrganization(logger logger.ServerLogger, client *mongo.Client) http.Handler {
+func handleGetServiceRequestsByUserAndOrganization(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 		userId := token.RegisteredClaims.Subject
