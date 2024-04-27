@@ -12,6 +12,7 @@ import (
 	"github.com/joshtyf/flowforge/src/database"
 	"github.com/joshtyf/flowforge/src/database/models"
 	"github.com/joshtyf/flowforge/src/events"
+	"github.com/joshtyf/flowforge/src/helper"
 	"github.com/joshtyf/flowforge/src/logger"
 	"github.com/joshtyf/flowforge/src/util"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -105,6 +106,16 @@ func (srm *ExecutionManager) handleNewServiceRequestEvent(e event.Event) error {
 }
 
 func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel, step *models.PipelineStepModel, executor *stepExecutor) error {
+	// Parse and replace step parameters with service request form data
+	for key, val := range step.Parameters {
+		replaced, err := helper.ReplacePlaceholders(val, serviceRequest.FormData)
+		if err != nil {
+			srm.logger.Error(fmt.Sprintf("unable to replace placeholder based on form data for %s", key))
+			return err
+		}
+		step.Parameters[key] = replaced
+	}
+
 	// Create an execution context with the current step and service request
 	executeCtx := context.WithValue(
 		context.WithValue(

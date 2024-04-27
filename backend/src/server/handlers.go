@@ -50,7 +50,8 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/healthcheck", handleHealthCheck(s.logger)).Methods("GET")
 
 	// Service Request
-	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromQuery(isOrgMember(s.psqlClient, handleGetServiceRequestsByOrganization(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("GET")
+	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromQuery(isOrgMember(s.psqlClient, handleGetServiceRequestsByUserAndOrganization(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("GET")
+	r.Handle("/api/service_request/admin", isAuthenticated(getOrgIdFromQuery(isOrgAdmin(s.psqlClient, handleGetServiceRequestsForAdminByOrganization(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("GET")
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
 	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromRequestBody(isOrgMember(s.psqlClient, handleCreateServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(getOrgIdFromRequestBody(isOrgMember(s.psqlClient, handleUpdateServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
@@ -58,6 +59,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleStartServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PUT")
 	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(getOrgIdFromRequestBody(isOrgAdmin(s.psqlClient, handleApproveServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 	r.Handle("/api/service_request/{requestId}/logs/{stepName}", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetStepExecutionLogs(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
+	r.Handle("/api/service_request/{requestId}/steps", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetServiceRequestStepDetails(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
 
 	// Pipeline
 	// TODO: @joshtyf need to integrate orgId in some way into these routes or the pipeline model, esp for the post method.
@@ -66,9 +68,9 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/pipeline", isAuthenticated(validateCreatePipelineRequest(handleCreatePipeline(s.logger, s.mongoClient), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 
 	// User
-	r.Handle("/api/user", isAuthenticated(handleGetUserById(s.logger, s.psqlClient), s.logger)).Methods("GET")
-	// TODO: review the need for this route
-	// r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.psqlClient))).Methods("GET")
+	// TODO: fix this
+	// r.Handle("/api/user", isAuthenticated(handleGetUserById(s.logger, s.psqlClient), s.logger)).Methods("GET")
+	r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.logger, s.psqlClient), s.logger)).Methods("GET")
 	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 
 	// Organization
@@ -156,6 +158,70 @@ func handleGetServiceRequest(logger logger.ServerLogger, mongoClient *mongo.Clie
 				Form: &pipeline.Form,
 			},
 		}
+		encode(w, r, http.StatusOK, response)
+	})
+}
+
+func handleGetServiceRequestStepDetails(logger logger.ServerLogger, mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
+	type ResponseBodyStep struct {
+		Name         string           `json:"name"`
+		Status       models.EventType `json:"status"`
+		UpdatedAt    time.Time        `json:"updated_at"`
+		ApprovedBy   string           `json:"approved_by"`
+		NextStepName string           `json:"next_step_name"`
+	}
+	type ResponseBody struct {
+		Steps            map[string]ResponseBodyStep `json:"steps"`
+		ServiceRequestId string                      `json:"service_request_id"`
+		PipelineId       string                      `json:"pipeline_id"`
+		PipelineVersion  int                         `json:"pipeline_version"`
+		FirstStepName    string                      `json:"first_step_name"`
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		requestId := vars["requestId"]
+		sre, err := database.NewServiceRequestEvent(psqlClient).GetStepsLatestEvent(requestId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		sr, err := database.NewServiceRequest(mongoClient).GetById(requestId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		pipeline, err := database.NewPipeline(mongoClient).GetById(sr.PipelineId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		steps := make(map[string]ResponseBodyStep, len(sre))
+		for _, event := range sre {
+			step := pipeline.GetPipelineStep(event.StepName)
+			if step == nil {
+				logger.Error(fmt.Sprintf("%s exists in event log but not in pipeline template", event.StepName))
+				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+				return
+			}
+			steps[event.StepName] = ResponseBodyStep{
+				Name:         event.StepName,
+				Status:       event.EventType,
+				UpdatedAt:    event.CreatedAt,
+				ApprovedBy:   event.ApprovedBy,
+				NextStepName: step.NextStepName,
+			}
+		}
+		response := ResponseBody{
+			Steps:            steps,
+			ServiceRequestId: requestId,
+			PipelineId:       pipeline.Id.Hex(),
+			PipelineVersion:  pipeline.Version,
+			FirstStepName:    pipeline.FirstStepName,
+		}
+
 		encode(w, r, http.StatusOK, response)
 	})
 }
@@ -491,11 +557,47 @@ func handleCreateMembership(logger logger.ServerLogger, client *sql.DB) http.Han
 	})
 }
 
-func handleGetServiceRequestsByOrganization(logger logger.ServerLogger, client *mongo.Client) http.Handler {
+func handleGetServiceRequestsByUserAndOrganization(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 		userId := token.RegisteredClaims.Subject
 
+		orgId, err := extractQueryParam[int](r.URL.Query(), "org_id", false, -1, integerConverter)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to extract org_id from query params: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganizationId, http.StatusBadRequest))
+			return
+		}
+
+		statusFilters, err := extractQueryParam[string](r.URL.Query(), "status", false, "", stringConverter)
+		queryFilters := database.GetServiceRequestFilters{
+			UserId: userId,
+		}
+		if statusFilters != "" {
+			statuses := strings.Split(statusFilters, ",")
+			for _, status := range statuses {
+				if !models.ValidateServiceRequestStatus(status) {
+					logger.Error(fmt.Sprintf("invalid status filter: %s", status))
+					encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidServiceRequestStatus, http.StatusBadRequest))
+					return
+				}
+			}
+			queryFilters.Statuses = strings.Split(statusFilters, ",")
+		}
+
+		logger.Info(fmt.Sprintf("querying for service requests: user_id=%s org_id=%d, query_filters=%v", userId, orgId, queryFilters))
+		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestByOrg(orgId, queryFilters)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		encode(w, r, http.StatusOK, allsr)
+	})
+}
+
+func handleGetServiceRequestsForAdminByOrganization(logger logger.ServerLogger, client *mongo.Client) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		orgId, err := extractQueryParam[int](r.URL.Query(), "org_id", false, -1, integerConverter)
 		if err != nil {
 			logger.Error(fmt.Sprintf("unable to extract org_id from query params: %s", err))
@@ -517,8 +619,8 @@ func handleGetServiceRequestsByOrganization(logger logger.ServerLogger, client *
 			queryFilters.Statuses = strings.Split(statusFilters, ",")
 		}
 
-		logger.Info(fmt.Sprintf("querying for service requests: user_id=%s org_id=%d, query_filters=%v", userId, orgId, queryFilters))
-		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestsForOrgId(userId, orgId, queryFilters)
+		logger.Info(fmt.Sprintf("querying for service requests: org_id=%d, query_filters=%v", orgId, queryFilters))
+		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestByOrg(orgId, queryFilters)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
@@ -530,10 +632,8 @@ func handleGetServiceRequestsByOrganization(logger logger.ServerLogger, client *
 
 func handleGetUserById(logger logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// user_id := vars["userId"]
-		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
-		userId := token.RegisteredClaims.Subject
-
+		vars := mux.Vars(r)
+		userId := vars["userId"]
 		user, err := database.NewUser(client).GetUserById(userId)
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error(fmt.Sprintf("%s %s not found", "user", userId))

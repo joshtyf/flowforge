@@ -39,8 +39,9 @@ func (e *apiStepExecutor) execute(ctx context.Context, l *logger.ExecutorLogger)
 		l.ErrGettingServiceReqFromCtx()
 		return nil, errors.New("error getting service request from context")
 	}
+	requestMethod := step.Parameters["method"]
 	url := step.Parameters["url"]
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(requestMethod, url, nil)
 	l.HttpRequest("GET", url)
 	if err != nil {
 		return nil, err

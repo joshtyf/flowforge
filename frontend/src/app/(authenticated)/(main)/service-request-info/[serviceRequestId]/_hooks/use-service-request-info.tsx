@@ -44,6 +44,7 @@ const DUMMY_SR_FORM_DATA = {
 }
 const DUMMY_SERVICE_REQUEST: ServiceRequest = {
   id: "1",
+  user_id: "123456", // DUMMY
   pipeline_id: "65d48c02d62a1281c4f4ba3e",
   pipeline_name: "Service 1",
   pipeline_version: "0",
