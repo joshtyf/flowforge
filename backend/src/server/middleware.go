@@ -261,20 +261,19 @@ func getOrgIdUsingSrId(mongoClient *mongo.Client, next http.Handler, logger logg
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var org_id int
 		vars := mux.Vars(r)
-		if sr_id := vars["requestId"]; sr_id == "" {
+		sr_id := vars["requestId"]
+		if sr_id == "" {
 			logger.Error("service request id does not exist in path")
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrUnauthorised, http.StatusBadRequest))
 			return
-		} else {
-			sr, err := database.NewServiceRequest(mongoClient).GetById(sr_id)
-			if err != nil {
-				logger.Error(fmt.Sprintf("failed to retrieve service request by service request id: %s", err))
-				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
-				return
-			}
-
-			org_id = sr.OrganizationId
 		}
+		sr, err := database.NewServiceRequest(mongoClient).GetById(sr_id)
+		if err != nil {
+			logger.Error(fmt.Sprintf("failed to retrieve service request by service request id: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
+			return
+		}
+		org_id = sr.OrganizationId
 
 		r = r.Clone(context.WithValue(r.Context(), util.OrgContextKey{}, org_id))
 		next.ServeHTTP(w, r)

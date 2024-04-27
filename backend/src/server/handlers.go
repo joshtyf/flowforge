@@ -59,6 +59,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleStartServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PUT")
 	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(getOrgIdFromRequestBody(isOrgAdmin(s.psqlClient, handleApproveServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 	r.Handle("/api/service_request/{requestId}/logs/{stepName}", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetStepExecutionLogs(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
+	r.Handle("/api/service_request/{requestId}/steps", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetServiceRequestStepDetails(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
 
 	// Pipeline
 	// TODO: @joshtyf need to integrate orgId in some way into these routes or the pipeline model, esp for the post method.
@@ -157,6 +158,70 @@ func handleGetServiceRequest(logger logger.ServerLogger, mongoClient *mongo.Clie
 				Form: &pipeline.Form,
 			},
 		}
+		encode(w, r, http.StatusOK, response)
+	})
+}
+
+func handleGetServiceRequestStepDetails(logger logger.ServerLogger, mongoClient *mongo.Client, psqlClient *sql.DB) http.Handler {
+	type ResponseBodyStep struct {
+		Name         string           `json:"name"`
+		Status       models.EventType `json:"status"`
+		UpdatedAt    time.Time        `json:"updated_at"`
+		ApprovedBy   string           `json:"approved_by"`
+		NextStepName string           `json:"next_step_name"`
+	}
+	type ResponseBody struct {
+		Steps            map[string]ResponseBodyStep `json:"steps"`
+		ServiceRequestId string                      `json:"service_request_id"`
+		PipelineId       string                      `json:"pipeline_id"`
+		PipelineVersion  int                         `json:"pipeline_version"`
+		FirstStepName    string                      `json:"first_step_name"`
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		requestId := vars["requestId"]
+		sre, err := database.NewServiceRequestEvent(psqlClient).GetStepsLatestEvent(requestId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		sr, err := database.NewServiceRequest(mongoClient).GetById(requestId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		pipeline, err := database.NewPipeline(mongoClient).GetById(sr.PipelineId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		steps := make(map[string]ResponseBodyStep, len(sre))
+		for _, event := range sre {
+			step := pipeline.GetPipelineStep(event.StepName)
+			if step == nil {
+				logger.Error(fmt.Sprintf("%s exists in event log but not in pipeline template", event.StepName))
+				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+				return
+			}
+			steps[event.StepName] = ResponseBodyStep{
+				Name:         event.StepName,
+				Status:       event.EventType,
+				UpdatedAt:    event.CreatedAt,
+				ApprovedBy:   event.ApprovedBy,
+				NextStepName: step.NextStepName,
+			}
+		}
+		response := ResponseBody{
+			Steps:            steps,
+			ServiceRequestId: requestId,
+			PipelineId:       pipeline.Id.Hex(),
+			PipelineVersion:  pipeline.Version,
+			FirstStepName:    pipeline.FirstStepName,
+		}
+
 		encode(w, r, http.StatusOK, response)
 	})
 }
