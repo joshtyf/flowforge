@@ -87,6 +87,22 @@ func TestReplacePlaceholders(t *testing.T) {
 			"Hello",
 			nil,
 		},
+		{
+			"This parameter is ${boolean}",
+			models.FormData{
+				"boolean": true,
+			},
+			"This parameter is true",
+			nil,
+		},
+		{
+			"The value is ${float}",
+			models.FormData{
+				"float": 3.14,
+			},
+			"The value is 3.14",
+			nil,
+		},
 	}
 
 	for _, tc := range testCases {

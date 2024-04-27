@@ -33,6 +33,12 @@ func ReplacePlaceholders(input string, values map[string]any) (string, error) {
 		} else if valueType.Kind() == reflect.Int {
 			// If the value is an integer, convert it to string and replace placeholder with it
 			return strconv.Itoa(value.(int))
+		} else if valueType.Kind() == reflect.Float64 {
+			// If the value is a float, convert it to string and replace placeholder with it
+			return strconv.FormatFloat(value.(float64), 'f', -1, 64)
+		} else if valueType.Kind() == reflect.Bool {
+			// If the value is a boolean, convert it to string and replace placeholder with it
+			return strconv.FormatBool(value.(bool))
 		} else {
 			return match
 		}
