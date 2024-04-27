@@ -1,0 +1,18 @@
+meta {
+  name: update organization
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{HOST}}/organization
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "org_id": 2,
+    "name": "new name"
+  }
+}
