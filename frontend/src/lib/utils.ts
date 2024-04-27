@@ -1,3 +1,7 @@
+import {
+  ServiceRequestStep,
+  ServiceRequestSteps,
+} from "@/types/service-request"
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -59,4 +63,26 @@ export function isArrayValuesUnique<T>(arr: T[]): boolean {
 
 export function isArrayValuesString(arr: unknown[]): arr is string[] {
   return arr.every((item): item is string => typeof item === "string")
+}
+
+export function createStepsFromObject(
+  firstStep: string,
+  steps?: ServiceRequestSteps
+): ServiceRequestStep[] {
+  if (!steps) {
+    return []
+  }
+  const stepsArray: ServiceRequestStep[] = []
+  const stepsSet = new Set()
+  let currentStep = firstStep
+  while (currentStep !== "") {
+    if (stepsSet.has(currentStep)) {
+      console.error("Cycle detected in service request steps")
+      return []
+    }
+    stepsArray.push(steps[currentStep])
+    stepsSet.add(currentStep)
+    currentStep = steps[currentStep].next_step_name
+  }
+  return stepsArray
 }

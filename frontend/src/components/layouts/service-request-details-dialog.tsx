@@ -12,10 +12,15 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Label } from "@/components/ui/label"
-import { formatDateString, formatTimeDifference } from "@/lib/utils"
+import {
+  createStepsFromObject,
+  formatDateString,
+  formatTimeDifference,
+} from "@/lib/utils"
 import Link from "next/link"
 import { ExternalLink } from "lucide-react"
 import PipelineStepper from "./pipeline-stepper"
+import { useMemo } from "react"
 
 interface ServiceRequestDetailsProps {
   serviceRequest: ServiceRequest
@@ -30,7 +35,13 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
     last_updated: lastUpdated = "",
     remarks,
     steps,
+    first_step_name: firstStepName = "",
   } = serviceRequest
+
+  const stepsList = useMemo(
+    () => createStepsFromObject(firstStepName, steps),
+    [firstStepName, steps]
+  )
   return (
     <div className="grid grid-cols-2 gap-5">
       <div className="col-span-2">
@@ -62,7 +73,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
         <Label className="text-muted-foreground">Created By</Label>
         <p>{createdBy}</p>
       </div>
-      {steps?.some((step) => step.name === "Approval") && (
+      {stepsList.some((step) => step.name === "Approval") && (
         <div>
           <Label className="text-muted-foreground">Approved By</Label>
           <p>{"-"}</p>
@@ -82,7 +93,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
       </div>
       <div className="col-span-2">
         <Label className="text-muted-foreground">Steps</Label>
-        <PipelineStepper steps={steps} />
+        <PipelineStepper steps={stepsList} />
       </div>
     </div>
   )

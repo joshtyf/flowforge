@@ -1,22 +1,17 @@
-import {
-  StatusIcon,
-  statusBadgeVariant,
-} from "@/components/layouts/status-badge"
 import { cn } from "@/lib/utils"
-import {
-  ServiceRequestStatus,
-  ServiceRequestStep,
-} from "@/types/service-request"
+import { ServiceRequestStep } from "@/types/service-request"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { StepStatus } from "@/types/pipeline"
+import { StepStatusIcon, stepStatusBadgeVariant } from "./step-status-icon"
 
 interface StepProps {
   name: string
-  status: ServiceRequestStatus
+  status: StepStatus
 }
 
 function Step({ name, status }: StepProps) {
@@ -29,12 +24,12 @@ function Step({ name, status }: StepProps) {
     [&:not(:last-child):after]:left-[3.2rem]
     [&:not(:last-child):after]:w-[3.5rem]
     [&:not(:last-child):after]:h-[2px] 
-    ${status === ServiceRequestStatus.COMPLETED ? "[&:not(:last-child):after]:bg-green-300" : "[&:not(:last-child):after]:bg-gray-300"}
+    ${status === StepStatus.STEP_COMPLETED ? "[&:not(:last-child):after]:bg-green-300" : "[&:not(:last-child):after]:bg-gray-300"}
     [&:not(:last-child):after]:-order-1`}
     >
       <div
         className={cn(
-          `w-[2rem] h-[2rem] flex justify-center items-center ${statusBadgeVariant(
+          `w-[2rem] h-[2rem] flex justify-center items-center ${stepStatusBadgeVariant(
             {
               status,
             }
@@ -45,7 +40,7 @@ function Step({ name, status }: StepProps) {
         <TooltipProvider>
           <Tooltip delayDuration={300}>
             <TooltipTrigger disabled>
-              <StatusIcon status={status} />
+              <StepStatusIcon status={status} />
             </TooltipTrigger>
             <TooltipContent>
               <p>{status}</p>
