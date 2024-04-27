@@ -12,15 +12,20 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { getUserById } from "@/lib/service"
-import { formatDateString, formatTimeDifference } from "@/lib/utils"
+import {
+  createStepsFromObject,
+  formatDateString,
+  formatTimeDifference,
+} from "@/lib/utils"
 import { ServiceRequest } from "@/types/service-request"
 import { UserInfo } from "@/types/user-profile"
 import { ExternalLink } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import PipelineStepper from "./pipeline-stepper"
-import { toast } from "../ui/use-toast"
-import { Skeleton } from "../ui/skeleton"
+import { useMemo } from "react"
+import { toast } from "@/components/ui/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface ServiceRequestDetailsProps {
   serviceRequest: ServiceRequest
@@ -49,7 +54,13 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
     last_updated: lastUpdated = "",
     remarks,
     steps,
+    first_step_name: firstStepName = "",
   } = serviceRequest
+
+  const stepsList = useMemo(
+    () => createStepsFromObject(firstStepName, steps),
+    [firstStepName, steps]
+  )
   return (
     <div className="grid grid-cols-2 gap-5">
       <div className="col-span-2">
@@ -81,7 +92,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
         <Label className="text-muted-foreground">Created By</Label>
         {user ? <p>{user.name}</p> : <Skeleton className="w-28 h-5" />}
       </div>
-      {steps?.some((step) => step.name === "Approval") && (
+      {stepsList.some((step) => step.name === "Approval") && (
         <div>
           <Label className="text-muted-foreground">Approved By</Label>
           <p>{"-"}</p>
@@ -101,7 +112,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
       </div>
       <div className="col-span-2">
         <Label className="text-muted-foreground">Steps</Label>
-        <PipelineStepper steps={steps} />
+        <PipelineStepper steps={stepsList} />
       </div>
     </div>
   )

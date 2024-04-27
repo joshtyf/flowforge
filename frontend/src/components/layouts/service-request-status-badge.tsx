@@ -6,20 +6,16 @@ import {
   CheckCircle2,
   CircleDotDashed,
   CircleEllipsis,
-  CircleOff,
   Moon,
   XCircle,
-  XOctagon,
 } from "lucide-react"
 
-export const statusIconVariant = cva("", {
+const statusIconVariant = cva("", {
   variants: {
     status: {
       [ServiceRequestStatus.NOT_STARTED]: "text-slate-500",
       [ServiceRequestStatus.PENDING]: "text-yellow-500",
-      [ServiceRequestStatus.REJECTED]: "text-red-800",
       [ServiceRequestStatus.RUNNING]: "text-blue-500",
-      [ServiceRequestStatus.SUCCESS]: "text-green-500",
       [ServiceRequestStatus.COMPLETED]: "text-green-500",
       [ServiceRequestStatus.FAILURE]: "text-red-500",
       [ServiceRequestStatus.CANCELLED]: "text-orange-500",
@@ -30,29 +26,30 @@ export const statusIconVariant = cva("", {
   },
 })
 
-export const statusBadgeVariant = cva("rounded-lg border text-sm font-medium", {
-  variants: {
-    status: {
-      [ServiceRequestStatus.NOT_STARTED]: `${statusIconVariant({ status: ServiceRequestStatus.NOT_STARTED })} border-slate-300`,
-      [ServiceRequestStatus.PENDING]: `${statusIconVariant({ status: ServiceRequestStatus.PENDING })} border-yellow-300`,
-      [ServiceRequestStatus.REJECTED]: `${statusIconVariant({ status: ServiceRequestStatus.REJECTED })} border-yellow-800`,
-      [ServiceRequestStatus.RUNNING]: `${statusIconVariant({ status: ServiceRequestStatus.RUNNING })} border-blue-300`,
-      [ServiceRequestStatus.SUCCESS]: `${statusIconVariant({ status: ServiceRequestStatus.SUCCESS })} border-green-300`,
-      [ServiceRequestStatus.COMPLETED]: `${statusIconVariant({ status: ServiceRequestStatus.COMPLETED })} border-green-300`,
-      [ServiceRequestStatus.FAILURE]: `${statusIconVariant({ status: ServiceRequestStatus.FAILURE })} border-red-300`,
-      [ServiceRequestStatus.CANCELLED]: `${statusIconVariant({ status: ServiceRequestStatus.CANCELLED })} border-orange-300`,
+export const serviceRequestStatusBadgeVariant = cva(
+  "rounded-lg border text-sm font-medium",
+  {
+    variants: {
+      status: {
+        [ServiceRequestStatus.NOT_STARTED]: `${statusIconVariant({ status: ServiceRequestStatus.NOT_STARTED })} border-slate-300`,
+        [ServiceRequestStatus.PENDING]: `${statusIconVariant({ status: ServiceRequestStatus.PENDING })} border-yellow-300`,
+        [ServiceRequestStatus.RUNNING]: `${statusIconVariant({ status: ServiceRequestStatus.RUNNING })} border-blue-300`,
+        [ServiceRequestStatus.COMPLETED]: `${statusIconVariant({ status: ServiceRequestStatus.COMPLETED })} border-green-300`,
+        [ServiceRequestStatus.FAILURE]: `${statusIconVariant({ status: ServiceRequestStatus.FAILURE })} border-red-300`,
+        [ServiceRequestStatus.CANCELLED]: `${statusIconVariant({ status: ServiceRequestStatus.CANCELLED })} border-orange-300`,
+      },
     },
-  },
-  defaultVariants: {
-    status: ServiceRequestStatus.NOT_STARTED,
-  },
-})
+    defaultVariants: {
+      status: ServiceRequestStatus.NOT_STARTED,
+    },
+  }
+)
 
 type StatusBadgeProps = {
   status: ServiceRequestStatus
 }
 
-export const StatusIcon = ({
+const ServiceRequestStatusIcon = ({
   status,
   className,
 }: {
@@ -68,10 +65,6 @@ export const StatusIcon = ({
           className={cn(statusIconVariant({ status }), className)}
         />
       )
-    case ServiceRequestStatus.REJECTED:
-      return (
-        <XOctagon className={cn(statusIconVariant({ status }), className)} />
-      )
     case ServiceRequestStatus.RUNNING:
       return (
         <CircleDotDashed
@@ -82,7 +75,6 @@ export const StatusIcon = ({
           )}
         />
       )
-    case ServiceRequestStatus.SUCCESS:
     case ServiceRequestStatus.COMPLETED:
       return (
         <CheckCircle2
@@ -102,15 +94,15 @@ export const StatusIcon = ({
   }
 }
 
-export function StatusBadge({ status }: StatusBadgeProps) {
+export function ServiceRequestStatusBadge({ status }: StatusBadgeProps) {
   return (
     <div
       className={cn(
-        statusBadgeVariant({ status }),
+        serviceRequestStatusBadgeVariant({ status }),
         "flex w-fit py-2 pl-4 pr-5 items-center space-x-2"
       )}
     >
-      <StatusIcon status={status} />
+      <ServiceRequestStatusIcon status={status} />
       <p className="w-[5rem] flex justify-center">{status}</p>
     </div>
   )

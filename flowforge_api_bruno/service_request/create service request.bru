@@ -1,0 +1,20 @@
+meta {
+  name: create service request
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{HOST}}/service_request
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "pipeline_id": "8a7f3ebcd951246a5f0e9b87", 
+    "pipeline_version": 1, 
+    "remarks": "curl test",
+    "org_id": 1
+  }
+}

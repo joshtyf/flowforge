@@ -1,0 +1,15 @@
+meta {
+  name: service request
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{HOST}}/service_request/{{serviceRequestId}}
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  serviceRequestId: 662ca5965c9a4bf8dfaf3a98
+}

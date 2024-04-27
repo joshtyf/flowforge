@@ -88,7 +88,7 @@ func (srm *ExecutionManager) handleNewServiceRequestEvent(e event.Event) error {
 	}
 
 	// Update the service request status to running
-	err = database.NewServiceRequest(srm.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Running)
+	err = database.NewServiceRequest(srm.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.RUNNING)
 	if err != nil {
 		srm.logger.Error(fmt.Sprintf("failed to run service request %s: %s", serviceRequest.Id.Hex(), err))
 		return err
@@ -128,7 +128,7 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 	// Log step started event
 	serviceRequestEvent := database.NewServiceRequestEvent(srm.psqlClient)
 	err := serviceRequestEvent.Create(&models.ServiceRequestEventModel{
-		EventType:        models.STEP_STARTED,
+		EventType:        models.STEP_RUNNING,
 		ServiceRequestId: serviceRequest.Id.Hex(),
 		StepName:         step.StepName,
 	})
@@ -194,7 +194,7 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 	}
 
 	if completedStep.IsTerminalStep {
-		err := database.NewServiceRequest(srm.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Success)
+		err := database.NewServiceRequest(srm.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.COMPLETED)
 		if err != nil {
 			// TODO: Handle error
 			// Need to ensure idempotency or figure out a rollback solution

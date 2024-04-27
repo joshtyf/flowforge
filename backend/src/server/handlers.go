@@ -248,7 +248,7 @@ func handleCreateServiceRequest(logger logger.ServerLogger, mongoClient *mongo.C
 
 		srm.CreatedOn = time.Now()
 		srm.LastUpdated = time.Now()
-		srm.Status = models.NotStarted
+		srm.Status = models.NOT_STARTED
 		srm.PipelineName = pipeline.PipelineName
 		srm.PipelineVersion = pipeline.Version
 
@@ -292,13 +292,13 @@ func handleCancelStartedServiceRequest(logger logger.ServerLogger, client *mongo
 			return
 		}
 		status := sr.Status
-		if status != models.Pending && status != models.Running {
+		if status != models.PENDING && status != models.RUNNING {
 			logger.Error(fmt.Sprintf("failed to %s service request %s: %s", "cancel", requestId, "execution has been completed"))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestAlreadyCompleted, http.StatusBadRequest))
 			return
 		}
 
-		if status == models.NotStarted {
+		if status == models.NOT_STARTED {
 			logger.Error(fmt.Sprintf("failed to %s service request %s: %s", "cancel", requestId, "execution has not been started"))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestNotStarted, http.StatusBadRequest))
 			return
@@ -306,7 +306,7 @@ func handleCancelStartedServiceRequest(logger logger.ServerLogger, client *mongo
 
 		// TODO: implement cancellation of sr
 
-		err = database.NewServiceRequest(client).UpdateStatus(requestId, models.Canceled)
+		err = database.NewServiceRequest(client).UpdateStatus(requestId, models.CANCELLED)
 
 		// TODO: discuss how to handle this error
 		if err != nil {
@@ -335,7 +335,7 @@ func handleUpdateServiceRequest(logger logger.ServerLogger, client *mongo.Client
 			return
 		}
 		status := sr.Status
-		if status != models.NotStarted {
+		if status != models.NOT_STARTED {
 			logger.Error(fmt.Sprintf("failed to %s service request %s: %s", "update", requestId, "execution has been started"))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestAlreadyStarted, http.StatusBadRequest))
 			return
@@ -360,7 +360,7 @@ func handleStartServiceRequest(logger logger.ServerLogger, client *mongo.Client)
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		if srm.Status != models.NotStarted {
+		if srm.Status != models.NOT_STARTED {
 			logger.Error(fmt.Sprintf("failed to %s service request %s: %s", "start", requestId, "execution has already been started"))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestAlreadyStarted, http.StatusBadRequest))
 			return
@@ -735,7 +735,7 @@ func handleGetStepExecutionLogs(l logger.ServerLogger, psqlClient *sql.DB) http.
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		endOfLogs := stepEvent.EventType != models.STEP_STARTED
+		endOfLogs := stepEvent.EventType != models.STEP_RUNNING
 		response := ResponseBody{
 			StepName:  stepName,
 			Logs:      logs,

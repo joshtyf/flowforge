@@ -5,7 +5,7 @@ import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
 import PendingServiceRequestActions from "./_components/pending-service-request-actions"
-import { StatusBadge } from "@/components/layouts/status-badge"
+import { ServiceRequestStatusBadge } from "@/components/layouts/service-request-status-badge"
 import { ExternalLink } from "lucide-react"
 import { DataTableColumnHeaderFilterableValue } from "@/components/data-table/data-table-column-header-filterable-value"
 
@@ -24,7 +24,7 @@ export const orgServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
     ),
     cell: ({ row }) => {
       const status: ServiceRequestStatus = row.getValue("status")
-      return <StatusBadge status={status} />
+      return <ServiceRequestStatusBadge status={status} />
     },
   },
   {

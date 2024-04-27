@@ -2,6 +2,7 @@ import useServiceRequest from "@/hooks/use-service-request"
 import { generateUiSchema } from "@/lib/rjsf-utils"
 import { convertServiceRequestFormToRJSFSchema } from "@/lib/rjsf-utils"
 import { FormFieldType, JsonFormComponents } from "@/types/json-form-components"
+import { StepStatus } from "@/types/pipeline"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { useMemo } from "react"
 
@@ -52,34 +53,23 @@ const DUMMY_SERVICE_REQUEST: ServiceRequest = {
   created_on: "2024-02-21T19:50:01",
   last_updated: "2024-02-21T19:50:01",
   remarks: "Remarks",
-  form: DUMMY_PIPELINE_FORM,
+  pipeline: {
+    form: DUMMY_PIPELINE_FORM,
+  },
   form_data: DUMMY_SR_FORM_DATA,
-  steps: [
-    {
+  first_step_name: "Approval",
+  steps: {
+    Approval: {
       name: "Approval",
-      status: ServiceRequestStatus.NOT_STARTED,
+      status: StepStatus.STEP_NOT_STARTED,
+      next_step_name: "Create EC2",
     },
-    {
+    "Create EC2": {
       name: "Create EC2",
-      status: ServiceRequestStatus.NOT_STARTED,
+      status: StepStatus.STEP_NOT_STARTED,
+      next_step_name: "",
     },
-    {
-      name: "Create EC2",
-      status: ServiceRequestStatus.NOT_STARTED,
-    },
-    {
-      name: "Create EC2",
-      status: ServiceRequestStatus.NOT_STARTED,
-    },
-    {
-      name: "Create EC2",
-      status: ServiceRequestStatus.NOT_STARTED,
-    },
-    {
-      name: "Create EC2",
-      status: ServiceRequestStatus.NOT_STARTED,
-    },
-  ],
+  },
 }
 
 interface UseServiceRequestInfoOptions {
@@ -96,17 +86,17 @@ const useServiceRequestInfo = ({
     })
 
   const uiSchema = useMemo(
-    () => generateUiSchema(serviceRequest?.form),
+    () => generateUiSchema(serviceRequest?.pipeline?.form),
     [serviceRequest]
   )
   const rjsfSchema = useMemo(
-    () => convertServiceRequestFormToRJSFSchema(serviceRequest?.form),
+    () => convertServiceRequestFormToRJSFSchema(serviceRequest?.pipeline?.form),
     [serviceRequest]
   )
 
   return {
     pipelineName: serviceRequest?.pipeline_name,
-    pipelineDescription: serviceRequest?.pipeline_description,
+    pipelineDescription: "",
     formData: serviceRequest?.form_data,
     isServiceRequestLoading,
     uiSchema,

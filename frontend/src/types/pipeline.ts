@@ -27,4 +27,14 @@ type Pipeline = PipelineDetails & {
   form?: JsonFormComponents
 }
 
+enum StepStatus {
+  STEP_NOT_STARTED = "Not Started",
+  STEP_RUNNING = "Running",
+  STEP_FAILURE = "Failure",
+  STEP_CANCELLED = "Canceled",
+  STEP_COMPLETED = "Completed",
+}
+
 export type { Pipeline, PipelineDetails, PipelineStep }
+
+export { StepStatus }
