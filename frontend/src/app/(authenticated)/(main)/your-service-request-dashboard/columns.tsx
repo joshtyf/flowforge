@@ -1,5 +1,4 @@
 import { DataTableColumnHeaderFilterableValue } from "@/components/data-table/data-table-column-header-filterable-value"
-import { StatusBadge } from "@/components/layouts/status-badge"
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
@@ -7,8 +6,6 @@ import { ExternalLink } from "lucide-react"
 import Link from "next/link"
 import ServiceRequestActions from "./_components/service-request-actions"
 import { ServiceRequestStatusBadge } from "@/components/layouts/service-request-status-badge"
-import { ExternalLink } from "lucide-react"
-import { DataTableColumnHeaderFilterableValue } from "@/components/data-table/data-table-column-header-filterable-value"
 
 export const columns: ColumnDef<ServiceRequest>[] = [
   {
