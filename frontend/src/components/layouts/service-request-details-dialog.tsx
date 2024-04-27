@@ -11,15 +11,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { getPipeline, getUserById } from "@/lib/service"
+import { getUserById } from "@/lib/service"
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
-import { Pipeline } from "@/types/pipeline"
 import { ServiceRequest } from "@/types/service-request"
 import { UserInfo } from "@/types/user-profile"
 import { ExternalLink } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import PipelineStepper from "./pipeline-stepper"
+import { toast } from "../ui/use-toast"
+import { Skeleton } from "../ui/skeleton"
 
 interface ServiceRequestDetailsProps {
   serviceRequest: ServiceRequest
@@ -30,7 +31,15 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
   useEffect(() => {
     getUserById(serviceRequest.user_id)
       .then((user) => setUser(user))
-      .catch((err) => console.log(err))
+      .catch((err) => {
+        console.error(err)
+        toast({
+          title: "Fetching Service Requests Error",
+          description:
+            "Failed to fetch Service Requests for user. Please try again later.",
+          variant: "destructive",
+        })
+      })
   }, [serviceRequest.user_id])
   const {
     id: serviceRequestId,
@@ -70,7 +79,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
       </div>
       <div>
         <Label className="text-muted-foreground">Created By</Label>
-        <p>{user?.name}</p>
+        {user ? <p>{user.name}</p> : <Skeleton className="w-28 h-5" />}
       </div>
       {steps?.some((step) => step.name === "Approval") && (
         <div>
@@ -109,17 +118,11 @@ export default function ServiceRequestDetailsDialog({
   open,
   setOpen,
 }: ServiceRequestDetailsDialogProps) {
-  const [pipeline, setPipeline] = useState<Pipeline>()
-  useEffect(() => {
-    getPipeline(serviceRequest.pipeline_id)
-      .then((pipeline) => setPipeline(pipeline))
-      .catch((err) => console.log(err))
-  }, [serviceRequest])
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{`${pipeline?.pipeline_name} Details`}</DialogTitle>
+          <DialogTitle>{`${serviceRequest.pipeline_name} Details`}</DialogTitle>
         </DialogHeader>
         <ServiceRequestDetails serviceRequest={serviceRequest} />
       </DialogContent>

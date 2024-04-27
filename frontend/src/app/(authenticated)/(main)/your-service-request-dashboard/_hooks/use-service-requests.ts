@@ -229,7 +229,7 @@ const useServiceRequests = () => {
     queryKey: ["user_service_requests"],
     queryFn: () => {
       return getAllServiceRequest(organizationId).catch((err) => {
-        console.log(err)
+        console.error(err)
         toast({
           title: "Fetching Service Requests Error",
           description:

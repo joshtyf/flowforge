@@ -7,11 +7,7 @@ import { ExternalLink } from "lucide-react"
 import Link from "next/link"
 import ServiceRequestActions from "./_components/service-request-actions"
 
-export type ColumnsType = ServiceRequest & {
-  pipelineName?: string
-}
-
-export const columns: ColumnDef<ColumnsType>[] = [
+export const columns: ColumnDef<ServiceRequest>[] = [
   {
     accessorKey: "status",
     header: ({ column }) => (
@@ -33,13 +29,13 @@ export const columns: ColumnDef<ColumnsType>[] = [
     id: "service_name",
     header: "Service Name",
     cell: ({ row }) => {
-      const rowData: ColumnsType = row.original
+      const rowData: ServiceRequest = row.original
       return (
         <Link
           href={`/service-catalog/${rowData.pipeline_id}`}
           className="hover:underline hover:text-blue-500 flex space-x-2"
         >
-          <p>{rowData.pipelineName}</p>
+          <p>{rowData.pipeline_name}</p>
           <ExternalLink className="w-5 h-5" />
         </Link>
       )

@@ -50,7 +50,8 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/healthcheck", handleHealthCheck(s.logger)).Methods("GET")
 
 	// Service Request
-	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromQuery(isOrgMember(s.psqlClient, handleGetServiceRequestsByOrganization(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("GET")
+	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromQuery(isOrgMember(s.psqlClient, handleGetServiceRequestsByUserAndOrganization(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("GET")
+	r.Handle("/api/service_request/admin", isAuthenticated(getOrgIdFromQuery(isOrgAdmin(s.psqlClient, handleGetServiceRequestsForAdminByOrganization(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("GET")
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
 	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromRequestBody(isOrgMember(s.psqlClient, handleCreateServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(getOrgIdFromRequestBody(isOrgMember(s.psqlClient, handleUpdateServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
@@ -556,11 +557,47 @@ func handleCreateMembership(logger logger.ServerLogger, client *sql.DB) http.Han
 	})
 }
 
-func handleGetServiceRequestsByOrganization(logger logger.ServerLogger, client *mongo.Client) http.Handler {
+func handleGetServiceRequestsByUserAndOrganization(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 		userId := token.RegisteredClaims.Subject
 
+		orgId, err := extractQueryParam[int](r.URL.Query(), "org_id", false, -1, integerConverter)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to extract org_id from query params: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganizationId, http.StatusBadRequest))
+			return
+		}
+
+		statusFilters, err := extractQueryParam[string](r.URL.Query(), "status", false, "", stringConverter)
+		queryFilters := database.GetServiceRequestFilters{
+			UserId: userId,
+		}
+		if statusFilters != "" {
+			statuses := strings.Split(statusFilters, ",")
+			for _, status := range statuses {
+				if !models.ValidateServiceRequestStatus(status) {
+					logger.Error(fmt.Sprintf("invalid status filter: %s", status))
+					encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidServiceRequestStatus, http.StatusBadRequest))
+					return
+				}
+			}
+			queryFilters.Statuses = strings.Split(statusFilters, ",")
+		}
+
+		logger.Info(fmt.Sprintf("querying for service requests: user_id=%s org_id=%d, query_filters=%v", userId, orgId, queryFilters))
+		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestByOrg(orgId, queryFilters)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		encode(w, r, http.StatusOK, allsr)
+	})
+}
+
+func handleGetServiceRequestsForAdminByOrganization(logger logger.ServerLogger, client *mongo.Client) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		orgId, err := extractQueryParam[int](r.URL.Query(), "org_id", false, -1, integerConverter)
 		if err != nil {
 			logger.Error(fmt.Sprintf("unable to extract org_id from query params: %s", err))
@@ -582,8 +619,8 @@ func handleGetServiceRequestsByOrganization(logger logger.ServerLogger, client *
 			queryFilters.Statuses = strings.Split(statusFilters, ",")
 		}
 
-		logger.Info(fmt.Sprintf("querying for service requests: user_id=%s org_id=%d, query_filters=%v", userId, orgId, queryFilters))
-		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestsForOrgId(userId, orgId, queryFilters)
+		logger.Info(fmt.Sprintf("querying for service requests: org_id=%d, query_filters=%v", orgId, queryFilters))
+		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestByOrg(orgId, queryFilters)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))

@@ -19,12 +19,13 @@ func main() {
 	}
 
 	pipelineIdInHex := "8A7F3EBCD951246A5F0E9B87"
+	pipelineName := "Test Pipeline"
 	pipelineId, err := primitive.ObjectIDFromHex(pipelineIdInHex)
 	if err != nil {
 		panic(err)
 	}
 	pipeline := models.PipelineModel{
-		PipelineName:  "Test Pipeline",
+		PipelineName:  pipelineName,
 		Id:            pipelineId,
 		Version:       1,
 		FirstStepName: "step1",
@@ -36,7 +37,7 @@ func main() {
 				PrevStepName: "",
 				Parameters: map[string]string{
 					"method": "GET",
-					"url":    "https://example.com",
+					"url":    "https://example.com?param=${param}",
 				},
 				IsTerminalStep: false,
 			},
@@ -95,12 +96,16 @@ func main() {
 		Id:              serviceReqId,
 		UserId:          "auth0|65e9dabff2dab546ed0c231e", // josh's user ID
 		PipelineId:      pipelineIdInHex,
+		PipelineName:    pipelineName,
 		PipelineVersion: 1,
-		Status:          models.Success,
+		Status:          models.NotStarted,
 		OrganizationId:  1,
 		Remarks:         "This is a test service request.",
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
+		FormData: models.FormData{
+			"param": "test_param",
+		},
 	}
 
 	res, err = database.NewServiceRequest(c).Create(&serviceRequest)

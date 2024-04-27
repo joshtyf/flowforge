@@ -1,21 +1,57 @@
 package helper
 
 import (
+	"errors"
+	"reflect"
 	"regexp"
+	"strconv"
 )
 
-func ExtractParameterFromString(s string) []string {
-	re := regexp.MustCompile(`\${(.+?)}`)
-	matches := re.FindAllStringSubmatch(s, -1)
+var (
+	ErrPlaceholderNotReplaced = errors.New("some placeholders were not replaced")
+)
 
-	var words []string
-	for _, match := range matches {
-		if len(match) == 2 {
-			words = append(words, match[1])
+func ReplacePlaceholders(input string, values map[string]any) (string, error) {
+	// Regular expression to find placeholders
+	re := regexp.MustCompile(`\$\{(.*?)\}`)
+
+	// Replace each placeholder found in the string
+	replaced := re.ReplaceAllStringFunc(input, func(match string) string {
+		// Strip '${' prefix and '}' suffix
+		key := match[2 : len(match)-1]
+
+		// Retrieve value from the map
+		value, exists := values[key]
+		if !exists {
+			// If the key doesn't exist, return an error
+			return match // return the original placeholder
 		}
+
+		if valueType := reflect.TypeOf(value); valueType.Kind() == reflect.String {
+			// If the value is a string, replace placeholder with it
+			return value.(string)
+		} else if valueType.Kind() == reflect.Int {
+			// If the value is an integer, convert it to string and replace placeholder with it
+			return strconv.Itoa(value.(int))
+		} else if valueType.Kind() == reflect.Float64 {
+			// If the value is a float, convert it to string and replace placeholder with it
+			return strconv.FormatFloat(value.(float64), 'f', -1, 64)
+		} else if valueType.Kind() == reflect.Bool {
+			// If the value is a boolean, convert it to string and replace placeholder with it
+			return strconv.FormatBool(value.(bool))
+		} else {
+			return match
+		}
+	})
+
+	// Check if there are any leftover placeholders
+	leftoverPlaceholders := re.FindString(replaced)
+	if leftoverPlaceholders != "" {
+		// If there are leftover placeholders, return an error
+		return "", ErrPlaceholderNotReplaced
 	}
 
-	return words
+	return replaced, nil
 }
 
 func StringSliceEqual(a, b []string) bool {
