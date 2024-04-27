@@ -29,7 +29,7 @@ func ValidateServiceRequestStatus(status string) bool {
 	return false
 }
 
-type FormData map[string]any
+type FormData map[string]string
 
 type ServiceRequestModel struct {
 	Id              primitive.ObjectID   `bson:"_id,omitempty" json:"id,omitempty"`
