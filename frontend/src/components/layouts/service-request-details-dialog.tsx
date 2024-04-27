@@ -20,6 +20,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import PipelineStepper from "./pipeline-stepper"
 import { toast } from "../ui/use-toast"
+import { Skeleton } from "../ui/skeleton"
 
 interface ServiceRequestDetailsProps {
   serviceRequest: ServiceRequest
@@ -78,7 +79,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
       </div>
       <div>
         <Label className="text-muted-foreground">Created By</Label>
-        <p>{user?.name}</p>
+        {user ? <p>{user.name}</p> : <Skeleton className="w-28 h-5" />}
       </div>
       {steps?.some((step) => step.name === "Approval") && (
         <div>
