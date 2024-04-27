@@ -183,6 +183,8 @@ func handleCreateServiceRequest(logger logger.ServerLogger, mongoClient *mongo.C
 		srm.CreatedOn = time.Now()
 		srm.LastUpdated = time.Now()
 		srm.Status = models.NotStarted
+		srm.PipelineName = pipeline.PipelineName
+		srm.PipelineVersion = pipeline.Version
 
 		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 		userId := token.RegisteredClaims.Subject

@@ -36,6 +36,7 @@ type ServiceRequestModel struct {
 	UserId          string               `bson:"user_id" json:"user_id"`
 	OrganizationId  int                  `bson:"org_id" json:"org_id"`
 	PipelineId      string               `bson:"pipeline_id" json:"pipeline_id"` // should we use primitive.ObjectID here?
+	PipelineName    string               `bson:"pipeline_name" json:"pipeline_name"`
 	PipelineVersion int                  `bson:"pipeline_version" json:"pipeline_version"`
 	Status          ServiceRequestStatus `bson:"status" json:"status"`
 	CreatedOn       time.Time            `bson:"created_on" json:"created_on"`
