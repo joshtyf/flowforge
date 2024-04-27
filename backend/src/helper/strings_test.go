@@ -2,6 +2,8 @@ package helper
 
 import (
 	"testing"
+
+	"github.com/joshtyf/flowforge/src/database/models"
 )
 
 func TestStringSliceEqual(t *testing.T) {
@@ -57,31 +59,31 @@ func TestStringInSlice(t *testing.T) {
 func TestReplacePlaceholders(t *testing.T) {
 	testCases := []struct {
 		input    string
-		values   map[string]string
+		values   models.FormData
 		expected string
 		err      error
 	}{
 		{
 			"Hello ${name}, you are ${age} years old",
-			map[string]string{
+			models.FormData{
 				"name": "john",
-				"age":  "50",
+				"age":  50,
 			},
 			"Hello john, you are 50 years old",
 			nil,
 		},
 		{
 			"Hello ${{name}, you are ${age} years old",
-			map[string]string{
+			models.FormData{
 				"name": "john",
-				"age":  "50",
+				"age":  50,
 			},
 			"",
 			ErrPlaceholderNotReplaced,
 		},
 		{
 			"Hello",
-			map[string]string{},
+			models.FormData{},
 			"Hello",
 			nil,
 		},

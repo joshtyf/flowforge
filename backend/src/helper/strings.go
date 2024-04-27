@@ -2,14 +2,16 @@ package helper
 
 import (
 	"errors"
+	"reflect"
 	"regexp"
+	"strconv"
 )
 
 var (
 	ErrPlaceholderNotReplaced = errors.New("some placeholders were not replaced")
 )
 
-func ReplacePlaceholders(input string, values map[string]string) (string, error) {
+func ReplacePlaceholders(input string, values map[string]any) (string, error) {
 	// Regular expression to find placeholders
 	re := regexp.MustCompile(`\$\{(.*?)\}`)
 
@@ -25,8 +27,15 @@ func ReplacePlaceholders(input string, values map[string]string) (string, error)
 			return match // return the original placeholder
 		}
 
-		// Replace placeholder with value from the map
-		return value
+		if valueType := reflect.TypeOf(value); valueType.Kind() == reflect.String {
+			// If the value is a string, replace placeholder with it
+			return value.(string)
+		} else if valueType.Kind() == reflect.Int {
+			// If the value is an integer, convert it to string and replace placeholder with it
+			return strconv.Itoa(value.(int))
+		} else {
+			return match
+		}
 	})
 
 	// Check if there are any leftover placeholders
