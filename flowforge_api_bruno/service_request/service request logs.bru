@@ -5,12 +5,12 @@ meta {
 }
 
 get {
-  url: /api/service_request/{{serviceRequestId}}/logs/{{stepName}}
+  url: {{HOST}}/service_request/{{serviceRequestId}}/logs/{{stepName}}
   body: none
   auth: none
 }
 
 vars:pre-request {
-  serviceRequestId: 66264e9e2c99d0e29aefc4a2
+  serviceRequestId: 66266b29423d5319c502e7ae
   stepName: 
 }
