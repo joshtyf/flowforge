@@ -10,11 +10,12 @@ import (
 const (
 	baseLogDir = "./executor_logs"
 
-	errGettingServiceReqFromCtxMsg = "error getting service request from context"
-	errGettingStepFromCtxMsg       = "error getting step from context"
-	httpRequestMsg                 = "%s %s" // method, url TODO: add request body, params
-	httpResponseStatusMsg          = "status code: %d"
-	waitingForApprovalMsg          = "waiting for approval"
+	errGettingServiceReqFromCtxMsg     = "error getting service request from context"
+	errGettingStepFromCtxMsg           = "error getting step from context"
+	httpRequestMsg                     = "%s %s" // method, url TODO: add request body, params
+	httpResponseStatusMsg              = "status code: %d"
+	waitingForApprovalMsg              = "waiting for approval"
+	errUpdatingServiceRequestStatusMsg = "error updating service request status: %s"
 )
 
 func CreateExecutorLogDir(serviceRequestId string) error {
@@ -61,4 +62,8 @@ func (l *ExecutorLogger) HttpResponseStatus(statusCode int) {
 // Logs that the step is waiting for approval
 func (l *ExecutorLogger) WaitingForApproval() {
 	l.logger.Println(waitingForApprovalMsg)
+}
+
+func (l *ExecutorLogger) ErrUpdatingServiceRequestStatus(err error) {
+	l.logger.Printf(errUpdatingServiceRequestStatusMsg, err)
 }
