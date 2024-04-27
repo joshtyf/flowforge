@@ -11,9 +11,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { getPipeline, getUserById } from "@/lib/service"
+import { getUserById } from "@/lib/service"
 import { formatDateString, formatTimeDifference } from "@/lib/utils"
-import { Pipeline } from "@/types/pipeline"
 import { ServiceRequest } from "@/types/service-request"
 import { UserInfo } from "@/types/user-profile"
 import { ExternalLink } from "lucide-react"
@@ -109,17 +108,11 @@ export default function ServiceRequestDetailsDialog({
   open,
   setOpen,
 }: ServiceRequestDetailsDialogProps) {
-  const [pipeline, setPipeline] = useState<Pipeline>()
-  useEffect(() => {
-    getPipeline(serviceRequest.pipeline_id)
-      .then((pipeline) => setPipeline(pipeline))
-      .catch((err) => console.log(err))
-  }, [serviceRequest])
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{`${pipeline?.pipeline_name} Details`}</DialogTitle>
+          <DialogTitle>{`${serviceRequest.pipeline_name} Details`}</DialogTitle>
         </DialogHeader>
         <ServiceRequestDetails serviceRequest={serviceRequest} />
       </DialogContent>
