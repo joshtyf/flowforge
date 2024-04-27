@@ -100,3 +100,24 @@ func (sr *ServiceRequest) GetAllServiceRequestByUserByOrg(userId string, orgId i
 	}
 	return srms, nil
 }
+
+func (sr *ServiceRequest) GetAllServiceRequestByOrg(orgId int, filters GetServiceRequestFilters) ([]*models.ServiceRequestModel, error) {
+	query := bson.M{"org_id": orgId}
+	if len(filters.Statuses) > 0 {
+		query["status"] = bson.M{"$in": filters.Statuses}
+	}
+	result, err := sr.c.Database(DatabaseName).Collection("service_requests").Find(
+		context.Background(),
+		query,
+	)
+	if err != nil {
+		return nil, err
+	}
+	srms := []*models.ServiceRequestModel{}
+	for result.Next(context.Background()) {
+		srm := &models.ServiceRequestModel{}
+		result.Decode(srm)
+		srms = append(srms, srm)
+	}
+	return srms, nil
+}
