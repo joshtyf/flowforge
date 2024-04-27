@@ -37,7 +37,7 @@ func main() {
 				PrevStepName: "",
 				Parameters: map[string]string{
 					"method": "GET",
-					"url":    "https://example.com",
+					"url":    "https://example.com?param=${param}",
 				},
 				IsTerminalStep: false,
 			},
@@ -98,11 +98,14 @@ func main() {
 		PipelineId:      pipelineIdInHex,
 		PipelineName:    pipelineName,
 		PipelineVersion: 1,
-		Status:          models.Success,
+		Status:          models.NotStarted,
 		OrganizationId:  1,
 		Remarks:         "This is a test service request.",
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
+		FormData: models.FormData{
+			"param": "test_param",
+		},
 	}
 
 	res, err = database.NewServiceRequest(c).Create(&serviceRequest)
