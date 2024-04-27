@@ -11,6 +11,7 @@ type ServiceRequestStatus string
 const (
 	NOT_STARTED ServiceRequestStatus = "Not Started"
 	RUNNING     ServiceRequestStatus = "Running"
+	PENDING     ServiceRequestStatus = "Pending"
 	FAILED      ServiceRequestStatus = "Failed"
 	CANCELLED   ServiceRequestStatus = "Cancelled"
 	COMPLETED   ServiceRequestStatus = "Completed"

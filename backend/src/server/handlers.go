@@ -226,7 +226,7 @@ func handleCancelStartedServiceRequest(logger logger.ServerLogger, client *mongo
 			return
 		}
 		status := sr.Status
-		if status != models.RUNNING {
+		if status != models.PENDING && status != models.RUNNING {
 			logger.Error(fmt.Sprintf("failed to %s service request %s: %s", "cancel", requestId, "execution has been completed"))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestAlreadyCompleted, http.StatusBadRequest))
 			return
