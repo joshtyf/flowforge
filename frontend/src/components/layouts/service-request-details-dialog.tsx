@@ -19,6 +19,7 @@ import { ExternalLink } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import PipelineStepper from "./pipeline-stepper"
+import { toast } from "../ui/use-toast"
 
 interface ServiceRequestDetailsProps {
   serviceRequest: ServiceRequest
@@ -29,7 +30,15 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
   useEffect(() => {
     getUserById(serviceRequest.user_id)
       .then((user) => setUser(user))
-      .catch((err) => console.log(err))
+      .catch((err) => {
+        console.error(err)
+        toast({
+          title: "Fetching Service Requests Error",
+          description:
+            "Failed to fetch Service Requests for user. Please try again later.",
+          variant: "destructive",
+        })
+      })
   }, [serviceRequest.user_id])
   const {
     id: serviceRequestId,
