@@ -77,6 +77,16 @@ func NewWaitForApprovalStepExecutor(mongoClient *mongo.Client) *waitForApprovalS
 
 func (e *waitForApprovalStepExecutor) execute(ctx context.Context, l *logger.ExecutorLogger) (*stepExecResult, error) {
 	l.WaitingForApproval()
+	serviceRequest, ok := ctx.Value(util.ServiceRequestKey).(*models.ServiceRequestModel)
+	if !ok {
+		l.ErrGettingServiceReqFromCtx()
+		return nil, errors.New("error getting service request from context")
+	}
+	err := database.NewServiceRequest(e.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Pending)
+	if err != nil {
+		l.ErrUpdatingServiceRequestStatus(err)
+		return nil, err
+	}
 	return &stepExecResult{}, nil
 }
 
