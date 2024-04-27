@@ -4,28 +4,6 @@ import (
 	"testing"
 )
 
-func TestExtractParameterFromString(t *testing.T) {
-	testCases := []struct {
-		input         string
-		expectedWords []string
-	}{
-		{"my name is ${username}", []string{"username"}},
-		{"This is a ${test} string with ${multiple} placeholders", []string{"test", "multiple"}},
-		{"NoBracesHere", []string{}},
-		{"${}", []string{}},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.input, func(t *testing.T) {
-			extractedWords := ExtractParameterFromString(tc.input)
-			if !StringSliceEqual(extractedWords, tc.expectedWords) {
-				t.Errorf("Expected: %v (len: %d), Got: %v (len: %d)", tc.expectedWords, len(tc.expectedWords),
-					extractedWords, len(extractedWords))
-			}
-		})
-	}
-}
-
 func TestStringSliceEqual(t *testing.T) {
 	testCases := []struct {
 		a        []string
@@ -73,5 +51,49 @@ func TestStringInSlice(t *testing.T) {
 				t.Errorf("Expected: %v, Got: %v", tc.expected, !tc.expected)
 			}
 		})
+	}
+}
+
+func TestReplacePlaceholders(t *testing.T) {
+	testCases := []struct {
+		input    string
+		values   map[string]string
+		expected string
+		err      error
+	}{
+		{
+			"Hello ${name}, you are ${age} years old",
+			map[string]string{
+				"name": "john",
+				"age":  "50",
+			},
+			"Hello john, you are 50 years old",
+			nil,
+		},
+		{
+			"Hello ${{name}, you are ${age} years old",
+			map[string]string{
+				"name": "john",
+				"age":  "50",
+			},
+			"",
+			ErrPlaceholderNotReplaced,
+		},
+		{
+			"Hello",
+			map[string]string{},
+			"Hello",
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		replaced, err := ReplacePlaceholders(tc.input, tc.values)
+		if tc.err != err {
+			t.Errorf("Expected: %v, Got: %v", tc.err, err)
+		}
+		if replaced != tc.expected {
+			t.Errorf("Expected: %v, Got: %v", tc.expected, replaced)
+		}
 	}
 }
