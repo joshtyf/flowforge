@@ -4,7 +4,7 @@ import Navbar from "@/components/layouts/navbar"
 import Sidebar from "@/components/layouts/sidebar"
 import { Toaster } from "@/components/ui/toaster"
 import { getUserProfile } from "@/lib/auth0"
-import { UserProfile } from "@/types/user-profile"
+import { Auth0UserProfile } from "@/types/user-profile"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { getCookie, hasCookie } from "cookies-next"
 import { useRouter } from "next/navigation"
@@ -31,7 +31,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const toggleSidebar = () => {
     setIsSidebarOpen((isSidebarOpen) => !isSidebarOpen)
   }
-  const [userProfile, setUserProfile] = useState<UserProfile>()
+  const [userProfile, setUserProfile] = useState<Auth0UserProfile>()
   useEffect(() => {
     getUserProfile(getCookie("access_token") as string)
       .then((userProfile) => setUserProfile(userProfile))

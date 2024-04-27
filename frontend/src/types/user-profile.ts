@@ -1,8 +1,16 @@
-type UserProfile = {
+type Auth0UserProfile = {
   email?: string
   name?: string
   preferred_username?: string
   nickname?: string
 }
 
-export type { UserProfile }
+type UserInfo = {
+  user_id: string
+  name: string
+  identity_provider: string
+  created_on: Date
+  deleted: boolean
+}
+
+export type { Auth0UserProfile, UserInfo }

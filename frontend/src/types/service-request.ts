@@ -25,6 +25,7 @@ type ServiceRequestStep = {
 
 type ServiceRequest = {
   id: string
+  user_id: string
   pipeline_id: string
   pipeline_name: string
   pipeline_description?: string

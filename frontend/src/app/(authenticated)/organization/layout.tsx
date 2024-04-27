@@ -2,7 +2,7 @@
 
 import Navbar from "@/components/layouts/navbar"
 import { getUserProfile } from "@/lib/auth0"
-import { UserProfile } from "@/types/user-profile"
+import { Auth0UserProfile } from "@/types/user-profile"
 import { getCookie, hasCookie } from "cookies-next"
 import { useRouter } from "next/navigation"
 import { ReactNode, useEffect, useState } from "react"
@@ -24,7 +24,7 @@ export default function AuthenticatedLayout({
     }
   }, [router])
 
-  const [userProfile, setUserProfile] = useState<UserProfile>()
+  const [userProfile, setUserProfile] = useState<Auth0UserProfile>()
   useEffect(() => {
     getUserProfile(getCookie("access_token") as string)
       .then((userProfile) => setUserProfile(userProfile))

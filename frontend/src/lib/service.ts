@@ -1,6 +1,7 @@
 import { Pipeline } from "@/types/pipeline"
-import apiClient from "./apiClient"
 import { ServiceRequest } from "@/types/service-request"
+import { UserInfo } from "@/types/user-profile"
+import apiClient from "./apiClient"
 
 /* Pipeline */
 
@@ -61,4 +62,8 @@ export async function approveServiceRequest(
 
 export async function getAllOrgsForUser() {
   return apiClient.get("/organization").then((res) => res.data)
+}
+
+export async function getUserById(userId: string): Promise<UserInfo> {
+  return apiClient.get(`/user/${userId}`).then((res) => res.data)
 }

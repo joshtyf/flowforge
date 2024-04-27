@@ -1,12 +1,13 @@
 "use client"
 
+import { DataTable } from "@/components/data-table/data-table"
 import HeaderAccessory from "@/components/ui/header-accessory"
 import useServiceRequests from "./_hooks/use-service-requests"
-import { DataTable } from "@/components/data-table/data-table"
 import { columns } from "./columns"
 
 export default function ServiceRequestDashboardPage() {
   const { serviceRequests } = useServiceRequests()
+
   return (
     <div className="flex flex-col justify-start py-10">
       <HeaderAccessory />

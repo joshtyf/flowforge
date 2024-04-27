@@ -19,12 +19,13 @@ func main() {
 	}
 
 	pipelineIdInHex := "8A7F3EBCD951246A5F0E9B87"
+	pipelineName := "Test Pipeline"
 	pipelineId, err := primitive.ObjectIDFromHex(pipelineIdInHex)
 	if err != nil {
 		panic(err)
 	}
 	pipeline := models.PipelineModel{
-		PipelineName:  "Test Pipeline",
+		PipelineName:  pipelineName,
 		Id:            pipelineId,
 		Version:       1,
 		FirstStepName: "step1",
@@ -95,6 +96,7 @@ func main() {
 		Id:              serviceReqId,
 		UserId:          "auth0|65e9dabff2dab546ed0c231e", // josh's user ID
 		PipelineId:      pipelineIdInHex,
+		PipelineName:    pipelineName,
 		PipelineVersion: 1,
 		Status:          models.NotStarted,
 		OrganizationId:  1,
