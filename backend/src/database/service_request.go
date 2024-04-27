@@ -80,7 +80,7 @@ type GetServiceRequestFilters struct {
 	Statuses []string
 }
 
-func (sr *ServiceRequest) GetAllServiceRequestsForOrgId(userId string, orgId int, filters GetServiceRequestFilters) ([]*models.ServiceRequestModel, error) {
+func (sr *ServiceRequest) GetAllServiceRequestByUserByOrg(userId string, orgId int, filters GetServiceRequestFilters) ([]*models.ServiceRequestModel, error) {
 	query := bson.M{"user_id": userId, "org_id": orgId}
 	if len(filters.Statuses) > 0 {
 		query["status"] = bson.M{"$in": filters.Statuses}
