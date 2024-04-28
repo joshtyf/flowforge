@@ -13,17 +13,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { toast } from "@/components/ui/use-toast"
-import { getServiceRequestSteps, getUserById } from "@/lib/service"
+import useServiceRequestSteps from "@/hooks/use-service-request-steps"
+import { getUserById } from "@/lib/service"
 import {
   createStepsFromObject,
   formatDateString,
   formatTimeDifference,
 } from "@/lib/utils"
-import {
-  ServiceRequest,
-  ServiceRequestStatus,
-  ServiceRequestSteps,
-} from "@/types/service-request"
+import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { UserInfo } from "@/types/user-profile"
 import { ExternalLink } from "lucide-react"
 import Link from "next/link"
@@ -57,26 +54,9 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
     last_updated: lastUpdated = "",
     remarks,
   } = serviceRequest
-
-  const [steps, setSteps] = useState<ServiceRequestSteps>()
-  const [firstStepName, setFirstStepName] = useState<string>()
-  useEffect(() => {
-    getServiceRequestSteps(serviceRequest.id)
-      .then((resp) => {
-        setSteps(resp.steps)
-        setFirstStepName(resp.first_step_name)
-      })
-      .catch((err) => {
-        console.error(err)
-        toast({
-          title: "Fetching Service Request Steps Error",
-          description:
-            "Failed to fetch Service Request Steps. Please try again later.",
-          variant: "destructive",
-        })
-      })
-  }, [serviceRequest])
-
+  const { steps, firstStepName } = useServiceRequestSteps({
+    serviceRequestId: serviceRequest.id,
+  })
   const stepsList = useMemo(
     () => createStepsFromObject(firstStepName, steps),
     [firstStepName, steps]
