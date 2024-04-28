@@ -7,10 +7,12 @@ import (
 	"net/http"
 
 	"github.com/gookit/event"
+	"github.com/joshtyf/flowforge/src/database"
 	"github.com/joshtyf/flowforge/src/database/models"
 	"github.com/joshtyf/flowforge/src/events"
 	"github.com/joshtyf/flowforge/src/logger"
 	"github.com/joshtyf/flowforge/src/util"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type stepExecResult struct {
@@ -64,14 +66,27 @@ func (e *apiStepExecutor) getStepType() models.PipelineStepType {
 }
 
 type waitForApprovalStepExecutor struct {
+	mongoClient *mongo.Client
 }
 
-func NewWaitForApprovalStepExecutor() *waitForApprovalStepExecutor {
-	return &waitForApprovalStepExecutor{}
+func NewWaitForApprovalStepExecutor(mongoClient *mongo.Client) *waitForApprovalStepExecutor {
+	return &waitForApprovalStepExecutor{
+		mongoClient: mongoClient,
+	}
 }
 
 func (e *waitForApprovalStepExecutor) execute(ctx context.Context, l *logger.ExecutorLogger) (*stepExecResult, error) {
 	l.WaitingForApproval()
+	serviceRequest, ok := ctx.Value(util.ServiceRequestKey).(*models.ServiceRequestModel)
+	if !ok {
+		l.ErrGettingServiceReqFromCtx()
+		return nil, errors.New("error getting service request from context")
+	}
+	err := database.NewServiceRequest(e.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Pending)
+	if err != nil {
+		l.ErrUpdatingServiceRequestStatus(err)
+		return nil, err
+	}
 	return &stepExecResult{}, nil
 }
 
