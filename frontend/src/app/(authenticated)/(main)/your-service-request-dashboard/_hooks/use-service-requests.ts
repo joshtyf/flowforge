@@ -265,6 +265,7 @@ const useServiceRequests = () => {
         })
       })
     },
+    refetchInterval: 2000,
   })
 
   return {
