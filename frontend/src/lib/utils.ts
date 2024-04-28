@@ -69,7 +69,7 @@ export function createStepsFromObject(
   firstStep?: string,
   steps?: ServiceRequestSteps
 ): ServiceRequestStep[] {
-  if (!steps || !firstStep) {
+  if (!steps || Object.keys(steps).length == 0 || !firstStep) {
     return []
   }
   const stepsArray: ServiceRequestStep[] = []
