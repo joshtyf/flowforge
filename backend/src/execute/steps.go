@@ -82,7 +82,7 @@ func (e *waitForApprovalStepExecutor) execute(ctx context.Context, l *logger.Exe
 		l.ErrGettingServiceReqFromCtx()
 		return nil, errors.New("error getting service request from context")
 	}
-	err := database.NewServiceRequest(e.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.Pending)
+	err := database.NewServiceRequest(e.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.PENDING)
 	if err != nil {
 		l.ErrUpdatingServiceRequestStatus(err)
 		return nil, err
