@@ -5,27 +5,26 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { getUserById } from "@/lib/service"
+import { toast } from "@/components/ui/use-toast"
+import { getServiceRequestSteps, getUserById } from "@/lib/service"
 import {
   createStepsFromObject,
   formatDateString,
   formatTimeDifference,
 } from "@/lib/utils"
-import { ServiceRequest } from "@/types/service-request"
+import { ServiceRequest, ServiceRequestSteps } from "@/types/service-request"
 import { UserInfo } from "@/types/user-profile"
 import { ExternalLink } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import PipelineStepper from "./pipeline-stepper"
-import { useMemo } from "react"
-import { toast } from "@/components/ui/use-toast"
-import { Skeleton } from "@/components/ui/skeleton"
 
 interface ServiceRequestDetailsProps {
   serviceRequest: ServiceRequest
@@ -53,9 +52,26 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
     created_on: createdOn = "",
     last_updated: lastUpdated = "",
     remarks,
-    steps,
-    first_step_name: firstStepName = "",
   } = serviceRequest
+
+  const [steps, setSteps] = useState<ServiceRequestSteps>()
+  const [firstStepName, setFirstStepName] = useState<string>()
+  useEffect(() => {
+    getServiceRequestSteps(serviceRequest.id)
+      .then((resp) => {
+        setSteps(resp.steps)
+        setFirstStepName(resp.first_step_name)
+      })
+      .catch((err) => {
+        console.error(err)
+        toast({
+          title: "Fetching Service Request Steps Error",
+          description:
+            "Failed to fetch Service Request Steps. Please try again later.",
+          variant: "destructive",
+        })
+      })
+  }, [serviceRequest])
 
   const stepsList = useMemo(
     () => createStepsFromObject(firstStepName, steps),
