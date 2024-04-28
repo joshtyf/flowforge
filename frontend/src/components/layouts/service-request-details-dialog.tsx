@@ -19,7 +19,11 @@ import {
   formatDateString,
   formatTimeDifference,
 } from "@/lib/utils"
-import { ServiceRequest, ServiceRequestSteps } from "@/types/service-request"
+import {
+  ServiceRequest,
+  ServiceRequestStatus,
+  ServiceRequestSteps,
+} from "@/types/service-request"
 import { UserInfo } from "@/types/user-profile"
 import { ExternalLink } from "lucide-react"
 import Link from "next/link"
@@ -128,7 +132,11 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
       </div>
       <div className="col-span-2">
         <Label className="text-muted-foreground">Steps</Label>
-        <PipelineStepper steps={stepsList} />
+        {serviceRequest.status == ServiceRequestStatus.NOT_STARTED ? (
+          <p className="text">Request not started</p>
+        ) : (
+          <PipelineStepper steps={stepsList} />
+        )}
       </div>
     </div>
   )
