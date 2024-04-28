@@ -564,6 +564,13 @@ func handleCreateMembership(logger logger.ServerLogger, client *sql.DB) http.Han
 }
 
 func handleGetServiceRequestsByUserAndOrganization(logger logger.ServerLogger, client *mongo.Client) http.Handler {
+	type ResponseBodyMetadata struct {
+		TotalCount int `json:"total_count"`
+	}
+	type ResponseBody struct {
+		Data     []*models.ServiceRequestModel `json:"data"`
+		Metadata ResponseBodyMetadata          `json:"metadata"`
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 		userId := token.RegisteredClaims.Subject
@@ -592,17 +599,33 @@ func handleGetServiceRequestsByUserAndOrganization(logger logger.ServerLogger, c
 		}
 
 		logger.Info(fmt.Sprintf("querying for service requests: user_id=%s org_id=%d, query_filters=%v", userId, orgId, queryFilters))
-		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestByOrg(orgId, queryFilters)
+		result, err := database.NewServiceRequest(client).GetAllServiceRequestByOrg(orgId, queryFilters, database.Pagination{
+			Page:     1, // TODO: implement pagination from query params
+			PageSize: 10,
+		})
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		encode(w, r, http.StatusOK, allsr)
+		response := ResponseBody{
+			Data: result.Data,
+			Metadata: ResponseBodyMetadata{
+				TotalCount: result.TotalCount,
+			},
+		}
+		encode(w, r, http.StatusOK, response)
 	})
 }
 
 func handleGetServiceRequestsForAdminByOrganization(logger logger.ServerLogger, client *mongo.Client) http.Handler {
+	type ResponseBodyMetadata struct {
+		TotalCount int `json:"total_count"`
+	}
+	type ResponseBody struct {
+		Data     []*models.ServiceRequestModel `json:"data"`
+		Metadata ResponseBodyMetadata          `json:"metadata"`
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		orgId, err := extractQueryParam[int](r.URL.Query(), "org_id", false, -1, integerConverter)
 		if err != nil {
@@ -626,13 +649,22 @@ func handleGetServiceRequestsForAdminByOrganization(logger logger.ServerLogger, 
 		}
 
 		logger.Info(fmt.Sprintf("querying for service requests: org_id=%d, query_filters=%v", orgId, queryFilters))
-		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestByOrg(orgId, queryFilters)
+		result, err := database.NewServiceRequest(client).GetAllServiceRequestByOrg(orgId, queryFilters, database.Pagination{
+			Page:     1, // TODO: implement pagination from query params
+			PageSize: 10,
+		})
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		encode(w, r, http.StatusOK, allsr)
+		response := ResponseBody{
+			Data: result.Data,
+			Metadata: ResponseBodyMetadata{
+				TotalCount: result.TotalCount,
+			},
+		}
+		encode(w, r, http.StatusOK, response)
 	})
 }
 
