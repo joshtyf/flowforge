@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/joshtyf/flowforge/src/database/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -52,11 +53,15 @@ func (sr *ServiceRequest) UpdateById(id string, srm *models.ServiceRequestModel)
 	return nil, nil
 }
 
-func (sr *ServiceRequest) GetAll() ([]*models.ServiceRequestModel, error) {
-	result, err := sr.c.Database(DatabaseName).Collection("service_requests").Find(context.Background(), bson.M{})
+func (sr *ServiceRequest) GetAll(pg Pagination) ([]*models.ServiceRequestModel, error) {
+	result, err := sr.c.Database(DatabaseName).Collection("service_requests").Aggregate(
+		context.TODO(),
+		mongo.Pipeline{},
+	)
 	if err != nil {
 		return nil, err
 	}
+
 	srms := []*models.ServiceRequestModel{}
 	for result.Next(context.Background()) {
 		srm := &models.ServiceRequestModel{}
@@ -81,7 +86,12 @@ type GetServiceRequestFilters struct {
 	Statuses []string
 }
 
-func (sr *ServiceRequest) GetAllServiceRequestByOrg(orgId int, filters GetServiceRequestFilters) ([]*models.ServiceRequestModel, error) {
+type GetAllServiceRequestByOrgResponse struct {
+	Data       []*models.ServiceRequestModel
+	TotalCount int
+}
+
+func (sr *ServiceRequest) GetAllServiceRequestByOrg(orgId int, filters GetServiceRequestFilters, pg Pagination) (*GetAllServiceRequestByOrgResponse, error) {
 	query := bson.M{"org_id": orgId}
 	if len(filters.Statuses) > 0 {
 		query["status"] = bson.M{"$in": filters.Statuses}
@@ -89,18 +99,49 @@ func (sr *ServiceRequest) GetAllServiceRequestByOrg(orgId int, filters GetServic
 	if filters.UserId != "" {
 		query["user_id"] = filters.UserId
 	}
-	result, err := sr.c.Database(DatabaseName).Collection("service_requests").Find(
+	result, err := sr.c.Database(DatabaseName).Collection("service_requests").Aggregate(
 		context.Background(),
-		query,
+		mongo.Pipeline{
+			{{Key: "$match", Value: query}},
+			{{Key: "$facet", Value: bson.D{
+				{
+					Key:   "totalCount",
+					Value: bson.A{bson.D{{Key: "$count", Value: "total"}}},
+				},
+				{
+					Key: "data",
+					Value: bson.A{
+						bson.D{{Key: "$skip", Value: (pg.Page - 1) * pg.PageSize}},
+						bson.D{{Key: "$limit", Value: pg.PageSize}},
+					},
+				},
+			}}},
+		},
 	)
 	if err != nil {
 		return nil, err
 	}
-	srms := []*models.ServiceRequestModel{}
-	for result.Next(context.Background()) {
-		srm := &models.ServiceRequestModel{}
-		result.Decode(srm)
-		srms = append(srms, srm)
+	defer result.Close(context.Background())
+
+	type dataResp struct {
+		Data       []*models.ServiceRequestModel `bson:"data"`
+		TotalCount []struct {
+			Total int `bson:"total"`
+		} `bson:"totalCount"`
 	}
-	return srms, nil
+	srms := []*models.ServiceRequestModel{}
+	var totalCount int
+	for result.Next(context.Background()) {
+		data := &dataResp{}
+		err := result.Decode(data)
+		if err != nil {
+			return nil, fmt.Errorf("error decoding data: %w", err)
+		}
+		totalCount = data.TotalCount[0].Total
+		srms = append(srms, data.Data...)
+	}
+	return &GetAllServiceRequestByOrgResponse{
+		Data:       srms,
+		TotalCount: totalCount,
+	}, nil
 }
