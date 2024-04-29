@@ -1,6 +1,8 @@
 import { toast } from "@/components/ui/use-toast"
 import { getServiceRequestSteps } from "@/lib/service"
+import { createStepsFromObject } from "@/lib/utils"
 import { useQuery } from "@tanstack/react-query"
+import { useMemo } from "react"
 
 type UseServiceRequestStepsProps = {
   serviceRequestId: string
@@ -22,9 +24,13 @@ const useServiceRequestSteps = ({
     refetchInterval: 2000,
   })
 
+  const stepsList = useMemo(
+    () => createStepsFromObject(data?.first_step_name, data?.steps),
+    [data]
+  )
+
   return {
-    steps: data?.steps,
-    firstStepName: data?.first_step_name,
+    steps: stepsList,
     isLoading,
   }
 }

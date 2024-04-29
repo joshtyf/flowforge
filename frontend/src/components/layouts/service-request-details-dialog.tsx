@@ -15,16 +15,12 @@ import {
 import { toast } from "@/components/ui/use-toast"
 import useServiceRequestSteps from "@/hooks/use-service-request-steps"
 import { getUserById } from "@/lib/service"
-import {
-  createStepsFromObject,
-  formatDateString,
-  formatTimeDifference,
-} from "@/lib/utils"
+import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { UserInfo } from "@/types/user-profile"
 import { ExternalLink } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import PipelineStepper from "./pipeline-stepper"
 
 interface ServiceRequestDetailsProps {
@@ -54,13 +50,11 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
     last_updated: lastUpdated = "",
     remarks,
   } = serviceRequest
-  const { steps, firstStepName } = useServiceRequestSteps({
+
+  const { steps } = useServiceRequestSteps({
     serviceRequestId: serviceRequest.id,
   })
-  const stepsList = useMemo(
-    () => createStepsFromObject(firstStepName, steps),
-    [firstStepName, steps]
-  )
+
   return (
     <div className="grid grid-cols-2 gap-5">
       <div className="col-span-2">
@@ -92,7 +86,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
         <Label className="text-muted-foreground">Created By</Label>
         {user ? <p>{user.name}</p> : <Skeleton className="w-28 h-5" />}
       </div>
-      {stepsList.some((step) => step.name === "Approval") && (
+      {steps.some((step) => step.name === "Approval") && (
         <div>
           <Label className="text-muted-foreground">Approved By</Label>
           <p>{"-"}</p>
@@ -115,7 +109,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
         {serviceRequest.status == ServiceRequestStatus.NOT_STARTED ? (
           <p className="text">Request not started</p>
         ) : (
-          <PipelineStepper steps={stepsList} />
+          <PipelineStepper steps={steps} />
         )}
       </div>
     </div>
