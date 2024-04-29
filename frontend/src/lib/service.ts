@@ -35,9 +35,12 @@ export async function createServiceRequest(
   })
 }
 
-export async function getAllServiceRequest(
-  organizationId: number
-): Promise<ServiceRequest[]> {
+export async function getAllServiceRequest(organizationId: number): Promise<{
+  data: ServiceRequest[]
+  metadata: {
+    total_count: number
+  }
+}> {
   return apiClient
     .get("/service_request", { params: { org_id: organizationId } })
     .then((res) => res.data)
