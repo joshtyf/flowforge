@@ -2,7 +2,7 @@ import {
   ServiceRequestStep,
   ServiceRequestSteps,
 } from "@/types/service-request"
-import { type ClassValue, clsx } from "clsx"
+import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
@@ -66,10 +66,10 @@ export function isArrayValuesString(arr: unknown[]): arr is string[] {
 }
 
 export function createStepsFromObject(
-  firstStep: string,
+  firstStep?: string,
   steps?: ServiceRequestSteps
 ): ServiceRequestStep[] {
-  if (!steps) {
+  if (!steps || Object.keys(steps).length == 0 || !firstStep) {
     return []
   }
   const stepsArray: ServiceRequestStep[] = []

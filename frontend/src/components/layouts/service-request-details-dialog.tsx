@@ -5,27 +5,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { toast } from "@/components/ui/use-toast"
+import useServiceRequestSteps from "@/hooks/use-service-request-steps"
 import { getUserById } from "@/lib/service"
-import {
-  createStepsFromObject,
-  formatDateString,
-  formatTimeDifference,
-} from "@/lib/utils"
-import { ServiceRequest } from "@/types/service-request"
+import { formatDateString, formatTimeDifference } from "@/lib/utils"
+import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { UserInfo } from "@/types/user-profile"
 import { ExternalLink } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import PipelineStepper from "./pipeline-stepper"
-import { useMemo } from "react"
-import { toast } from "@/components/ui/use-toast"
-import { Skeleton } from "@/components/ui/skeleton"
 
 interface ServiceRequestDetailsProps {
   serviceRequest: ServiceRequest
@@ -53,14 +49,12 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
     created_on: createdOn = "",
     last_updated: lastUpdated = "",
     remarks,
-    steps,
-    first_step_name: firstStepName = "",
   } = serviceRequest
 
-  const stepsList = useMemo(
-    () => createStepsFromObject(firstStepName, steps),
-    [firstStepName, steps]
-  )
+  const { steps } = useServiceRequestSteps({
+    serviceRequestId: serviceRequest.id,
+  })
+
   return (
     <div className="grid grid-cols-2 gap-5">
       <div className="col-span-2">
@@ -92,7 +86,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
         <Label className="text-muted-foreground">Created By</Label>
         {user ? <p>{user.name}</p> : <Skeleton className="w-28 h-5" />}
       </div>
-      {stepsList.some((step) => step.name === "Approval") && (
+      {steps.some((step) => step.name === "Approval") && (
         <div>
           <Label className="text-muted-foreground">Approved By</Label>
           <p>{"-"}</p>
@@ -112,7 +106,11 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
       </div>
       <div className="col-span-2">
         <Label className="text-muted-foreground">Steps</Label>
-        <PipelineStepper steps={stepsList} />
+        {serviceRequest.status == ServiceRequestStatus.NOT_STARTED ? (
+          <p className="text">Request not started</p>
+        ) : (
+          <PipelineStepper steps={steps} />
+        )}
       </div>
     </div>
   )

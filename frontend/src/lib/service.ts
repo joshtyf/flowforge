@@ -1,5 +1,5 @@
 import { Pipeline } from "@/types/pipeline"
-import { ServiceRequest } from "@/types/service-request"
+import { ServiceRequest, ServiceRequestSteps } from "@/types/service-request"
 import { UserInfo } from "@/types/user-profile"
 import apiClient from "./apiClient"
 
@@ -58,6 +58,20 @@ export async function approveServiceRequest(
   return apiClient.post(`/service_request/${serviceRequestId}/approve`, {
     org_id: organizationId,
   })
+}
+
+export async function getServiceRequestSteps(
+  serviceRequestId: string
+): Promise<{
+  service_request_id: string
+  first_step_name: string
+  pipeline_id: string
+  pipeline_version: number
+  steps: ServiceRequestSteps
+}> {
+  return apiClient
+    .get(`/service_request/${serviceRequestId}/steps`)
+    .then((res) => res.data)
 }
 
 /* Organization */
