@@ -53,15 +53,11 @@ func (sr *ServiceRequest) UpdateById(id string, srm *models.ServiceRequestModel)
 	return nil, nil
 }
 
-func (sr *ServiceRequest) GetAll(pg Pagination) ([]*models.ServiceRequestModel, error) {
-	result, err := sr.c.Database(DatabaseName).Collection("service_requests").Aggregate(
-		context.TODO(),
-		mongo.Pipeline{},
-	)
+func (sr *ServiceRequest) GetAll() ([]*models.ServiceRequestModel, error) {
+	result, err := sr.c.Database(DatabaseName).Collection("service_requests").Find(context.Background(), bson.M{})
 	if err != nil {
 		return nil, err
 	}
-
 	srms := []*models.ServiceRequestModel{}
 	for result.Next(context.Background()) {
 		srm := &models.ServiceRequestModel{}
