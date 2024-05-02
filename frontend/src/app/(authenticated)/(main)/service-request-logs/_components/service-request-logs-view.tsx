@@ -6,15 +6,18 @@ import HeaderAccessory from "@/components/ui/header-accessory"
 import { ServiceRequestStep } from "@/types/service-request"
 import { ChevronLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
+import StepLogs from "./step-logs"
 
 interface ServiceRequestLogsViewProps {
-  currentStep: string
+  serviceRequestId: string
   serviceRequestSteps?: ServiceRequestStep[]
+  currentStep: string
 }
 
 export default function ServiceRequestLogsView({
-  currentStep,
+  serviceRequestId,
   serviceRequestSteps,
+  currentStep,
 }: ServiceRequestLogsViewProps) {
   const router = useRouter()
   return (
@@ -37,13 +40,10 @@ export default function ServiceRequestLogsView({
       </div>
       <div>
         <PipelineStepper steps={serviceRequestSteps} />
-        <div className="bg-gray-900 text-green-300 border-none rounded-lg p-3 focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-mono h-[70vh] overflow-auto">
-          Test logs
-        </div>
-        {/* <Textarea
-          disabled
-          className="bg-black disabled:opacity-100 text-green-500 border border-black p-4 font-mono"
-        ></Textarea> */}
+        <StepLogs
+          serviceRequestId={serviceRequestId}
+          currentStep={currentStep}
+        />
       </div>
     </>
   )

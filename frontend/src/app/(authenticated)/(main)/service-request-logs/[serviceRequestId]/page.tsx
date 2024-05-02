@@ -9,7 +9,7 @@ interface ServiceRequestLogsPageProps {}
 
 export default function ServiceRequestLogsPage({}: ServiceRequestLogsPageProps) {
   const { serviceRequestId } = useParams()
-  const serviceRequestIdString = Array.isArray(serviceRequestId)
+  const serviceRequestIdString: string = Array.isArray(serviceRequestId)
     ? serviceRequestId[0]
     : serviceRequestId
   const { serviceRequestSteps, currentStep, isLoading } =
@@ -22,8 +22,9 @@ export default function ServiceRequestLogsPage({}: ServiceRequestLogsPageProps) 
         <ServiceRequestLogsSkeletonView />
       ) : (
         <ServiceRequestLogsView
-          currentStep={currentStep}
+          serviceRequestId={serviceRequestIdString}
           serviceRequestSteps={serviceRequestSteps}
+          currentStep={currentStep}
         />
       )}
     </>
