@@ -8,14 +8,15 @@ import { ChevronLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface ServiceRequestLogsViewProps {
+  currentStep: string
   serviceRequestSteps?: ServiceRequestStep[]
 }
 
 export default function ServiceRequestLogsView({
+  currentStep,
   serviceRequestSteps,
 }: ServiceRequestLogsViewProps) {
   const router = useRouter()
-  console.log(serviceRequestSteps)
   return (
     <>
       <div className="flex flex-col justify-start py-10">

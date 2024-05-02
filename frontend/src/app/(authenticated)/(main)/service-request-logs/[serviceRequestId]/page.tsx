@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation"
 import ServiceRequestLogsView from "../_components/service-request-logs-view"
-import useServiceRequestLogs from "../_hooks/use-service-request-logs"
+import useServiceRequestSteps from "../_hooks/use-service-request-steps"
 import ServiceRequestLogsSkeletonView from "../_components/service-request-logs-skeleton"
 
 interface ServiceRequestLogsPageProps {}
@@ -12,15 +12,19 @@ export default function ServiceRequestLogsPage({}: ServiceRequestLogsPageProps) 
   const serviceRequestIdString = Array.isArray(serviceRequestId)
     ? serviceRequestId[0]
     : serviceRequestId
-  const { serviceRequestSteps, isLoading } = useServiceRequestLogs({
-    serviceRequestId: serviceRequestIdString,
-  })
+  const { serviceRequestSteps, currentStep, isLoading } =
+    useServiceRequestSteps({
+      serviceRequestId: serviceRequestIdString,
+    })
   return (
     <>
       {isLoading ? (
         <ServiceRequestLogsSkeletonView />
       ) : (
-        <ServiceRequestLogsView serviceRequestSteps={serviceRequestSteps} />
+        <ServiceRequestLogsView
+          currentStep={currentStep}
+          serviceRequestSteps={serviceRequestSteps}
+        />
       )}
     </>
   )
