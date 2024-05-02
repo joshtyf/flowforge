@@ -7,11 +7,7 @@ meta {
 get {
   url: {{HOST}}/service_request/{{serviceRequestId}}
   body: none
-  auth: bearer
-}
-
-auth:bearer {
-  token: {{access_token}}
+  auth: none
 }
 
 vars:pre-request {
