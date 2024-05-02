@@ -7,7 +7,11 @@ meta {
 delete {
   url: {{HOST}}/organization
   body: json
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
 }
 
 body:json {

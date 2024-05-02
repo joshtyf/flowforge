@@ -7,9 +7,13 @@ meta {
 get {
   url: {{HOST}}/service_request/admin?org_id=1
   body: none
-  auth: none
+  auth: bearer
 }
 
 query {
   org_id: 1
+}
+
+auth:bearer {
+  token: {{access_token}}
 }

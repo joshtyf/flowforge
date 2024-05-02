@@ -7,11 +7,15 @@ meta {
 post {
   url: {{HOST}}/service_request
   body: json
-  auth: none
+  auth: bearer
 }
 
 headers {
   Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{access_token}}
 }
 
 body:json {

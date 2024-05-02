@@ -7,5 +7,9 @@ meta {
 put {
   url: {{HOST}}/service_request/{{service_request_id}}/start
   body: none
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
 }

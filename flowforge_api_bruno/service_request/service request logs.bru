@@ -7,10 +7,14 @@ meta {
 get {
   url: {{HOST}}/service_request/{{serviceRequestId}}/logs/{{stepName}}
   body: none
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
 }
 
 vars:pre-request {
-  serviceRequestId: 66266b29423d5319c502e7ae
-  stepName: 
+  serviceRequestId: 66334726c29802538820de7e
+  stepName: step1
 }
