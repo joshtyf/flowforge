@@ -76,6 +76,8 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	// Organization
 	r.Handle("/api/organization", isAuthenticated(handleCreateOrganization(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 	r.Handle("/api/organization", isAuthenticated(handleGetOrganizationsForUser(s.logger, s.psqlClient), s.logger)).Methods("GET")
+	r.Handle("/api/organization", isAuthenticated(getOrgIdFromRequestBody(isOrgOwner(s.psqlClient, handleUpdateOrganization(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
+	r.Handle("/api/organization", isAuthenticated(getOrgIdFromRequestBody(isOrgOwner(s.psqlClient, handleDeleteOrganization(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("DELETE").Headers("Content-Type", "application/json")
 
 	// Membership
 	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgAdmin(s.psqlClient, handleCreateMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
@@ -527,6 +529,10 @@ func handleCreateOrganization(logger logger.ServerLogger, client *sql.DB) http.H
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
+		// Assign user id retrieved from token to organization
+		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		userId := token.RegisteredClaims.Subject
+		om.Owner = userId
 		org, err := database.NewOrganization(client).Create(&om)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
@@ -558,6 +564,13 @@ func handleCreateMembership(logger logger.ServerLogger, client *sql.DB) http.Han
 }
 
 func handleGetServiceRequestsByUserAndOrganization(logger logger.ServerLogger, client *mongo.Client) http.Handler {
+	type ResponseBodyMetadata struct {
+		TotalCount int `json:"total_count"`
+	}
+	type ResponseBody struct {
+		Data     []*models.ServiceRequestModel `json:"data"`
+		Metadata ResponseBodyMetadata          `json:"metadata"`
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 		userId := token.RegisteredClaims.Subject
@@ -586,17 +599,33 @@ func handleGetServiceRequestsByUserAndOrganization(logger logger.ServerLogger, c
 		}
 
 		logger.Info(fmt.Sprintf("querying for service requests: user_id=%s org_id=%d, query_filters=%v", userId, orgId, queryFilters))
-		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestByOrg(orgId, queryFilters)
+		result, err := database.NewServiceRequest(client).GetAllServiceRequestByOrg(orgId, queryFilters, database.Pagination{
+			Page:     1, // TODO: implement pagination from query params
+			PageSize: 10,
+		})
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		encode(w, r, http.StatusOK, allsr)
+		response := ResponseBody{
+			Data: result.Data,
+			Metadata: ResponseBodyMetadata{
+				TotalCount: result.TotalCount,
+			},
+		}
+		encode(w, r, http.StatusOK, response)
 	})
 }
 
 func handleGetServiceRequestsForAdminByOrganization(logger logger.ServerLogger, client *mongo.Client) http.Handler {
+	type ResponseBodyMetadata struct {
+		TotalCount int `json:"total_count"`
+	}
+	type ResponseBody struct {
+		Data     []*models.ServiceRequestModel `json:"data"`
+		Metadata ResponseBodyMetadata          `json:"metadata"`
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		orgId, err := extractQueryParam[int](r.URL.Query(), "org_id", false, -1, integerConverter)
 		if err != nil {
@@ -620,13 +649,22 @@ func handleGetServiceRequestsForAdminByOrganization(logger logger.ServerLogger, 
 		}
 
 		logger.Info(fmt.Sprintf("querying for service requests: org_id=%d, query_filters=%v", orgId, queryFilters))
-		allsr, err := database.NewServiceRequest(client).GetAllServiceRequestByOrg(orgId, queryFilters)
+		result, err := database.NewServiceRequest(client).GetAllServiceRequestByOrg(orgId, queryFilters, database.Pagination{
+			Page:     1, // TODO: implement pagination from query params
+			PageSize: 10,
+		})
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		encode(w, r, http.StatusOK, allsr)
+		response := ResponseBody{
+			Data: result.Data,
+			Metadata: ResponseBodyMetadata{
+				TotalCount: result.TotalCount,
+			},
+		}
+		encode(w, r, http.StatusOK, response)
 	})
 }
 
@@ -763,5 +801,47 @@ func handleGetOrganizationsForUser(logger logger.ServerLogger, client *sql.DB) h
 			return
 		}
 		encode(w, r, http.StatusOK, orgs)
+	})
+}
+
+func handleUpdateOrganization(logger logger.ServerLogger, client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		om, err := decode[models.OrganizationModel](r)
+
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to parse json request body: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		userId := token.RegisteredClaims.Subject
+
+		_, err = database.NewOrganization(client).UpdateOrgName(om.Name, om.OrgId, userId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to update organization: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganizationUpdateFail, http.StatusInternalServerError))
+			return
+		}
+		encode[any](w, r, http.StatusOK, nil)
+	})
+}
+
+func handleDeleteOrganization(logger logger.ServerLogger, client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		om, err := decode[models.OrganizationModel](r)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to parse json request body: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		userId := token.RegisteredClaims.Subject
+		_, err = database.NewOrganization(client).DeleteOrg(om.OrgId, userId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to delete organization: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganizationDeleteFail, http.StatusInternalServerError))
+			return
+		}
+		encode[any](w, r, http.StatusOK, nil)
 	})
 }

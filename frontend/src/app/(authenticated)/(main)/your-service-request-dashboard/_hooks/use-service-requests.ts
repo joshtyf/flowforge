@@ -252,7 +252,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
 
 const useServiceRequests = () => {
   const { organizationId } = useOrganizationId()
-  const { isLoading, data: serviceRequests } = useQuery({
+  const { isLoading, data } = useQuery({
     queryKey: ["user_service_requests"],
     queryFn: () => {
       return getAllServiceRequest(organizationId).catch((err) => {
@@ -265,10 +265,11 @@ const useServiceRequests = () => {
         })
       })
     },
+    refetchInterval: 2000,
   })
 
   return {
-    serviceRequests: serviceRequests,
+    response: data,
     isLoading,
   }
 }

@@ -62,7 +62,7 @@ func main() {
 		psqlClient,
 		logger,
 		execute.WithStepExecutor(execute.NewApiStepExecutor()),
-		execute.WithStepExecutor(execute.NewWaitForApprovalStepExecutor()),
+		execute.WithStepExecutor(execute.NewWaitForApprovalStepExecutor(mongoClient)),
 	)
 	if err != nil {
 		panic(err)

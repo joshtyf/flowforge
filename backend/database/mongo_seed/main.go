@@ -87,8 +87,8 @@ func main() {
 		panic("Inserted ID is not an ObjectID")
 	}
 
-	serviceReqIdInHex := "F2D8E1A73B964C5E7A0F81D9"
-	serviceReqId, err := primitive.ObjectIDFromHex(serviceReqIdInHex)
+	// 1st request
+	serviceReqId, err := primitive.ObjectIDFromHex("F2D8E1A73B964C5E7A0F81D9")
 	if err != nil {
 		panic(err)
 	}
@@ -107,7 +107,36 @@ func main() {
 			"param": "test_param",
 		},
 	}
+	res, err = database.NewServiceRequest(c).Create(&serviceRequest)
+	if err != nil {
+		panic(err)
+	}
+	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
+		logger.Info("created service request with ID: " + oid.String())
+	} else {
+		panic("Inserted ID is not an ObjectID")
+	}
 
+	// 2nd request
+	serviceReqId, err = primitive.ObjectIDFromHex("662E134616B653509203CB93")
+	if err != nil {
+		panic(err)
+	}
+	serviceRequest = models.ServiceRequestModel{
+		Id:              serviceReqId,
+		UserId:          "auth0|65e9dabff2dab546ed0c231e", // josh's user ID
+		PipelineId:      pipelineIdInHex,
+		PipelineName:    pipelineName,
+		PipelineVersion: 1,
+		Status:          models.NOT_STARTED,
+		OrganizationId:  1,
+		Remarks:         "This is a test service request.",
+		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
+		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
+		FormData: models.FormData{
+			"param": "test_param",
+		},
+	}
 	res, err = database.NewServiceRequest(c).Create(&serviceRequest)
 	if err != nil {
 		panic(err)

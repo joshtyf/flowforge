@@ -28,6 +28,10 @@ export const orgServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
     },
   },
   {
+    accessorKey: "id",
+    header: "Service Request ID",
+  },
+  {
     id: "service_name",
     header: "Service Name",
     cell: ({ row }) => {

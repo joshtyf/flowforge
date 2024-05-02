@@ -24,6 +24,8 @@ var (
 	ErrUserRetrieve           = errors.New("failed to retrieve user")
 	ErrOrganizationRetrieve   = errors.New("failed to retrieve user organizations")
 	ErrOrganizationCreateFail = errors.New("failed to create organization")
+	ErrOrganizationUpdateFail = errors.New("failed to update organization")
+	ErrOrganizationDeleteFail = errors.New("failed to delete organization")
 	ErrInvalidOrganizationId  = errors.New("invalid organization id")
 
 	ErrMembershipCreateFail = errors.New("failed to create membership")

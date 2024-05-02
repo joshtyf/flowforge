@@ -3,6 +3,8 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 
 	"github.com/joshtyf/flowforge/src/database/models"
 )
@@ -59,10 +61,41 @@ func (o *Organization) GetAllOrgsByUserId(user_id string) ([]*models.Organizatio
 	return oms, nil
 }
 
-func (o *Organization) GetOrgByOwnerAndOrgId(user_id string, org_id int) (*models.OrganizationModel, error) {
+func (o *Organization) GetOrgByOrgIdAndOwner(user_id string, org_id int) (*models.OrganizationModel, error) {
 	om := &models.OrganizationModel{}
-	if err := o.c.QueryRow(SelectOrganizationByUserAndOrgIdStatement, org_id, user_id).Scan(&om.OrgId, &om.Name, &om.Owner, &om.CreatedOn, &om.Deleted); err != nil {
+	if err := o.c.QueryRow(SelectOrganizationByOrgIdAndOwnerStatement, org_id, user_id).Scan(&om.OrgId, &om.Name, &om.Owner, &om.CreatedOn, &om.Deleted); err != nil {
 		return nil, err
 	}
 	return om, nil
+}
+
+func (m *Organization) UpdateOrgName(new_name string, org_id int, user_id string) (sql.Result, error) {
+	result, err := m.c.Exec(UpdateOrganizationNameByOrgIdAndOwnerStatement, new_name, org_id, user_id)
+	if err != nil {
+		return nil, err
+	}
+	// NOTE: may not work for all db / db drivers
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return nil, errors.New("unable to retrieve rows affected")
+	} else if rows < 1 {
+		return nil, fmt.Errorf("cannot find organization with org_id: %d and org_owner: %v", org_id, user_id)
+	}
+	return result, nil
+}
+
+func (o *Organization) DeleteOrg(org_id int, user_id string) (sql.Result, error) {
+
+	result, err := o.c.Exec(DeleteOrganizationByOrgIdAndOwnerStatement, org_id, user_id)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return nil, errors.New("unable to retrieve rows affected")
+	} else if rows < 1 {
+		return nil, fmt.Errorf("cannot find organization with org_id %d and org_owner %v", org_id, user_id)
+	}
+	return result, nil
 }
