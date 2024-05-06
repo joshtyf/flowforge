@@ -5,13 +5,13 @@ meta {
 }
 
 get {
-  url: {{HOST}}/service_request/{{serviceRequestId}}/logs/{{stepName}}?offset=-1
+  url: {{HOST}}/service_request/{{serviceRequestId}}/logs/{{stepName}}?offset=undefined
   body: none
   auth: none
 }
 
 query {
-  offset: -1
+  offset: undefined
 }
 
 vars:pre-request {

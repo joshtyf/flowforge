@@ -52,11 +52,19 @@ type ServiceRequest = {
   pipeline?: { form: JsonFormComponents }
 }
 
+type ServiceRequestLogs = {
+  step_name: string
+  logs: string[]
+  end_of_logs: boolean
+  next_offset: number
+}
+
 export type {
   ServiceRequestForm,
   ServiceRequestStep,
   ServiceRequestSteps,
   ServiceRequest,
+  ServiceRequestLogs,
 }
 
 export { ServiceRequestStatus }

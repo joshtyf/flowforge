@@ -1,5 +1,9 @@
 import { Pipeline } from "@/types/pipeline"
-import { ServiceRequest, ServiceRequestSteps } from "@/types/service-request"
+import {
+  ServiceRequest,
+  ServiceRequestLogs,
+  ServiceRequestSteps,
+} from "@/types/service-request"
 import { UserInfo } from "@/types/user-profile"
 import apiClient from "./apiClient"
 
@@ -74,6 +78,23 @@ export async function getServiceRequestSteps(
 }> {
   return apiClient
     .get(`/service_request/${serviceRequestId}/steps`)
+    .then((res) => res.data)
+}
+
+export async function getServiceRequestLogs(
+  serviceRequestId: string,
+  stepName: string,
+  offset?: number
+): Promise<ServiceRequestLogs> {
+  console.log(offset)
+  return apiClient
+    .get(`/service_request/${serviceRequestId}/logs/${stepName}`, {
+      params: offset
+        ? {
+            offset,
+          }
+        : {},
+    })
     .then((res) => res.data)
 }
 
