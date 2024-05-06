@@ -11,6 +11,7 @@ import { ApproveConfirmationDialog } from "./approve-confirmation-dialog"
 import { RejectConfirmationDialog } from "./reject-confirmation-dialog"
 import ServiceRequestDetailsDialog from "@/components/layouts/service-request-details-dialog"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
+import Link from "next/link"
 
 interface AdminServiceRequestActionsProps {
   serviceRequest: ServiceRequest
@@ -43,7 +44,13 @@ export default function AdminServiceRequestActions({
         >
           <Button variant="ghost">View Details</Button>
         </DropdownMenuItem>
-
+        <DropdownMenuItem
+          disabled={serviceRequest.status === ServiceRequestStatus.NOT_STARTED}
+        >
+          <Link href={`/service-request-logs/${serviceRequest.id}`}>
+            <Button variant="ghost">View Logs</Button>
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem
           disabled={serviceRequest.status !== ServiceRequestStatus.PENDING}
         >

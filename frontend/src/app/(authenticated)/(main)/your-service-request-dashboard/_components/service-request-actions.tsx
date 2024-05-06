@@ -5,10 +5,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ServiceRequest } from "@/types/service-request"
+import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { MoreHorizontal } from "lucide-react"
 import ServiceRequestDetailsDialog from "@/components/layouts/service-request-details-dialog"
 import { useState } from "react"
+import Link from "next/link"
 
 interface ServiceRequestActionsProps {
   serviceRequest: ServiceRequest
@@ -36,7 +37,13 @@ export default function ServiceRequestActions({
         >
           <Button variant="ghost">View Details</Button>
         </DropdownMenuItem>
-
+        <DropdownMenuItem
+          disabled={serviceRequest.status === ServiceRequestStatus.NOT_STARTED}
+        >
+          <Link href={`/service-request-logs/${serviceRequest.id}`}>
+            <Button variant="ghost">View Logs</Button>
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem>
           {/* TODO: Add on click logic*/}
           <Button
