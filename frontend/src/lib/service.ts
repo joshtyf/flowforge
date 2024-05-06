@@ -86,7 +86,6 @@ export async function getServiceRequestLogs(
   stepName: string,
   offset?: number
 ): Promise<ServiceRequestLogs> {
-  console.log(offset)
   return apiClient
     .get(`/service_request/${serviceRequestId}/logs/${stepName}`, {
       params: offset
