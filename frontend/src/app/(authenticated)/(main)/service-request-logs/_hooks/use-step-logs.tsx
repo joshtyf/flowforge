@@ -13,6 +13,8 @@ const useStepLogs = ({ serviceRequestId, stepName }: UseStepLogsOptions) => {
   const [offset, setOffset] = useState<number | undefined>()
   const [logs, setLogs] = useState<string[]>([])
   const [latestLogsData, setLatestLogsData] = useState<ServiceRequestLogs>()
+  const [currentIntervalId, setCurrentIntervalId] =
+    useState<ReturnType<typeof setInterval>>()
 
   const fetchData = useCallback(() => {
     getServiceRequestLogs(
@@ -35,11 +37,16 @@ const useStepLogs = ({ serviceRequestId, stepName }: UseStepLogsOptions) => {
 
   useEffect(() => {
     fetchData()
+
+    //  Clear existing interval
+    clearInterval(currentIntervalId)
     // Call every 10s
     const intervalId = setInterval(() => fetchData(), 10000)
+    setCurrentIntervalId(intervalId)
 
     // Cleanup function to clear the interval when the component unmounts
     return () => clearInterval(intervalId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchData, offset])
 
   // To set logs and offset value when logs data is returned from API call
