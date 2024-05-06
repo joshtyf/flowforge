@@ -35,6 +35,7 @@ const useServiceRequestSteps = ({
     serviceRequestSteps,
     currentStep,
     isLoading: isServiceRequestLoading,
+    handleCurrentStepChange: setCurrentStep,
   }
 }
 

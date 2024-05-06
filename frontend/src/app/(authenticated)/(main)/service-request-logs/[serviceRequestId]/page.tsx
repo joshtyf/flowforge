@@ -12,10 +12,14 @@ export default function ServiceRequestLogsPage({}: ServiceRequestLogsPageProps) 
   const serviceRequestIdString: string = Array.isArray(serviceRequestId)
     ? serviceRequestId[0]
     : serviceRequestId
-  const { serviceRequestSteps, currentStep, isLoading } =
-    useServiceRequestSteps({
-      serviceRequestId: serviceRequestIdString,
-    })
+  const {
+    serviceRequestSteps,
+    currentStep,
+    isLoading,
+    handleCurrentStepChange,
+  } = useServiceRequestSteps({
+    serviceRequestId: serviceRequestIdString,
+  })
   return (
     <>
       {isLoading ? (
@@ -25,6 +29,7 @@ export default function ServiceRequestLogsPage({}: ServiceRequestLogsPageProps) 
           serviceRequestId={serviceRequestIdString}
           serviceRequestSteps={serviceRequestSteps}
           currentStep={currentStep}
+          handleCurrentStepChange={handleCurrentStepChange}
         />
       )}
     </>
