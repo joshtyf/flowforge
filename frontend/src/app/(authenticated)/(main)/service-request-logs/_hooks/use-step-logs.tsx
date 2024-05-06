@@ -1,7 +1,8 @@
 import { toast } from "@/components/ui/use-toast"
 import { getServiceRequestLogs } from "@/lib/service"
+import { ServiceRequestLogs } from "@/types/service-request"
 import { useQuery } from "@tanstack/react-query"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 export interface UseStepLogsOptions {
   serviceRequestId: string
@@ -11,40 +12,53 @@ export interface UseStepLogsOptions {
 const useStepLogs = ({ serviceRequestId, stepName }: UseStepLogsOptions) => {
   const [offset, setOffset] = useState<number | undefined>()
   const [logs, setLogs] = useState<string[]>([])
+  const [latestLogsData, setLatestLogsData] = useState<ServiceRequestLogs>()
 
-  const { data: latestLogsData, refetch: refetchLatestLogsData } = useQuery({
-    queryKey: [stepName, serviceRequestId, "logs"],
-    queryFn: () =>
-      getServiceRequestLogs(serviceRequestId, stepName, offset).catch((err) => {
+  const fetchData = useCallback(() => {
+    getServiceRequestLogs(
+      serviceRequestId,
+      stepName,
+      offset === -1 ? undefined : offset
+    )
+      .then((data) => {
+        setLatestLogsData(data)
+      })
+      .catch((err) => {
         console.error(err)
         toast({
           title: "Fetching Service Request Logs Error",
           description: `Failed to fetch Service Request Logs for ${stepName}. Please try again later.`,
           variant: "destructive",
         })
-      }),
-    // 10s interval fetch time
-    refetchInterval: 10000,
-  })
+      })
+  }, [offset, serviceRequestId, stepName])
+
+  useEffect(() => {
+    fetchData()
+    // Call every 10s
+    const intervalId = setInterval(() => fetchData(), 10000)
+
+    // Cleanup function to clear the interval when the component unmounts
+    return () => clearInterval(intervalId)
+  }, [fetchData, offset])
 
   // To set logs and offset value when logs data is returned from API call
   useEffect(() => {
-    if (latestLogsData && !latestLogsData.end_of_logs) {
-      if (offset === undefined || latestLogsData.next_offset > offset) {
-        // Only set new logs if there is a difference in offset
-        setLogs((oldLogs) => oldLogs.concat(latestLogsData.logs))
-        // Only set offset if its not EOL and it is undefined (initial value) or there is a change in offset
-        setOffset(latestLogsData?.next_offset)
+    if (latestLogsData) {
+      const isOffsetSame = latestLogsData.next_offset === offset
+      // Ignore if offset remains the same
+      if (!isOffsetSame) {
+        if (latestLogsData.end_of_logs) {
+          // To prevent all logs for being appended to the current logs when EOL is reached
+          setLogs(latestLogsData.logs)
+        } else {
+          setLogs((oldLogs) => oldLogs.concat(latestLogsData.logs))
+        }
       }
+
+      setOffset(latestLogsData?.next_offset)
     }
   }, [latestLogsData, offset])
-
-  // To set logs and offset value when logs data is returned from API call
-  useEffect(() => {
-    if (offset && offset !== -1) {
-      refetchLatestLogsData()
-    }
-  }, [offset, refetchLatestLogsData])
 
   return { logs }
 }
