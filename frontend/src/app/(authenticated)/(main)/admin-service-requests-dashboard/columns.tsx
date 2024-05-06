@@ -4,7 +4,7 @@ import { formatDateString, formatTimeDifference } from "@/lib/utils"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
-import PendingServiceRequestActions from "./_components/pending-service-request-actions"
+import AdminServiceRequestActions from "./_components/admin-service-request-actions"
 import { ServiceRequestStatusBadge } from "@/components/layouts/service-request-status-badge"
 import { ExternalLink } from "lucide-react"
 import { DataTableColumnHeaderFilterableValue } from "@/components/data-table/data-table-column-header-filterable-value"
@@ -75,7 +75,7 @@ export const orgServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
     cell: ({ row }) => {
       const serviceRequest: ServiceRequest = row.original
       return (
-        <PendingServiceRequestActions
+        <AdminServiceRequestActions
           serviceRequest={serviceRequest}
           approveRequest={(serviceRequestId: string) => {
             // TODO: Replace with actual approval action

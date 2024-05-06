@@ -12,17 +12,17 @@ import { RejectConfirmationDialog } from "./reject-confirmation-dialog"
 import ServiceRequestDetailsDialog from "@/components/layouts/service-request-details-dialog"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 
-interface PendingServiceRequestActionsProps {
+interface AdminServiceRequestActionsProps {
   serviceRequest: ServiceRequest
   approveRequest: (serviceRequestId: string) => void
   rejectRequest: (serviceRequestId: string, remarks?: string) => void
 }
 
-export default function PendingServiceRequestActions({
+export default function AdminServiceRequestActions({
   serviceRequest,
   approveRequest,
   rejectRequest,
-}: PendingServiceRequestActionsProps) {
+}: AdminServiceRequestActionsProps) {
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false)
   const [openApproveConfirmationDialog, setOpenApproveConfirmationDialog] =
     useState(false)
