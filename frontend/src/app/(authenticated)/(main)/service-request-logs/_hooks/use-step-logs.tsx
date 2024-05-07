@@ -54,6 +54,7 @@ const useStepLogs = ({ serviceRequestId, stepName }: UseStepLogsOptions) => {
     if (latestLogsData) {
       const isOffsetSame = latestLogsData.next_offset === offset
       // Ignore if offset remains the same
+      // This is to prevent duplicated logs from being appended if the exact same logs data is somehow refetched
       if (!isOffsetSame) {
         if (latestLogsData.end_of_logs) {
           // To prevent all logs for being appended to the current logs when EOL is reached
