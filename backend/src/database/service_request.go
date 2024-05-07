@@ -101,7 +101,7 @@ func (sr *ServiceRequest) GetAllServiceRequestByOrg(orgId int, filters GetServic
 			{{Key: "$match", Value: query}},
 			{{Key: "$facet", Value: bson.D{
 				{
-					Key:   "totalCount",
+					Key:   "metadata",
 					Value: bson.A{bson.D{{Key: "$count", Value: "total"}}},
 				},
 				{
@@ -112,6 +112,21 @@ func (sr *ServiceRequest) GetAllServiceRequestByOrg(orgId int, filters GetServic
 					},
 				},
 			}}},
+			{{Key: "$addFields", Value: bson.D{{
+				Key: "metadata",
+				Value: bson.D{{
+					Key: "$cond",
+					Value: bson.A{
+						bson.D{{
+							Key:   "$eq",
+							Value: bson.A{"$metadata", bson.A{}},
+						}},
+						bson.A{bson.D{{Key: "total", Value: 0}}},
+						"$metadata",
+					},
+				}},
+			},
+			}}},
 		},
 	)
 	if err != nil {
@@ -120,10 +135,10 @@ func (sr *ServiceRequest) GetAllServiceRequestByOrg(orgId int, filters GetServic
 	defer result.Close(context.Background())
 
 	type dataResp struct {
-		Data       []*models.ServiceRequestModel `bson:"data"`
-		TotalCount []struct {
+		Data     []*models.ServiceRequestModel `bson:"data"`
+		Metadata []struct {
 			Total int `bson:"total"`
-		} `bson:"totalCount"`
+		} `bson:"metadata"`
 	}
 	srms := []*models.ServiceRequestModel{}
 	var totalCount int
@@ -133,7 +148,7 @@ func (sr *ServiceRequest) GetAllServiceRequestByOrg(orgId int, filters GetServic
 		if err != nil {
 			return nil, fmt.Errorf("error decoding data: %w", err)
 		}
-		totalCount = data.TotalCount[0].Total
+		totalCount = data.Metadata[0].Total
 		srms = append(srms, data.Data...)
 	}
 	return &GetAllServiceRequestByOrgResponse{
