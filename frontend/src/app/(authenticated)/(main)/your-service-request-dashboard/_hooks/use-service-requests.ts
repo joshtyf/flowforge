@@ -249,21 +249,27 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     },
   },
 ]
+interface UseServiceRequestProps {
+  page: number
+  pageSize: number
+}
 
-const useServiceRequests = () => {
+const useServiceRequests = ({ page, pageSize }: UseServiceRequestProps) => {
   const { organizationId } = useOrganizationId()
   const { isLoading, data } = useQuery({
     queryKey: ["user_service_requests"],
     queryFn: () => {
-      return getAllServiceRequest(organizationId).catch((err) => {
-        console.error(err)
-        toast({
-          title: "Fetching Service Requests Error",
-          description:
-            "Failed to fetch Service Requests for user. Please try again later.",
-          variant: "destructive",
-        })
-      })
+      return getAllServiceRequest(organizationId, page, pageSize).catch(
+        (err) => {
+          console.error(err)
+          toast({
+            title: "Fetching Service Requests Error",
+            description:
+              "Failed to fetch Service Requests for user. Please try again later.",
+            variant: "destructive",
+          })
+        }
+      )
     },
     refetchInterval: 2000,
   })
