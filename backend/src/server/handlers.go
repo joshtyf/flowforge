@@ -617,8 +617,7 @@ func handleGetServiceRequestsByUserAndOrganization(logger logger.ServerLogger, c
 		}
 		logger.Info(fmt.Sprintf("querying for service requests: org_id=%d, query_filters=%v, page=%d, page_size=%d", orgId, queryFilters, pageParam, pageSizeParam))
 		result, err := database.NewServiceRequest(client).GetAllServiceRequestByOrg(orgId, queryFilters, database.Pagination{
-			Page:     pageParam, // TODO: implement pagination from query params
-			PageSize: pageSizeParam,
+			Page: pageParam, PageSize: pageSizeParam,
 		})
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
