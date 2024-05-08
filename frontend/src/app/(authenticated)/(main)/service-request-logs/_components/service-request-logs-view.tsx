@@ -6,16 +6,26 @@ import HeaderAccessory from "@/components/ui/header-accessory"
 import { ServiceRequestStep } from "@/types/service-request"
 import { ChevronLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
+import StepLogs from "./step-logs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { StepStatusIcon } from "@/components/layouts/step-status-icon"
+import { useState } from "react"
 
 interface ServiceRequestLogsViewProps {
+  serviceRequestId: string
   serviceRequestSteps?: ServiceRequestStep[]
+  currentStep: string
+  handleCurrentStepChange: (step: string) => void
 }
 
 export default function ServiceRequestLogsView({
+  serviceRequestId,
   serviceRequestSteps,
+  currentStep,
+  handleCurrentStepChange,
 }: ServiceRequestLogsViewProps) {
   const router = useRouter()
-  console.log(serviceRequestSteps)
+
   return (
     <>
       <div className="flex flex-col justify-start py-10">
@@ -35,14 +45,30 @@ export default function ServiceRequestLogsView({
         </div>
       </div>
       <div>
-        <PipelineStepper steps={serviceRequestSteps} />
-        <div className="bg-gray-900 text-green-300 border-none rounded-lg p-3 focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-mono h-[70vh] overflow-auto">
-          Test logs
-        </div>
-        {/* <Textarea
-          disabled
-          className="bg-black disabled:opacity-100 text-green-500 border border-black p-4 font-mono"
-        ></Textarea> */}
+        {/* Cannot use default value prop in this case as currentStep is initially empty */}
+        <Tabs value={currentStep} onValueChange={handleCurrentStepChange}>
+          <TabsList className="grid w-full grid-cols-2 h-full">
+            {serviceRequestSteps?.map((step) => (
+              <TabsTrigger key={step.name} value={step.name}>
+                <div className="flex items-center space-x-1">
+                  <StepStatusIcon status={step.status} />
+                  <p>{step.name}</p>
+                </div>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <p className="w-full text-center opacity-30 py-2">
+            Click on a tab to view logs for the step
+          </p>
+          {serviceRequestSteps?.map((step) => (
+            <TabsContent key={step.name} value={step.name}>
+              <StepLogs
+                serviceRequestId={serviceRequestId}
+                stepName={step.name}
+              />
+            </TabsContent>
+          ))}
+        </Tabs>
       </div>
     </>
   )
