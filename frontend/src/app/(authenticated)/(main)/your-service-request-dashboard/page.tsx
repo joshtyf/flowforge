@@ -24,6 +24,7 @@ export default function ServiceRequestDashboardPage() {
           columns={columns}
           data={response?.data}
           onPaginationChange={onPaginationChange}
+          pagination={pagination}
         />
       </div>
     </div>

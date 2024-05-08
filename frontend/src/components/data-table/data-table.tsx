@@ -28,12 +28,14 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data?: TData[] | void
   onPaginationChange?: (pagination: Updater<PaginationState>) => void
+  pagination?: PaginationState
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   onPaginationChange,
+  pagination,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
 
@@ -51,8 +53,10 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     state: {
       sorting,
+      pagination,
     },
-    getPaginationRowModel: getPaginationRowModel(),
+    // getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: true,
     onPaginationChange,
   })
 
