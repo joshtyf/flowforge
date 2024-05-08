@@ -1,7 +1,8 @@
+import { PaginationState } from "@tanstack/react-table"
 import { useState } from "react"
 
 export function usePagination() {
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<PaginationState>({
     pageSize: 10,
     pageIndex: 0,
   })
