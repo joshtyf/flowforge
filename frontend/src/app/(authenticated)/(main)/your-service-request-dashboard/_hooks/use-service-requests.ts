@@ -257,7 +257,7 @@ interface UseServiceRequestProps {
 const useServiceRequests = ({ page, pageSize }: UseServiceRequestProps) => {
   const { organizationId } = useOrganizationId()
   const { isLoading, data } = useQuery({
-    queryKey: ["user_service_requests"],
+    queryKey: ["user_service_requests", page, pageSize],
     queryFn: () => {
       return getAllServiceRequest(organizationId, page, pageSize).catch(
         (err) => {
