@@ -8,7 +8,7 @@ import { usePagination } from "@/hooks/use-pagination"
 
 export default function ServiceRequestDashboardPage() {
   const { onPaginationChange, pagination } = usePagination()
-  const { response } = useServiceRequests({
+  const { response, noOfPages } = useServiceRequests({
     page: pagination.pageIndex + 1, // API is 1-based
     pageSize: pagination.pageSize,
   })
@@ -23,6 +23,7 @@ export default function ServiceRequestDashboardPage() {
         <DataTable
           columns={columns}
           data={response?.data}
+          pageCount={noOfPages}
           onPaginationChange={onPaginationChange}
           pagination={pagination}
         />

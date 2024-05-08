@@ -5,6 +5,7 @@ import { FormFieldType, JsonFormComponents } from "@/types/json-form-components"
 import { StepStatus } from "@/types/pipeline"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { useQuery } from "@tanstack/react-query"
+import { useMemo } from "react"
 
 const DUMMY_PIPELINE_FORM: JsonFormComponents = {
   fields: [
@@ -274,9 +275,18 @@ const useServiceRequests = ({ page, pageSize }: UseServiceRequestProps) => {
     refetchInterval: 2000,
   })
 
+  const noOfPages = useMemo(
+    () =>
+      data?.metadata.total_count
+        ? Math.ceil(data?.metadata.total_count / pageSize)
+        : undefined,
+    [data, pageSize]
+  )
+
   return {
     response: data,
     isLoading,
+    noOfPages,
   }
 }
 

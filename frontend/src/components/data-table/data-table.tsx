@@ -29,6 +29,7 @@ interface DataTableProps<TData, TValue> {
   data?: TData[] | void
   onPaginationChange?: (pagination: Updater<PaginationState>) => void
   pagination?: PaginationState
+  pageCount?: number
 }
 
 export function DataTable<TData, TValue>({
@@ -36,6 +37,7 @@ export function DataTable<TData, TValue>({
   data,
   onPaginationChange,
   pagination,
+  pageCount,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
 
@@ -56,6 +58,7 @@ export function DataTable<TData, TValue>({
       pagination,
     },
     manualPagination: true,
+    pageCount: pageCount,
     onPaginationChange,
   })
 
