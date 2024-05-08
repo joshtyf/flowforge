@@ -55,7 +55,6 @@ export function DataTable<TData, TValue>({
       sorting,
       pagination,
     },
-    // getPaginationRowModel: getPaginationRowModel(),
     manualPagination: true,
     onPaginationChange,
   })
