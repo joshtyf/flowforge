@@ -5,6 +5,7 @@ import { FormFieldType, JsonFormComponents } from "@/types/json-form-components"
 import { StepStatus } from "@/types/pipeline"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { useQuery } from "@tanstack/react-query"
+import { useMemo } from "react"
 
 const DUMMY_PIPELINE_FORM: JsonFormComponents = {
   fields: [
@@ -220,24 +221,42 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
   },
 ]
 
-const useOrgServiceRequests = () => {
+interface UseOrgServiceRequestsOptions {
+  page: number
+  pageSize: number
+}
+
+const useOrgServiceRequests = ({
+  page,
+  pageSize,
+}: UseOrgServiceRequestsOptions) => {
   const { organizationId } = useOrganizationId()
   const { isLoading, data } = useQuery({
-    queryKey: ["user_admin_service_requests", organizationId],
+    queryKey: ["org_service_requests", organizationId, page, pageSize],
     queryFn: () =>
-      getAllServiceRequestForAdmin(organizationId).catch((err) => {
-        console.error(err)
-        toast({
-          title: "Fetching Service Requests Error",
-          description:
-            "Failed to fetch Service Requests for organization. Please try again later.",
-          variant: "destructive",
-        })
-      }),
+      getAllServiceRequestForAdmin(organizationId, page, pageSize).catch(
+        (err) => {
+          console.error(err)
+          toast({
+            title: "Fetching Service Requests Error",
+            description:
+              "Failed to fetch Service Requests for organization. Please try again later.",
+            variant: "destructive",
+          })
+        }
+      ),
     refetchInterval: 2000,
   })
 
-  return { orgServiceRequestsData: data }
+  const noOfPages = useMemo(
+    () =>
+      data?.metadata.total_count
+        ? Math.ceil(data?.metadata.total_count / pageSize)
+        : undefined,
+    [data, pageSize]
+  )
+
+  return { orgServiceRequestsData: data, noOfPages }
 }
 
 export default useOrgServiceRequests
