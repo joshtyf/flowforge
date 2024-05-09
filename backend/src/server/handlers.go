@@ -597,11 +597,27 @@ func handleGetServiceRequestsByUserAndOrganization(logger logger.ServerLogger, c
 			}
 			queryFilters.Statuses = strings.Split(statusFilters, ",")
 		}
-
-		logger.Info(fmt.Sprintf("querying for service requests: user_id=%s org_id=%d, query_filters=%v", userId, orgId, queryFilters))
+		logger.Info(fmt.Sprintf("query: %v", r.URL.Query()))
+		pageParam, err := extractQueryParam[int](r.URL.Query(), "page", false, 1, integerConverter)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to extract page from query params: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrPaginationParamsError, http.StatusBadRequest))
+			return
+		}
+		pageSizeParam, err := extractQueryParam[int](r.URL.Query(), "page_size", false, 10, integerConverter)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to extract page_size from query params: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrPaginationParamsError, http.StatusBadRequest))
+			return
+		}
+		if pageParam < 1 || pageSizeParam < 1 {
+			logger.Error(fmt.Sprintf("invalid page or page_size: page=%d, page_size=%d", pageParam, pageSizeParam))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrPaginationParamsError, http.StatusBadRequest))
+			return
+		}
+		logger.Info(fmt.Sprintf("querying for service requests: org_id=%d, query_filters=%v, page=%d, page_size=%d", orgId, queryFilters, pageParam, pageSizeParam))
 		result, err := database.NewServiceRequest(client).GetAllServiceRequestByOrg(orgId, queryFilters, database.Pagination{
-			Page:     1, // TODO: implement pagination from query params
-			PageSize: 10,
+			Page: pageParam, PageSize: pageSizeParam,
 		})
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
@@ -648,10 +664,26 @@ func handleGetServiceRequestsForAdminByOrganization(logger logger.ServerLogger, 
 			queryFilters.Statuses = strings.Split(statusFilters, ",")
 		}
 
-		logger.Info(fmt.Sprintf("querying for service requests: org_id=%d, query_filters=%v", orgId, queryFilters))
+		pageParam, err := extractQueryParam[int](r.URL.Query(), "page", false, 1, integerConverter)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to extract page from query params: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrPaginationParamsError, http.StatusBadRequest))
+			return
+		}
+		pageSizeParam, err := extractQueryParam[int](r.URL.Query(), "page_size", false, 10, integerConverter)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to extract page_size from query params: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrPaginationParamsError, http.StatusBadRequest))
+			return
+		}
+		if pageParam < 1 || pageSizeParam < 1 {
+			logger.Error(fmt.Sprintf("invalid page or page_size: page=%d, page_size=%d", pageParam, pageSizeParam))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrPaginationParamsError, http.StatusBadRequest))
+			return
+		}
+		logger.Info(fmt.Sprintf("querying for service requests: org_id=%d, query_filters=%v, page=%d, page_size=%d", orgId, queryFilters, pageParam, pageSizeParam))
 		result, err := database.NewServiceRequest(client).GetAllServiceRequestByOrg(orgId, queryFilters, database.Pagination{
-			Page:     1, // TODO: implement pagination from query params
-			PageSize: 10,
+			Page: pageParam, PageSize: pageSizeParam,
 		})
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))

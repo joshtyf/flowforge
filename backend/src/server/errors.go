@@ -3,9 +3,10 @@ package server
 import "errors"
 
 var (
-	ErrInternalServerError = errors.New("internal server error")
-	ErrWrongStepType       = errors.New("wrong step type")
-	ErrJsonParseError      = errors.New("unable to parse json request body")
+	ErrInternalServerError   = errors.New("internal server error")
+	ErrWrongStepType         = errors.New("wrong step type")
+	ErrJsonParseError        = errors.New("unable to parse json request body")
+	ErrPaginationParamsError = errors.New("invalid pagination parameters")
 
 	ErrPipelineCreateFail = errors.New("failed to create pipeline")
 	ErrInvalidPipelineId  = errors.New("invalid pipeline id")
