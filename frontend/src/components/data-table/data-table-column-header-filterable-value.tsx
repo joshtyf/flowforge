@@ -76,11 +76,6 @@ export function DataTableColumnHeaderFilterableValue<TData, TValue>({
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
-            <EyeOff className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-            Hide
-          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
