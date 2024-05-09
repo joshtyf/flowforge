@@ -23,13 +23,13 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import PipelineStepper from "./pipeline-stepper"
 import useUserInfo from "@/hooks/use-user-info"
+import CreatedByInfo from "./created-by-info"
 
 interface ServiceRequestDetailsProps {
   serviceRequest: ServiceRequest
 }
 
 function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
-  const { user, isUserInfoLoading } = useUserInfo(serviceRequest.user_id)
   const {
     id: serviceRequestId,
     pipeline_version: pipelineVersion,
@@ -71,11 +71,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
       </div>
       <div>
         <Label className="text-muted-foreground">Created By</Label>
-        {isUserInfoLoading ? (
-          <Skeleton className="w-28 h-5" />
-        ) : (
-          <p>{user?.name ?? "N.A."}</p>
-        )}
+        <CreatedByInfo userId={serviceRequest.user_id} />
       </div>
       {steps.some((step) => step.name === "Approval") && (
         <div>
