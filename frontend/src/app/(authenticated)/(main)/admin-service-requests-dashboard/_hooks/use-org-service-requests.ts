@@ -1,6 +1,10 @@
+import { toast } from "@/components/ui/use-toast"
+import useOrganizationId from "@/hooks/use-organization-id"
+import { getAllServiceRequestForAdmin } from "@/lib/service"
 import { FormFieldType, JsonFormComponents } from "@/types/json-form-components"
 import { StepStatus } from "@/types/pipeline"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
+import { useQuery } from "@tanstack/react-query"
 
 const DUMMY_PIPELINE_FORM: JsonFormComponents = {
   fields: [
@@ -217,7 +221,23 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
 ]
 
 const useOrgServiceRequests = () => {
-  return { serviceRequests: DUMMY_SERVICE_REQUESTS }
+  const { organizationId } = useOrganizationId()
+  const { isLoading, data } = useQuery({
+    queryKey: ["user_admin_service_requests", organizationId],
+    queryFn: () =>
+      getAllServiceRequestForAdmin(organizationId).catch((err) => {
+        console.error(err)
+        toast({
+          title: "Fetching Service Requests Error",
+          description:
+            "Failed to fetch Service Requests for organization. Please try again later.",
+          variant: "destructive",
+        })
+      }),
+    refetchInterval: 2000,
+  })
+
+  return { orgServiceRequestsData: data }
 }
 
 export default useOrgServiceRequests

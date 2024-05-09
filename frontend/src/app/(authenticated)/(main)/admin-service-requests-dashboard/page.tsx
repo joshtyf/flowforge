@@ -6,7 +6,7 @@ import { orgServiceRequestColumns } from "./columns"
 import { DataTable } from "@/components/data-table/data-table"
 
 export default function ApproveServiceRequestPage() {
-  const { serviceRequests } = useOrgServiceRequests()
+  const { orgServiceRequestsData } = useOrgServiceRequests()
   return (
     <div className="flex flex-col justify-start py-10">
       <HeaderAccessory />
@@ -16,7 +16,10 @@ export default function ApproveServiceRequestPage() {
         </p>
       </div>
       <div className="py-10">
-        <DataTable columns={orgServiceRequestColumns} data={serviceRequests} />
+        <DataTable
+          columns={orgServiceRequestColumns}
+          data={orgServiceRequestsData?.data}
+        />
       </div>
     </div>
   )
