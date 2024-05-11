@@ -6,6 +6,7 @@ import (
 
 type UserModel struct {
 	UserId           string    `json:"user_id"`
+	Email            string    `json:"email"`
 	Name             string    `json:"name"`
 	IdentityProvider string    `json:"identity_provider"`
 	CreatedOn        time.Time `json:"created_on"`

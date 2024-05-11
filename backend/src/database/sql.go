@@ -7,10 +7,10 @@ import (
 var (
 
 	// User
-	CreateUserStatement = `INSERT INTO public."user" (user_id, name, identity_provider) 
+	CreateUserStatement = `INSERT INTO public."user" (user_id, name, email, identity_provider) 
 								VALUES ($1, $2, $3) RETURNING created_on`
 
-	SelectUserByIdStatement = `SELECT user_id, name, identity_provider, created_on, deleted 
+	SelectUserByIdStatement = `SELECT user_id, name, email, identity_provider, created_on, deleted 
 								FROM public."user"
 								WHERE user_id = $1
 								AND deleted = false`
