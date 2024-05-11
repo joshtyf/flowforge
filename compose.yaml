@@ -26,6 +26,9 @@ services:
       - POSTGRES_URI=${POSTGRES_URI}
       - AUTH0_DOMAIN=${AUTH0_DOMAIN}
       - AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
+      - MANAGEMENT_API_SECRET=${MANAGEMENT_API_SECRET}
+      - MANAGEMENT_API_CLIENT=${MANAGEMENT_API_CLIENT}
+      - MANAGEMENT_API_AUDIENCE=${MANAGEMENT_API_AUDIENCE}
     depends_on:
       postgres:
         condition: service_healthy
