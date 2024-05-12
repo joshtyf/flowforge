@@ -71,6 +71,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	// TODO: fix this
 	// r.Handle("/api/user", isAuthenticated(handleGetUserById(s.logger, s.psqlClient), s.logger)).Methods("GET")
 	r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.logger, s.psqlClient), s.logger)).Methods("GET")
+	r.Handle("/api/user", handleCreateAuth0User(s.logger, s.psqlClient)).Methods("POST").Headers("Content-Type", "application/json")
 	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 
 	// Organization
@@ -843,5 +844,23 @@ func handleDeleteOrganization(logger logger.ServerLogger, client *sql.DB) http.H
 			return
 		}
 		encode[any](w, r, http.StatusOK, nil)
+	})
+}
+
+func handleCreateAuth0User(logger logger.ServerLogger, client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		um, err := decode[*models.UserModel](r)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to parse json request body: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		// um, err = helper.CreateUserInAuth0(um)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to create auth0 user: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrOrganizationDeleteFail, http.StatusInternalServerError))
+			return
+		}
+		encode(w, r, http.StatusOK, um)
 	})
 }

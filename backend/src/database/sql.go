@@ -8,7 +8,7 @@ var (
 
 	// User
 	CreateUserStatement = `INSERT INTO public."user" (user_id, name, email, identity_provider) 
-								VALUES ($1, $2, $3) RETURNING created_on`
+								VALUES ($1, $2, $3, $4) RETURNING created_on`
 
 	SelectUserByIdStatement = `SELECT user_id, name, email, identity_provider, created_on, deleted 
 								FROM public."user"

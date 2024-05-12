@@ -21,15 +21,74 @@ type Auth0UserId struct {
 	UserId string `json:"user_id"`
 }
 
-func CreateUserInAuth0(user *models.UserModel) (*models.UserModel, error) {
-	url, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/api/v2/users")
+func CreateUsersInAuth0(users []models.UserModel, passwords []string) ([]models.UserModel, error) {
+	token, err := getManagementApiToken()
 	if err != nil {
 		return nil, err
 	}
 
+	for i := 0; i < 3; i++ {
+		err = createUserInAuth0(&users[i], passwords[i], token)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return users, nil
+}
+
+func GetUserIdForUsers(users []models.UserModel) ([]models.UserModel, error) {
 	token, err := getManagementApiToken()
 	if err != nil {
 		return nil, err
+	}
+
+	for i := 0; i < 3; i++ {
+		err = getAuth0UserIdByEmail(&users[i], token)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return users, nil
+}
+
+func getAuth0UserIdByEmail(user *models.UserModel, token *ManagementApiToken) error {
+	url, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/api/v2/users-by-email")
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return err
+	}
+
+	q := req.URL.Query()
+	q.Add("email", user.Email)
+	q.Add("fields", "user_id")
+	req.URL.RawQuery = q.Encode()
+	req.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	var userId []*Auth0UserId
+	err = json.NewDecoder(resp.Body).Decode(&userId)
+	if err != nil {
+		return err
+	}
+	user.UserId = userId[0].UserId
+	return nil
+}
+
+func createUserInAuth0(user *models.UserModel, password string, token *ManagementApiToken) error {
+	url, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/api/v2/users")
+	if err != nil {
+		return err
 	}
 
 	str := `{
@@ -41,7 +100,7 @@ func CreateUserInAuth0(user *models.UserModel) (*models.UserModel, error) {
 	jsonStr := []byte(fmt.Sprintf(str, user.Email, user.Name, "17April1998"))
 	req, err := http.NewRequest("POST", url.String(), bytes.NewBuffer(jsonStr))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -50,16 +109,16 @@ func CreateUserInAuth0(user *models.UserModel) (*models.UserModel, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var userId *Auth0UserId
 	err = json.NewDecoder(resp.Body).Decode(&userId)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	user.UserId = userId.UserId
-	return user, nil
+	return nil
 }
 
 func getManagementApiToken() (*ManagementApiToken, error) {

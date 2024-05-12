@@ -15,7 +15,7 @@ docker compose --profile main -p flowforge up --build
 Run the following command to seed the database wth sample data
 
 ```bash
-docker compose --profile be-seed -p flowforge up --build
+CREATE_USERS=<boolean> USER_SEED_FILENAME=<filename> ORG_SEED_FILENAME=<filename> MEMBERSHIP_SEED_FILENAME=<filename> docker compose --profile be-seed -p flowforge up --build
 ```
 
 Run the following command to start just the frontend:

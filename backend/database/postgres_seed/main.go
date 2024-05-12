@@ -1,12 +1,16 @@
 package main
 
 import (
+	"encoding/csv"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/joshtyf/flowforge/src/database"
 	"github.com/joshtyf/flowforge/src/database/client"
 	"github.com/joshtyf/flowforge/src/database/models"
+	"github.com/joshtyf/flowforge/src/helper"
 	"github.com/joshtyf/flowforge/src/logger"
 )
 
@@ -17,26 +21,19 @@ func main() {
 		panic(err)
 	}
 
-	um1 := models.UserModel{
-		UserId:           "auth0|65ffab5c004e8d1620d06a64",
-		Name:             "Test User 1",
-		IdentityProvider: "auth0",
+	users, passwords, err := getUsersFromCsv()
+	if err != nil {
+		panic(err)
 	}
 
-	um2 := models.UserModel{
-		UserId:           "auth0|66010ad5095367b237799680",
-		Name:             "Test User 2",
-		IdentityProvider: "auth0",
+	createUsers := os.Getenv("CREATE_USERS")
+	if createUsers == "true" {
+		helper.CreateUsersInAuth0(users, passwords)
+	} else {
+		helper.GetUserIdForUsers(users)
 	}
 
-	um3 := models.UserModel{
-		UserId:           "auth0|65e9dabff2dab546ed0c231e",
-		Name:             "Test User 3",
-		IdentityProvider: "auth0",
-	}
-
-	users := [...]models.UserModel{um1, um2, um3}
-	for i := 0; i < 3; i++ {
+	for i := 0; i < len(users); i++ {
 		user, err := database.NewUser(c).Create(&users[i])
 		if err != nil {
 			logger.Error(fmt.Sprintf("unable to insert user: %s", err))
@@ -45,27 +42,168 @@ func main() {
 		logger.Info(fmt.Sprintf("inserted user: %v", user))
 	}
 
-	om := models.OrganizationModel{
-		Name:  "Test Org",
-		Owner: "auth0|65ffab5c004e8d1620d06a64",
-	}
-
-	org, err := database.NewOrganization(c).Create(&om)
+	orgs, err := getOrgsFromCsv(users)
 	if err != nil {
-		logger.Error(fmt.Sprintf("unable to insert org: %s", err))
-		panic(err)
-	}
-	logger.Info(fmt.Sprintf("inserted org: %v", org))
-
-	_, err = database.NewMembership(c).Create(&models.MembershipModel{UserId: um2.UserId, OrgId: org.OrgId, Role: models.Admin})
-	if err != nil {
-		logger.Error(fmt.Sprintf("unable to create membership: %s", err))
 		panic(err)
 	}
 
-	_, err = database.NewMembership(c).Create(&models.MembershipModel{UserId: um3.UserId, OrgId: org.OrgId, Role: models.Member})
+	for i := 0; i < len(orgs); i++ {
+		org, err := database.NewOrganization(c).Create(&orgs[i])
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to insert org: %s", err))
+			panic(err)
+		}
+		logger.Info(fmt.Sprintf("inserted org: %v", org))
+	}
+
+	memberships, err := getMembershipsFromCsv(users, orgs)
 	if err != nil {
-		logger.Error(fmt.Sprintf("unable to create membership: %s", err))
 		panic(err)
 	}
+
+	for i := 0; i < len(memberships); i++ {
+		_, err = database.NewMembership(c).Create(&memberships[i])
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to create membership: %s", err))
+			panic(err)
+		}
+	}
+}
+
+func getUsersFromCsv() ([]models.UserModel, []string, error) {
+	file, err := os.Open("/seed/database/postgres_seed/" + os.Getenv("USER_SEED_FILENAME"))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	defer file.Close()
+	reader := csv.NewReader(file)
+
+	var users []models.UserModel
+	var passwords []string
+
+	// skip first row
+	_, err = reader.Read()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for {
+		record, err := reader.Read()
+		if err != nil && !errors.Is(err, io.EOF) {
+			return nil, nil, err
+		} else if err != nil {
+			break
+		}
+
+		um := models.UserModel{
+			Email:            record[0],
+			Name:             record[1],
+			IdentityProvider: record[2],
+		}
+
+		users = append(users, um)
+		passwords = append(passwords, record[3])
+	}
+	return users, passwords, nil
+}
+
+func getOrgsFromCsv(users []models.UserModel) ([]models.OrganizationModel, error) {
+	file, err := os.Open("/seed/database/postgres_seed/" + os.Getenv("ORG_SEED_FILENAME"))
+	if err != nil {
+		return nil, err
+	}
+
+	defer file.Close()
+	reader := csv.NewReader(file)
+
+	var orgs []models.OrganizationModel
+
+	// skip first row
+	_, err = reader.Read()
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		record, err := reader.Read()
+		if err != nil && !errors.Is(err, io.EOF) {
+			return nil, err
+		} else if err != nil {
+			break
+		}
+
+		var ownerId string
+		for i := 0; i < len(users); i++ {
+			if record[1] == users[i].Email {
+				ownerId = users[i].UserId
+				break
+			}
+		}
+
+		om := models.OrganizationModel{
+			Name:  record[0],
+			Owner: ownerId,
+		}
+
+		orgs = append(orgs, om)
+	}
+
+	return orgs, nil
+}
+
+func getMembershipsFromCsv(users []models.UserModel, orgs []models.OrganizationModel) ([]models.MembershipModel, error) {
+	file, err := os.Open("/seed/database/postgres_seed/" + os.Getenv("MEMBERSHIP_SEED_FILENAME"))
+	if err != nil {
+		return nil, err
+	}
+
+	defer file.Close()
+	reader := csv.NewReader(file)
+
+	var memberships []models.MembershipModel
+
+	// skip first row
+	_, err = reader.Read()
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		record, err := reader.Read()
+		if err != nil && !errors.Is(err, io.EOF) {
+			return nil, err
+		} else if err != nil {
+			break
+		}
+
+		var userId string
+		var orgId int
+		for i := 0; i < len(users); i++ {
+			if record[0] == users[i].Email {
+				userId = users[i].UserId
+				break
+			}
+		}
+
+		for i := 0; i < len(orgs); i++ {
+			if record[1] == orgs[i].Name {
+				orgId = orgs[i].OrgId
+			}
+		}
+
+		role, err := models.GetRoleFromString(record[2])
+		if err != nil {
+			return nil, err
+		}
+		mm := models.MembershipModel{
+			UserId: userId,
+			OrgId:  orgId,
+			Role:   role,
+		}
+
+		memberships = append(memberships, mm)
+	}
+
+	return memberships, nil
 }
