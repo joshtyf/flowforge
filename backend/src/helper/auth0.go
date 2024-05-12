@@ -97,7 +97,7 @@ func createUserInAuth0(user *models.UserModel, password string, token *Managemen
 		"connection": "Username-Password-Authentication",
 		"password": "%s"
 	}`
-	jsonStr := []byte(fmt.Sprintf(str, user.Email, user.Name, "17April1998"))
+	jsonStr := []byte(fmt.Sprintf(str, user.Email, user.Name, password))
 	req, err := http.NewRequest("POST", url.String(), bytes.NewBuffer(jsonStr))
 	if err != nil {
 		return err
