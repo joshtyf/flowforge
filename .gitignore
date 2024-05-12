@@ -131,5 +131,5 @@ dist
 .pnp.*
 
 # backend
-./backend/dist
-./backend/database/postgres_seed/*.csv
+/backend/dist
+/backend/database/postgres_seed/*.csv
