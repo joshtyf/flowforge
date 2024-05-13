@@ -6,5 +6,6 @@ RUN go mod download
 COPY database/ ./database
 COPY src/database ./src/database
 COPY src/logger ./src/logger
+COPY src/events ./src/events
 RUN go build -o ./dist/main ./database/mongo_seed/main.go
 CMD ["./dist/main"]
