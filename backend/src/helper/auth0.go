@@ -27,7 +27,7 @@ func CreateUsersInAuth0(users []models.UserModel, passwords []string) ([]models.
 		return nil, err
 	}
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < len(users); i++ {
 		err = createUserInAuth0(&users[i], passwords[i], token)
 		if err != nil {
 			return nil, err
@@ -43,7 +43,7 @@ func GetUserIdForUsers(users []models.UserModel) ([]models.UserModel, error) {
 		return nil, err
 	}
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < len(users); i++ {
 		err = getAuth0UserIdByEmail(&users[i], token)
 		if err != nil {
 			return nil, err
