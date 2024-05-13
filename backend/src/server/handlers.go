@@ -80,6 +80,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/organization", isAuthenticated(getOrgIdFromRequestBody(isOrgOwner(s.psqlClient, handleDeleteOrganization(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("DELETE").Headers("Content-Type", "application/json")
 
 	// Membership
+	r.Handle("/api/membership", isAuthenticated(handleGetMembershipsForUser(s.logger, s.psqlClient), s.logger)).Methods("GET")
 	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgAdmin(s.psqlClient, handleCreateMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgAdmin(s.psqlClient, handleUpdateMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
 	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgOwner(s.psqlClient, handleDeleteMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger)).Methods("DELETE").Headers("Content-Type", "application/json")
@@ -906,5 +907,39 @@ func handleDeleteOrganization(logger logger.ServerLogger, client *sql.DB) http.H
 			return
 		}
 		encode[any](w, r, http.StatusOK, nil)
+	})
+}
+
+func handleGetMembershipsForUser(logger logger.ServerLogger, client *sql.DB) http.Handler {
+	type ResponseBodyMembership struct {
+		OrgId    int         `json:"org_id"`
+		Role     models.Role `json:"role"`
+		JoinedOn time.Time   `json:"joined_on"`
+	}
+	type ResponseBody struct {
+		UserId      string                   `json:"user_id"`
+		Memberships []ResponseBodyMembership `json:"memberships"`
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		userId := token.RegisteredClaims.Subject
+
+		memberships, err := database.NewMembership(client).GetUserMemberships(userId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipRetrieve, http.StatusInternalServerError))
+			return
+		}
+		response := ResponseBody{
+			UserId: userId,
+		}
+		for _, membership := range memberships {
+			response.Memberships = append(response.Memberships, ResponseBodyMembership{
+				OrgId:    membership.OrgId,
+				Role:     membership.Role,
+				JoinedOn: membership.JoinedOn,
+			})
+		}
+		encode(w, r, http.StatusOK, response)
 	})
 }
