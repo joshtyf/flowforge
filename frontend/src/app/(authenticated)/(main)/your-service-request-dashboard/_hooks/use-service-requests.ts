@@ -5,6 +5,7 @@ import { FormFieldType, JsonFormComponents } from "@/types/json-form-components"
 import { StepStatus } from "@/types/pipeline"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { useQuery } from "@tanstack/react-query"
+import { useMemo } from "react"
 
 const DUMMY_PIPELINE_FORM: JsonFormComponents = {
   fields: [
@@ -249,28 +250,43 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     },
   },
 ]
+interface UseServiceRequestProps {
+  page: number
+  pageSize: number
+}
 
-const useServiceRequests = () => {
+const useServiceRequests = ({ page, pageSize }: UseServiceRequestProps) => {
   const { organizationId } = useOrganizationId()
   const { isLoading, data } = useQuery({
-    queryKey: ["user_service_requests"],
+    queryKey: ["user_service_requests", page, pageSize],
     queryFn: () => {
-      return getAllServiceRequest(organizationId).catch((err) => {
-        console.error(err)
-        toast({
-          title: "Fetching Service Requests Error",
-          description:
-            "Failed to fetch Service Requests for user. Please try again later.",
-          variant: "destructive",
-        })
-      })
+      return getAllServiceRequest(organizationId, page, pageSize).catch(
+        (err) => {
+          console.error(err)
+          toast({
+            title: "Fetching Service Requests Error",
+            description:
+              "Failed to fetch Service Requests for user. Please try again later.",
+            variant: "destructive",
+          })
+        }
+      )
     },
     refetchInterval: 2000,
   })
 
+  const noOfPages = useMemo(
+    () =>
+      data?.metadata.total_count
+        ? Math.ceil(data?.metadata.total_count / pageSize)
+        : undefined,
+    [data, pageSize]
+  )
+
   return {
     response: data,
     isLoading,
+    noOfPages,
   }
 }
 
