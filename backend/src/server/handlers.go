@@ -701,6 +701,19 @@ func handleGetServiceRequestsForAdminByOrganization(logger logger.ServerLogger, 
 }
 
 func handleGetUserById(logger logger.ServerLogger, client *sql.DB) http.Handler {
+	type ResponseBodyMembership struct {
+		OrgId    int         `json:"org_id"`
+		Role     models.Role `json:"role"`
+		JoinedOn time.Time   `json:"joined_on"`
+	}
+	type ResponseBody struct {
+		UserId           string                   `json:"user_id"`
+		Name             string                   `json:"name"`
+		IdentityProvider string                   `json:"identity_provider"`
+		CreatedOn        time.Time                `json:"created_on"`
+		Memberships      []ResponseBodyMembership `json:"memberships"`
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		userId := vars["userId"]
@@ -715,8 +728,26 @@ func handleGetUserById(logger logger.ServerLogger, client *sql.DB) http.Handler 
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserRetrieve, http.StatusInternalServerError))
 			return
 		}
-
-		encode(w, r, http.StatusCreated, user)
+		memberships, err := database.NewMembership(client).GetUserMemberships(userId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipRetrieve, http.StatusInternalServerError))
+			return
+		}
+		response := ResponseBody{
+			UserId:           user.UserId,
+			Name:             user.Name,
+			IdentityProvider: user.IdentityProvider,
+			CreatedOn:        user.CreatedOn,
+		}
+		for _, membership := range memberships {
+			response.Memberships = append(response.Memberships, ResponseBodyMembership{
+				OrgId:    membership.OrgId,
+				Role:     membership.Role,
+				JoinedOn: membership.JoinedOn,
+			})
+		}
+		encode(w, r, http.StatusOK, response)
 	})
 }
 
