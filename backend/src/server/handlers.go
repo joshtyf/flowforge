@@ -68,8 +68,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/pipeline", isAuthenticated(validateCreatePipelineRequest(handleCreatePipeline(s.logger, s.mongoClient), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 
 	// User
-	// TODO: fix this
-	// r.Handle("/api/user", isAuthenticated(handleGetUserById(s.logger, s.psqlClient), s.logger)).Methods("GET")
+	r.Handle("/api/user", isAuthenticated(handleGetAllUsers(s.logger, s.psqlClient), s.logger)).Methods("GET")
 	r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.logger, s.psqlClient), s.logger)).Methods("GET")
 	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 
@@ -717,6 +716,18 @@ func handleGetUserById(logger logger.ServerLogger, client *sql.DB) http.Handler 
 		}
 
 		encode(w, r, http.StatusCreated, user)
+	})
+}
+
+func handleGetAllUsers(logger logger.ServerLogger, client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		users, err := database.NewUser(client).GetAllUsers()
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserRetrieve, http.StatusInternalServerError))
+			return
+		}
+		encode(w, r, http.StatusOK, users)
 	})
 }
 
