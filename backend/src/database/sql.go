@@ -15,6 +15,9 @@ var (
 								WHERE user_id = $1
 								AND deleted = false`
 
+	SelectAllUsersStatement = `SELECT user_id, name, identity_provider, created_on, deleted 
+								FROM public."user" WHERE deleted = false`
+
 	CheckUserExistsStatement = `SELECT * 
 								FROM public."user" 
 								WHERE user_id = $1
