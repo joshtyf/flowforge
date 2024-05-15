@@ -27,8 +27,8 @@ import { useMemo, useState } from "react"
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data?: TData[] | void
-  onPaginationChange?: (pagination: Updater<PaginationState>) => void
-  pagination?: PaginationState
+  onPaginationChange: (pagination: Updater<PaginationState>) => void
+  pagination: PaginationState
   pageCount?: number
 }
 
