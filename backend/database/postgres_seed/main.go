@@ -71,7 +71,7 @@ func main() {
 }
 
 func getUsersFromCsv() ([]models.UserModel, []string, error) {
-	file, err := os.Open("/seed/database/postgres_seed/" + os.Getenv("USER_SEED_FILENAME"))
+	file, err := os.Open("./database/postgres_seed/" + os.Getenv("USER_SEED_FILENAME"))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -109,7 +109,7 @@ func getUsersFromCsv() ([]models.UserModel, []string, error) {
 }
 
 func getOrgsFromCsv(users []models.UserModel) ([]models.OrganizationModel, error) {
-	file, err := os.Open("/seed/database/postgres_seed/" + os.Getenv("ORG_SEED_FILENAME"))
+	file, err := os.Open("./database/postgres_seed/" + os.Getenv("ORG_SEED_FILENAME"))
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func getOrgsFromCsv(users []models.UserModel) ([]models.OrganizationModel, error
 }
 
 func getMembershipsFromCsv(users []models.UserModel, orgs []models.OrganizationModel) ([]models.MembershipModel, error) {
-	file, err := os.Open("/seed/database/postgres_seed/" + os.Getenv("MEMBERSHIP_SEED_FILENAME"))
+	file, err := os.Open("./database/postgres_seed/" + os.Getenv("MEMBERSHIP_SEED_FILENAME"))
 	if err != nil {
 		return nil, err
 	}
