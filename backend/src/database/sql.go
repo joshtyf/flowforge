@@ -15,6 +15,13 @@ var (
 								WHERE user_id = $1
 								AND deleted = false`
 
+	SelectAllUsersByOrgIdStatement = `SELECT u.user_id, u.name, u.identity_provider, u.created_on, u.deleted, m.role, m.joined_on
+										FROM public."user" u
+										INNER JOIN public."membership" m
+										ON u.user_id = m.user_id
+										WHERE m.org_id = $1
+										AND u.deleted = false`
+
 	CheckUserExistsStatement = `SELECT * 
 								FROM public."user" 
 								WHERE user_id = $1

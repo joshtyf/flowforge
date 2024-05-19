@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -78,6 +79,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/organization", isAuthenticated(handleGetOrganizationsForUser(s.logger, s.psqlClient), s.logger)).Methods("GET")
 	r.Handle("/api/organization", isAuthenticated(getOrgIdFromRequestBody(isOrgOwner(s.psqlClient, handleUpdateOrganization(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
 	r.Handle("/api/organization", isAuthenticated(getOrgIdFromRequestBody(isOrgOwner(s.psqlClient, handleDeleteOrganization(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("DELETE").Headers("Content-Type", "application/json")
+	r.Handle("/api/organization/{orgId}/members", isAuthenticated(handleGetOrganizationMembers(s.logger, s.psqlClient), s.logger)).Methods("GET")
 
 	// Membership
 	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgAdmin(s.psqlClient, handleCreateMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
@@ -821,6 +823,33 @@ func handleGetStepExecutionLogs(l logger.ServerLogger, psqlClient *sql.DB) http.
 	})
 }
 
+func handleGetOrganizationMembers(logger logger.ServerLogger, client *sql.DB) http.Handler {
+	type ResponseBody struct { // Response body when org_id is provided
+		OrgId   int                                    `json:"org_id"`
+		Members []*database.GetAllUsersByOrdIdResponse `json:"members"`
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		orgId, err := strconv.Atoi(vars["orgId"])
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to parse orgId: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganizationId, http.StatusBadRequest))
+			return
+		}
+		users, err := database.NewUser(client).GetAllUsersByOrgId(orgId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserRetrieve, http.StatusInternalServerError))
+			return
+		}
+		response := ResponseBody{
+			OrgId:   orgId,
+			Members: users,
+		}
+		encode(w, r, http.StatusOK, response)
+	})
+
+}
 func handleGetOrganizationsForUser(logger logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
