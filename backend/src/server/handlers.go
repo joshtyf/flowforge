@@ -272,6 +272,7 @@ func handleCreateServiceRequest(logger logger.ServerLogger, mongoClient *mongo.C
 				EventType:        models.STEP_NOT_STARTED,
 				ServiceRequestId: res.InsertedID.(primitive.ObjectID).Hex(),
 				StepName:         step.StepName,
+				StepType:         step.StepType,
 			})
 			if err != nil {
 				logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))

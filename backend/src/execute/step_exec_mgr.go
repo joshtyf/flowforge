@@ -131,6 +131,7 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 		EventType:        models.STEP_RUNNING,
 		ServiceRequestId: serviceRequest.Id.Hex(),
 		StepName:         step.StepName,
+		StepType:         step.StepType,
 	})
 	if err != nil {
 		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
@@ -180,19 +181,6 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 		return fmt.Errorf("service request is nil")
 	}
 
-	// Log step completed event
-	serviceRequestEvent := database.NewServiceRequestEvent(srm.psqlClient)
-	err := serviceRequestEvent.Create(&models.ServiceRequestEventModel{
-		EventType:        models.STEP_COMPLETED,
-		ServiceRequestId: serviceRequest.Id.Hex(),
-		StepName:         completedStep,
-	})
-	if err != nil {
-		// TODO: not sure if we should return here. We need to handle the error better
-		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
-		return err
-	}
-
 	pipeline, err := database.NewPipeline(srm.mongoClient).GetById(serviceRequest.PipelineId)
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		srm.logger.Error(fmt.Sprintf("pipeline not found: %s", serviceRequest.PipelineId))
@@ -212,6 +200,21 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 		}
 		return nil
 	}
+
+	// Log step completed event
+	serviceRequestEvent := database.NewServiceRequestEvent(srm.psqlClient)
+	err = serviceRequestEvent.Create(&models.ServiceRequestEventModel{
+		EventType:        models.STEP_COMPLETED,
+		ServiceRequestId: serviceRequest.Id.Hex(),
+		StepName:         completedStep,
+		StepType:         completedStepModel.StepType,
+	})
+	if err != nil {
+		// TODO: not sure if we should return here. We need to handle the error better
+		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
+		return err
+	}
+
 	// Set the current executor to the next executor
 	nextStep := pipeline.GetPipelineStep(completedStepModel.NextStepName)
 	if nextStep == nil {
