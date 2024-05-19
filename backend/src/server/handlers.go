@@ -844,7 +844,7 @@ func handleGetStepExecutionLogs(l logger.ServerLogger, psqlClient *sql.DB) http.
 		}
 
 		// Prepare response
-		stepEvent, err := database.NewServiceRequestEvent(psqlClient).GetLatestEvent(serviceRequestId, stepName)
+		stepEvent, err := database.NewServiceRequestEvent(psqlClient).GetStepLatestEvent(serviceRequestId, stepName)
 		if err != nil {
 			l.Error(fmt.Sprintf("unable to get latest event: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))

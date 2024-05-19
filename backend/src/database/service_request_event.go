@@ -63,7 +63,7 @@ func (sre *ServiceRequestEvent) GetStepsLatestEvent(serviceReequestId string) ([
 	return srems, nil
 }
 
-func (sre *ServiceRequestEvent) GetLatestEvent(serviceRequestId, stepName string) (*models.ServiceRequestEventModel, error) {
+func (sre *ServiceRequestEvent) GetStepLatestEvent(serviceRequestId, stepName string) (*models.ServiceRequestEventModel, error) {
 	queryStr := `
 		SELECT event_id, event_type, service_request_id, step_name, approved_by, created_at
 		FROM service_request_event
