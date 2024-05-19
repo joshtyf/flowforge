@@ -15,6 +15,9 @@ var (
 								WHERE user_id = $1
 								AND deleted = false`
 
+	SelectAllUsersStatement = `SELECT user_id, name, identity_provider, created_on, deleted 
+								FROM public."user" WHERE deleted = false`
+
 	SelectAllUsersByOrgIdStatement = `SELECT u.user_id, u.name, u.identity_provider, u.created_on, u.deleted, m.role, m.joined_on
 										FROM public."user" u
 										INNER JOIN public."membership" m
