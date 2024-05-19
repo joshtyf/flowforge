@@ -58,7 +58,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(getOrgIdFromRequestBody(isOrgMember(s.psqlClient, handleUpdateServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
 	r.Handle("/api/service_request/{requestId}/cancel", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleCancelStartedServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PUT")
 	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleStartServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PUT")
-	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(getOrgIdFromRequestBody(isOrgAdmin(s.psqlClient, handleApproveServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(getOrgIdFromRequestBody(isOrgAdmin(s.psqlClient, handleApproveServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 	r.Handle("/api/service_request/{requestId}/logs/{stepName}", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetStepExecutionLogs(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
 	r.Handle("/api/service_request/{requestId}/steps", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetServiceRequestStepDetails(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
 
@@ -374,10 +374,8 @@ func handleStartServiceRequest(logger logger.ServerLogger, client *mongo.Client)
 	})
 }
 
-func handleApproveServiceRequest(logger logger.ServerLogger, client *mongo.Client) http.Handler {
-	type requestBody struct {
-		StepName string `json:"step_name"`
-	}
+func handleApproveServiceRequest(logger logger.ServerLogger, client *mongo.Client, psqlClient *sql.DB) http.Handler {
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
 		serviceRequestId := params["requestId"]
