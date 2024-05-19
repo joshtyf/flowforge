@@ -11,14 +11,14 @@ type ServiceRequestStatus string
 const (
 	NOT_STARTED ServiceRequestStatus = "Not Started"
 	RUNNING     ServiceRequestStatus = "Running"
-	PENDING     ServiceRequestStatus = "Pending"
+	PENDING     ServiceRequestStatus = "Pending" // waiting for approval
 	FAILED      ServiceRequestStatus = "Failed"
 	CANCELLED   ServiceRequestStatus = "Cancelled"
 	COMPLETED   ServiceRequestStatus = "Completed"
 	// NOTE: update allServiceRequestStatuses when adding new status
 )
 
-var allServiceRequestStatuses = []ServiceRequestStatus{NOT_STARTED, RUNNING, FAILED, CANCELLED, COMPLETED}
+var allServiceRequestStatuses = []ServiceRequestStatus{NOT_STARTED, RUNNING, PENDING, FAILED, CANCELLED, COMPLETED}
 
 func ValidateServiceRequestStatus(status string) bool {
 	for _, s := range allServiceRequestStatuses {
