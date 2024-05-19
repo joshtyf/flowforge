@@ -170,9 +170,9 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 	srm.logger.Info("handling step completed event")
 	completedStepEvent := e.(*events.StepCompletedEvent)
 	completedStep := completedStepEvent.CompletedStep()
-	if completedStep == nil {
+	if completedStep == "" {
 		srm.logger.Error(fmt.Sprintf("event %s missing data: %s", e.Name(), "completed step"))
-		return fmt.Errorf("completed step is nil")
+		return fmt.Errorf("completed step is not provided")
 	}
 	serviceRequest := completedStepEvent.ServiceRequest()
 	if serviceRequest == nil {
@@ -185,7 +185,7 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 	err := serviceRequestEvent.Create(&models.ServiceRequestEventModel{
 		EventType:        models.STEP_COMPLETED,
 		ServiceRequestId: serviceRequest.Id.Hex(),
-		StepName:         completedStep.StepName,
+		StepName:         completedStep,
 	})
 	if err != nil {
 		// TODO: not sure if we should return here. We need to handle the error better
@@ -193,15 +193,6 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 		return err
 	}
 
-	if completedStep.IsTerminalStep {
-		err := database.NewServiceRequest(srm.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.COMPLETED)
-		if err != nil {
-			// TODO: Handle error
-			// Need to ensure idempotency or figure out a rollback solution
-			srm.logger.Error(fmt.Sprintf("failed to mark service request %s successful: %s", serviceRequest.Id.Hex(), err))
-		}
-		return nil
-	}
 	pipeline, err := database.NewPipeline(srm.mongoClient).GetById(serviceRequest.PipelineId)
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		srm.logger.Error(fmt.Sprintf("pipeline not found: %s", serviceRequest.PipelineId))
@@ -211,11 +202,20 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
 		return err
 	}
-
+	completedStepModel := pipeline.GetPipelineStep(completedStep)
+	if completedStepModel.IsTerminalStep {
+		err := database.NewServiceRequest(srm.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.COMPLETED)
+		if err != nil {
+			// TODO: Handle error
+			// Need to ensure idempotency or figure out a rollback solution
+			srm.logger.Error(fmt.Sprintf("failed to mark service request %s successful: %s", serviceRequest.Id.Hex(), err))
+		}
+		return nil
+	}
 	// Set the current executor to the next executor
-	nextStep := pipeline.GetPipelineStep(completedStep.NextStepName)
+	nextStep := pipeline.GetPipelineStep(completedStepModel.NextStepName)
 	if nextStep == nil {
-		srm.logger.Error(fmt.Sprintf("missing pipeline step: %s", completedStep.NextStepName))
+		srm.logger.Error(fmt.Sprintf("missing pipeline step: %s", completedStepModel.NextStepName))
 		return fmt.Errorf("no next step found")
 	}
 	nextExecutor := srm.executors[nextStep.StepType]
