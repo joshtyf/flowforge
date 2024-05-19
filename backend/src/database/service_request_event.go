@@ -89,3 +89,28 @@ func (sre *ServiceRequestEvent) GetStepLatestEvent(serviceRequestId, stepName st
 	}
 	return srem, nil
 }
+
+func (sr *ServiceRequestEvent) GetLatestStepEvent(serviceRequestId string) (*models.ServiceRequestEventModel, error) {
+	queryStr := `
+		SELECT event_id, event_type, service_request_id, step_name, step_type, approved_by, created_at
+		FROM service_request_event
+		WHERE service_request_id = $1
+		ORDER BY created_at DESC
+		LIMIT 1;`
+
+	row := sr.db.QueryRow(queryStr, serviceRequestId)
+	srem := &models.ServiceRequestEventModel{}
+	err := row.Scan(
+		&srem.EventId,
+		&srem.EventType,
+		&srem.ServiceRequestId,
+		&srem.StepName,
+		&srem.StepType,
+		&srem.ApprovedBy,
+		&srem.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return srem, nil
+}
