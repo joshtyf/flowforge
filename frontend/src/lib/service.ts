@@ -60,6 +60,27 @@ export async function getAllServiceRequest(
     .then((res) => res.data)
 }
 
+export async function getAllServiceRequestForAdmin(
+  organizationId: number,
+  page?: number,
+  pageSize?: number
+): Promise<{
+  data: ServiceRequest[]
+  metadata: {
+    total_count: number
+  }
+}> {
+  return apiClient
+    .get("/service_request/admin", {
+      params: {
+        org_id: organizationId,
+        page: page ?? 1,
+        page_size: pageSize ?? 10,
+      },
+    })
+    .then((res) => res.data)
+}
+
 export async function getServiceRequest(
   serviceRequestId: string
 ): Promise<ServiceRequest> {

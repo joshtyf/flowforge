@@ -8,6 +8,7 @@ import AdminServiceRequestActions from "./_components/admin-service-request-acti
 import { ServiceRequestStatusBadge } from "@/components/layouts/service-request-status-badge"
 import { ExternalLink } from "lucide-react"
 import { DataTableColumnHeaderFilterableValue } from "@/components/data-table/data-table-column-header-filterable-value"
+import CreatedByInfo from "@/components/layouts/created-by-info"
 
 export const orgServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
   {
@@ -57,8 +58,12 @@ export const orgServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
     },
   },
   {
-    accessorKey: "created_by",
     header: "Created By",
+    cell: ({ row }) => {
+      const serviceRequest: ServiceRequest = row.original
+      const userId: string = serviceRequest.user_id
+      return <CreatedByInfo userId={userId} />
+    },
   },
   {
     accessorKey: "last_updated",

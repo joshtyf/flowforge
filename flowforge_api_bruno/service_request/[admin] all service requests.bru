@@ -5,11 +5,13 @@ meta {
 }
 
 get {
-  url: {{HOST}}/service_request/admin?org_id=1
+  url: {{HOST}}/service_request/admin?org_id=1&page=1&page_size=1
   body: none
   auth: inherit
 }
 
 query {
   org_id: 1
+  page: 1
+  page_size: 1
 }

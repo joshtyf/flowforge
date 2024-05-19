@@ -22,6 +22,30 @@ func (m *Membership) Create(membership *models.MembershipModel) (*models.Members
 	return membership, nil
 }
 
+func (m *Membership) GetUserMemberships(user_id string) ([]*models.MembershipModel, error) {
+	rows, err := m.c.Query(GetUserMembershipsStatement, user_id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	memberships := make([]*models.MembershipModel, 0)
+	for rows.Next() {
+		mm := &models.MembershipModel{}
+		if err := rows.Scan(
+			&mm.UserId,
+			&mm.OrgId,
+			&mm.Role,
+			&mm.JoinedOn,
+			&mm.Deleted,
+		); err != nil {
+			return nil, err
+		}
+		memberships = append(memberships, mm)
+	}
+	return memberships, nil
+}
+
 func (m *Membership) GetMembershipByUserAndOrgId(user_id string, org_id int) (*models.MembershipModel, error) {
 	mm := &models.MembershipModel{}
 	if err := m.c.QueryRow(SelectMembershipByUserAndOrgIdStatement, org_id, user_id).Scan(&mm.UserId, &mm.OrgId, &mm.Role, &mm.JoinedOn, &mm.Deleted); err != nil {

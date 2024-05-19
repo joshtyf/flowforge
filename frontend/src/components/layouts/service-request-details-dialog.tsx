@@ -22,30 +22,17 @@ import { ExternalLink } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import PipelineStepper from "./pipeline-stepper"
+import useUserInfo from "@/hooks/use-user-info"
+import CreatedByInfo from "./created-by-info"
 
 interface ServiceRequestDetailsProps {
   serviceRequest: ServiceRequest
 }
 
 function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
-  const [user, setUser] = useState<UserInfo>()
-  useEffect(() => {
-    getUserById(serviceRequest.user_id)
-      .then((user) => setUser(user))
-      .catch((err) => {
-        console.error(err)
-        toast({
-          title: "Fetching Service Requests Error",
-          description:
-            "Failed to fetch Service Requests for user. Please try again later.",
-          variant: "destructive",
-        })
-      })
-  }, [serviceRequest.user_id])
   const {
     id: serviceRequestId,
     pipeline_version: pipelineVersion,
-    created_by: createdBy = "",
     created_on: createdOn = "",
     last_updated: lastUpdated = "",
     remarks,
@@ -84,7 +71,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
       </div>
       <div>
         <Label className="text-muted-foreground">Created By</Label>
-        {user ? <p>{user.name}</p> : <Skeleton className="w-28 h-5" />}
+        <CreatedByInfo userId={serviceRequest.user_id} />
       </div>
       {steps.some((step) => step.name === "Approval") && (
         <div>

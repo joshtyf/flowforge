@@ -1,0 +1,13 @@
+meta {
+  name: all users by org id
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{HOST}}/organization/{{org_id}}/members
+  body: none
+  auth: inherit
+}
+
+
