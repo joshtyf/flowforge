@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 type Role string
 
@@ -16,4 +19,19 @@ type MembershipModel struct {
 	Role     Role      `json:"role"`
 	JoinedOn time.Time `json:"joined_on"`
 	Deleted  bool      `json:"deleted"`
+}
+
+func GetRoleFromString(roleStr string) (Role, error) {
+	roleMap := map[string]Role{
+		"Owner":  Owner,
+		"Admin":  Admin,
+		"Member": Member,
+	}
+
+	role, found := roleMap[roleStr]
+	if !found {
+		return "", errors.New("invalid role")
+	}
+
+	return role, nil
 }

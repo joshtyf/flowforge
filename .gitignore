@@ -131,4 +131,8 @@ dist
 .pnp.*
 
 # backend
-./backend/dist
+/backend/dist
+/backend/database/postgres_seed/*.csv
+
+# Custom
+.DS_Store

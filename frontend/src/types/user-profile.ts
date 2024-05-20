@@ -11,6 +11,7 @@ type UserInfo = {
   identity_provider: string
   created_on: Date
   deleted: boolean
+  email: string
 }
 
 export type { Auth0UserProfile, UserInfo }

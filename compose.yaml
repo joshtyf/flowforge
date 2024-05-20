@@ -26,6 +26,9 @@ services:
       - POSTGRES_URI=${POSTGRES_URI}
       - AUTH0_DOMAIN=${AUTH0_DOMAIN}
       - AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
+      - MANAGEMENT_API_SECRET=${MANAGEMENT_API_SECRET}
+      - MANAGEMENT_API_CLIENT=${MANAGEMENT_API_CLIENT}
+      - MANAGEMENT_API_AUDIENCE=${MANAGEMENT_API_AUDIENCE}
     depends_on:
       postgres:
         condition: service_healthy
@@ -70,6 +73,15 @@ services:
         condition: service_healthy
     environment:
       - POSTGRES_URI=${POSTGRES_URI}
+      - USER_SEED_FILENAME=${users:-user.csv}
+      - ORG_SEED_FILENAME=${orgs:-org.csv}
+      - MEMBERSHIP_SEED_FILENAME=${memberships:-membership.csv}
+      - CREATE_USERS=${create_users:-false}
+      - AUTH0_DOMAIN=${AUTH0_DOMAIN}
+      - AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
+      - MANAGEMENT_API_SECRET=${MANAGEMENT_API_SECRET}
+      - MANAGEMENT_API_CLIENT=${MANAGEMENT_API_CLIENT}
+      - MANAGEMENT_API_AUDIENCE=${MANAGEMENT_API_AUDIENCE}
 
   mongo:
     profiles:
