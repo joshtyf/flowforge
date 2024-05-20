@@ -1,0 +1,17 @@
+meta {
+  name: all service requests admin
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{HOST}}/service_request/admin?org_id=1&page=1&page_size=10
+  body: none
+  auth: inherit
+}
+
+query {
+  org_id: 1
+  page: 1
+  page_size: 10
+}
