@@ -17,12 +17,13 @@ func NewServiceRequestEvent(db *sql.DB) *ServiceRequestEvent {
 }
 
 func (sre *ServiceRequestEvent) Create(srem *models.ServiceRequestEventModel) error {
-	queryStr := "INSERT INTO service_request_event (event_type, service_request_id, step_name, approved_by) VALUES ($1, $2, $3, $4)"
+	queryStr := "INSERT INTO service_request_event (event_type, service_request_id, step_name, step_type, approved_by) VALUES ($1, $2, $3, $4, $5)"
 	_, err := sre.db.Exec(
 		queryStr,
 		srem.EventType,
 		srem.ServiceRequestId,
 		srem.StepName,
+		srem.StepType,
 		srem.ApprovedBy,
 	)
 	return err
@@ -35,7 +36,7 @@ func (sre *ServiceRequestEvent) GetStepsLatestEvent(serviceReequestId string) ([
 			FROM service_request_event
 			WHERE service_request_id = $1
 		)
-		SELECT event_id, event_type, service_request_id, step_name, approved_by, created_at FROM LatestEvents
+		SELECT event_id, event_type, service_request_id, step_name, step_type, approved_by, created_at FROM LatestEvents
 		WHERE row_num = 1;`
 
 	rows, err := sre.db.Query(queryStr, serviceReequestId)
@@ -52,6 +53,7 @@ func (sre *ServiceRequestEvent) GetStepsLatestEvent(serviceReequestId string) ([
 			&srem.EventType,
 			&srem.ServiceRequestId,
 			&srem.StepName,
+			&srem.StepType,
 			&srem.ApprovedBy,
 			&srem.CreatedAt,
 		)
@@ -63,9 +65,9 @@ func (sre *ServiceRequestEvent) GetStepsLatestEvent(serviceReequestId string) ([
 	return srems, nil
 }
 
-func (sre *ServiceRequestEvent) GetLatestEvent(serviceRequestId, stepName string) (*models.ServiceRequestEventModel, error) {
+func (sre *ServiceRequestEvent) GetStepLatestEvent(serviceRequestId, stepName string) (*models.ServiceRequestEventModel, error) {
 	queryStr := `
-		SELECT event_id, event_type, service_request_id, step_name, approved_by, created_at
+		SELECT event_id, event_type, service_request_id, step_name, step_type, approved_by, created_at
 		FROM service_request_event
 		WHERE service_request_id = $1 AND step_name = $2
 		ORDER BY created_at DESC
@@ -78,6 +80,32 @@ func (sre *ServiceRequestEvent) GetLatestEvent(serviceRequestId, stepName string
 		&srem.EventType,
 		&srem.ServiceRequestId,
 		&srem.StepName,
+		&srem.StepType,
+		&srem.ApprovedBy,
+		&srem.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return srem, nil
+}
+
+func (sr *ServiceRequestEvent) GetLatestStepEvent(serviceRequestId string) (*models.ServiceRequestEventModel, error) {
+	queryStr := `
+		SELECT event_id, event_type, service_request_id, step_name, step_type, approved_by, created_at
+		FROM service_request_event
+		WHERE service_request_id = $1
+		ORDER BY created_at DESC
+		LIMIT 1;`
+
+	row := sr.db.QueryRow(queryStr, serviceRequestId)
+	srem := &models.ServiceRequestEventModel{}
+	err := row.Scan(
+		&srem.EventId,
+		&srem.EventType,
+		&srem.ServiceRequestId,
+		&srem.StepName,
+		&srem.StepType,
 		&srem.ApprovedBy,
 		&srem.CreatedAt,
 	)

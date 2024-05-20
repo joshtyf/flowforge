@@ -58,7 +58,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(getOrgIdFromRequestBody(isOrgMember(s.psqlClient, handleUpdateServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
 	r.Handle("/api/service_request/{requestId}/cancel", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleCancelStartedServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PUT")
 	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleStartServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PUT")
-	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(getOrgIdFromRequestBody(isOrgAdmin(s.psqlClient, handleApproveServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgAdmin(s.psqlClient, handleApproveServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("PUT")
 	r.Handle("/api/service_request/{requestId}/logs/{stepName}", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetStepExecutionLogs(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
 	r.Handle("/api/service_request/{requestId}/steps", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetServiceRequestStepDetails(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
 
@@ -272,6 +272,7 @@ func handleCreateServiceRequest(logger logger.ServerLogger, mongoClient *mongo.C
 				EventType:        models.STEP_NOT_STARTED,
 				ServiceRequestId: res.InsertedID.(primitive.ObjectID).Hex(),
 				StepName:         step.StepName,
+				StepType:         step.StepType,
 			})
 			if err != nil {
 				logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
@@ -374,10 +375,7 @@ func handleStartServiceRequest(logger logger.ServerLogger, client *mongo.Client)
 	})
 }
 
-func handleApproveServiceRequest(logger logger.ServerLogger, client *mongo.Client) http.Handler {
-	type requestBody struct {
-		StepName string `json:"step_name"`
-	}
+func handleApproveServiceRequest(logger logger.ServerLogger, client *mongo.Client, psqlClient *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
 		serviceRequestId := params["requestId"]
@@ -391,36 +389,30 @@ func handleApproveServiceRequest(logger logger.ServerLogger, client *mongo.Clien
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		body, err := decode[requestBody](r)
-		if err != nil {
-			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
-			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+		if serviceRequest.Status != models.PENDING {
+			logger.Error(fmt.Sprintf("unable to approve service request %s: request is not pending approval", serviceRequestId))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrFailedToApproveServiceRequest, http.StatusBadRequest))
 			return
 		}
-		pipeline, err := database.NewPipeline(client).GetById(serviceRequest.PipelineId)
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			logger.Error(fmt.Sprintf("%s %s not found", "pipeline", serviceRequest.PipelineId))
-			encode(w, r, http.StatusNotFound, newHandlerError(ErrInvalidPipelineId, http.StatusNotFound))
-		}
+
+		latestStep, err := database.NewServiceRequestEvent(psqlClient).GetLatestStepEvent(serviceRequestId)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-		waitForApprovalStep := pipeline.GetPipelineStep(body.StepName)
-
-		if waitForApprovalStep == nil {
-			logger.Error(fmt.Sprintf("missing pipeline step: %s", body.StepName))
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+		if latestStep.StepType != models.WaitForApprovalStep {
+			// This check should be redundant but just in case
+			// Because if the status of the request is pending, the latest step should be an approval step
+			// Unless we have a bug in the code somewhere
+			logger.Error(fmt.Sprintf("unable to approve service request %s: latest step is not approval step ", serviceRequestId))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrFailedToApproveServiceRequest, http.StatusBadRequest))
 			return
 		}
-		if waitForApprovalStep.StepType != models.WaitForApprovalStep {
-			logger.Error(fmt.Sprintf("invalid step type: expected %s got %s", models.WaitForApprovalStep, waitForApprovalStep.StepType))
-			encode(w, r, http.StatusBadRequest, newHandlerError(ErrWrongStepType, http.StatusBadRequest))
-			return
-		}
+		logger.Info(fmt.Sprintf("approving service request %s at step %s", serviceRequestId, latestStep.StepName))
 		// TODO: figure out how to pass the step result prior to the approval to the next step
-		event.FireAsync(events.NewStepCompletedEvent(waitForApprovalStep, serviceRequest, nil, nil))
+		// TODO: store approver details
+		event.FireAsync(events.NewStepCompletedEvent(latestStep.StepName, serviceRequest, nil, nil))
 		encode[any](w, r, http.StatusOK, nil)
 	})
 }
@@ -844,7 +836,7 @@ func handleGetStepExecutionLogs(l logger.ServerLogger, psqlClient *sql.DB) http.
 		}
 
 		// Prepare response
-		stepEvent, err := database.NewServiceRequestEvent(psqlClient).GetLatestEvent(serviceRequestId, stepName)
+		stepEvent, err := database.NewServiceRequestEvent(psqlClient).GetStepLatestEvent(serviceRequestId, stepName)
 		if err != nil {
 			l.Error(fmt.Sprintf("unable to get latest event: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
