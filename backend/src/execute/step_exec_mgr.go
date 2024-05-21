@@ -131,6 +131,7 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 		EventType:        models.STEP_RUNNING,
 		ServiceRequestId: serviceRequest.Id.Hex(),
 		StepName:         step.StepName,
+		CreatedBy:        "", // TODO: Add user id
 		StepType:         step.StepType,
 	})
 	if err != nil {
@@ -207,6 +208,7 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 		EventType:        models.STEP_COMPLETED,
 		ServiceRequestId: serviceRequest.Id.Hex(),
 		StepName:         completedStep,
+		CreatedBy:        completedStepEvent.CreatedBy(),
 		StepType:         completedStepModel.StepType,
 	})
 	if err != nil {
