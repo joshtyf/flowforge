@@ -33,6 +33,7 @@ func New(c *ServerConfig) http.Server {
 				"Access-Control-Allow-Methods",
 				"Access-Control-Allow-Credentials",
 			}),
+			handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"}),
 		)(c.Router),
 	}
 }
