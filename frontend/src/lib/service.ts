@@ -89,13 +89,8 @@ export async function getServiceRequest(
     .then((res) => res.data)
 }
 
-export async function approveServiceRequest(
-  serviceRequestId: string,
-  organizationId: string
-) {
-  return apiClient.post(`/service_request/${serviceRequestId}/approve`, {
-    org_id: organizationId,
-  })
+export async function approveServiceRequest(serviceRequestId: string) {
+  return apiClient.put(`/service_request/${serviceRequestId}/approve`, {})
 }
 
 export async function getServiceRequestSteps(

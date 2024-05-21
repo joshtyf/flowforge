@@ -9,6 +9,7 @@ import { ServiceRequestStatusBadge } from "@/components/layouts/service-request-
 import { ExternalLink } from "lucide-react"
 import { DataTableColumnHeaderFilterableValue } from "@/components/data-table/data-table-column-header-filterable-value"
 import CreatedByInfo from "@/components/layouts/created-by-info"
+import { approveServiceRequest } from "@/lib/service"
 
 export const orgServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
   {
@@ -84,7 +85,7 @@ export const orgServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
           serviceRequest={serviceRequest}
           approveRequest={(serviceRequestId: string) => {
             // TODO: Replace with actual approval action
-            console.log("Approve service request for:", serviceRequestId)
+            approveServiceRequest(serviceRequestId)
           }}
           rejectRequest={(serviceRequestId: string, remarks?: string) => {
             // TODO: Replace with actual rejection action
