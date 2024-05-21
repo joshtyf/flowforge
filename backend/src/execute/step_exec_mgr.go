@@ -191,16 +191,8 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
 		return err
 	}
+
 	completedStepModel := pipeline.GetPipelineStep(completedStep)
-	if completedStepModel.IsTerminalStep {
-		err := database.NewServiceRequest(srm.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.COMPLETED)
-		if err != nil {
-			// TODO: Handle error
-			// Need to ensure idempotency or figure out a rollback solution
-			srm.logger.Error(fmt.Sprintf("failed to mark service request %s successful: %s", serviceRequest.Id.Hex(), err))
-		}
-		return nil
-	}
 
 	// Log step completed event
 	serviceRequestEvent := database.NewServiceRequestEvent(srm.psqlClient)
@@ -215,6 +207,16 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 		// TODO: not sure if we should return here. We need to handle the error better
 		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
 		return err
+	}
+
+	if completedStepModel.IsTerminalStep {
+		err := database.NewServiceRequest(srm.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.COMPLETED)
+		if err != nil {
+			// TODO: Handle error
+			// Need to ensure idempotency or figure out a rollback solution
+			srm.logger.Error(fmt.Sprintf("failed to mark service request %s successful: %s", serviceRequest.Id.Hex(), err))
+		}
+		return nil
 	}
 
 	// Set the current executor to the next executor
