@@ -1,21 +1,15 @@
 meta {
   name: approve service request
   type: http
-  seq: 10
+  seq: 8
 }
 
-post {
-  url: {{HOST}}/service_request/{{serviceRequestId}}/approve
-  body: json
+put {
+  url: {{HOST}}/service_request/{{service_request_id}}/approve
+  body: none
   auth: inherit
 }
 
-body:json {
-  {
-    "step_name": "step2"
-  }
-}
-
 vars:pre-request {
-  serviceRequestId: f2d8e1a73b964c5e7a0f81d9
+  service_request_id: 662e134616b653509203cb93
 }
