@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/joshtyf/flowforge/src/database/models"
 )
@@ -29,7 +30,7 @@ func (sre *ServiceRequestEvent) Create(srem *models.ServiceRequestEventModel) er
 	return err
 }
 
-func (sre *ServiceRequestEvent) GetStepsLatestEvent(serviceReequestId string) ([]*models.ServiceRequestEventModel, error) {
+func (sre *ServiceRequestEvent) GetStepsLatestEvent(serviceRequestId string) ([]*models.ServiceRequestEventModel, error) {
 	queryStr := `
 		WITH LatestEvents AS (
 			SELECT *, ROW_NUMBER() OVER (PARTITION BY step_name ORDER BY created_at DESC) AS row_num
@@ -39,7 +40,7 @@ func (sre *ServiceRequestEvent) GetStepsLatestEvent(serviceReequestId string) ([
 		SELECT event_id, event_type, service_request_id, step_name, step_type, approved_by, created_at FROM LatestEvents
 		WHERE row_num = 1;`
 
-	rows, err := sre.db.Query(queryStr, serviceReequestId)
+	rows, err := sre.db.Query(queryStr, serviceRequestId)
 	if err != nil {
 		return nil, err
 	}
@@ -113,4 +114,24 @@ func (sr *ServiceRequestEvent) GetLatestStepEvent(serviceRequestId string) (*mod
 		return nil, err
 	}
 	return srem, nil
+}
+
+func (sr *ServiceRequestEvent) UpdateStepEventStatus(eventId int, eventType models.EventType) error {
+	queryStr := `
+		UPDATE service_request_event
+		SET event_type = $1
+		WHERE event_id = $2;`
+
+	result, err := sr.db.Exec(queryStr, eventType, eventId)
+	if err != nil {
+		return err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return errors.New("unable to retrieve rows affected")
+	} else if rows < 1 {
+		return errors.New("membership does not exist")
+	}
+	return nil
 }

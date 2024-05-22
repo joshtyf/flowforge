@@ -485,6 +485,7 @@ func handleRejectServiceRequest(logger logger.ServerLogger, client *mongo.Client
 
 		logger.Info(fmt.Sprintf("rejecting service request \"%s\" at step \"%s\", performed by %s", serviceRequestId, latestStep.StepName, user.Name))
 
+		// Update Service Request Status
 		err = database.NewServiceRequest(client).UpdateStatus(serviceRequestId, models.FAILED)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
@@ -492,10 +493,19 @@ func handleRejectServiceRequest(logger logger.ServerLogger, client *mongo.Client
 			return
 		}
 
-		// Add that SR is rejected at start of remarks
-		remarks := fmt.Sprintf("%s\n%s\n%s", fmt.Sprintf("Rejected by %s", user.Name), "[Comments]", body.Remarks)
+		// Update Step Event Status
+		err = database.NewServiceRequestEvent(psqlClient).UpdateStepEventStatus(latestStep.EventId, models.STEP_FAILED)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
 
-		database.NewServiceRequest(client).UpdateRemarks(serviceRequestId, remarks)
+		// Add that SR is rejected at start of remarks
+		newRemarks := fmt.Sprintf("%s\n%s\n%s", fmt.Sprintf("Rejected by %s", user.Name), "Comments:", body.Remarks)
+		appendedRemarks := fmt.Sprintf("%s\n\n%s", serviceRequest.Remarks, newRemarks)
+
+		database.NewServiceRequest(client).UpdateRemarks(serviceRequestId, appendedRemarks)
 		encode[any](w, r, http.StatusOK, nil)
 	})
 }
