@@ -92,14 +92,14 @@ export const orgServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
                   title: "Approve Service Request Successful",
                   description:
                     "Please check the dashboard for the updated status of the Service Request.",
-                  variant: "destructive",
                 })
               })
               .catch((error) => {
                 toast({
                   title: "Approve Service Request Error",
                   description:
-                    "Failed to approve Service Requests for organization. Please try again later.",
+                    "Failed to approve Service Request. Please try again later.",
+                  variant: "destructive",
                 })
                 console.error(error)
               })
@@ -117,7 +117,7 @@ export const orgServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
                 toast({
                   title: "Reject Service Request Error",
                   description:
-                    "Failed to reject Service Requests for organization. Please try again later.",
+                    "Failed to reject Service Request. Please try again later.",
                   variant: "destructive",
                 })
                 console.error(error)
