@@ -6,6 +6,7 @@ import { ExternalLink } from "lucide-react"
 import Link from "next/link"
 import ServiceRequestActions from "./_components/service-request-actions"
 import { ServiceRequestStatusBadge } from "@/components/layouts/service-request-status-badge"
+import { startServiceRequest } from "@/lib/service"
 
 export const columns: ColumnDef<ServiceRequest>[] = [
   {
@@ -72,6 +73,7 @@ export const columns: ColumnDef<ServiceRequest>[] = [
         <ServiceRequestActions
           serviceRequest={serviceRequest}
           onCancelRequest={(pipelineId: string) => {}}
+          onStartRequest={startServiceRequest}
         />
       )
     },
