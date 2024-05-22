@@ -131,6 +131,7 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 		EventType:        models.STEP_RUNNING,
 		ServiceRequestId: serviceRequest.Id.Hex(),
 		StepName:         step.StepName,
+		CreatedBy:        "", // TODO: Add user id
 		StepType:         step.StepType,
 	})
 	if err != nil {
@@ -189,7 +190,24 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
 		return err
 	}
+
 	completedStepModel := pipeline.GetPipelineStep(completedStep)
+
+	// Log step completed event
+	serviceRequestEvent := database.NewServiceRequestEvent(srm.psqlClient)
+	err = serviceRequestEvent.Create(&models.ServiceRequestEventModel{
+		EventType:        models.STEP_COMPLETED,
+		ServiceRequestId: serviceRequest.Id.Hex(),
+		StepName:         completedStep,
+		CreatedBy:        completedStepEvent.CreatedBy(),
+		StepType:         completedStepModel.StepType,
+	})
+	if err != nil {
+		// TODO: not sure if we should return here. We need to handle the error better
+		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
+		return err
+	}
+
 	if completedStepModel.IsTerminalStep {
 		err := database.NewServiceRequest(srm.mongoClient).UpdateStatus(serviceRequest.Id.Hex(), models.COMPLETED)
 		if err != nil {
@@ -198,20 +216,6 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 			srm.logger.Error(fmt.Sprintf("failed to mark service request %s successful: %s", serviceRequest.Id.Hex(), err))
 		}
 		return nil
-	}
-
-	// Log step completed event
-	serviceRequestEvent := database.NewServiceRequestEvent(srm.psqlClient)
-	err = serviceRequestEvent.Create(&models.ServiceRequestEventModel{
-		EventType:        models.STEP_COMPLETED,
-		ServiceRequestId: serviceRequest.Id.Hex(),
-		StepName:         completedStep,
-		StepType:         completedStepModel.StepType,
-	})
-	if err != nil {
-		// TODO: not sure if we should return here. We need to handle the error better
-		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
-		return err
 	}
 
 	// Check if SR has been cancelled

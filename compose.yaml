@@ -118,7 +118,11 @@ services:
       context: backend
       dockerfile: dockerfiles/mongo_seed.Dockerfile
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+      postgres_seed:
+        condition: service_completed_successfully
+
     environment:
       - MONGO_URI=${MONGO_URI}
 

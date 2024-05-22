@@ -30,7 +30,7 @@ CREATE TABLE public.service_request_event (
     service_request_id character varying NOT NULL,
     step_name character varying NOT NULL,
     step_type character varying NOT NULL,
-    approved_by character varying,
+    created_by character varying,
     created_at timestamp without time zone DEFAULT now()
 );
 
