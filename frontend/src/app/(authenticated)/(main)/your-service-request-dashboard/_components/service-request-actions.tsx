@@ -13,7 +13,7 @@ import { useState } from "react"
 
 interface ServiceRequestActionsProps {
   serviceRequest: ServiceRequest
-  onCancelRequest: (pipelineId: string) => void // TODO: I don't think this is correct
+  onCancelRequest: (serviceRequestId: string) => void
   onStartRequest: (serviceRequestId: string) => void
 }
 
@@ -54,7 +54,7 @@ export default function ServiceRequestActions({
           {/* TODO: Add on click logic*/}
           <Button
             variant="ghost"
-            onClick={() => onCancelRequest(serviceRequest.pipeline_id)}
+            onClick={() => onCancelRequest(serviceRequest.id)}
           >
             Cancel Request
           </Button>
