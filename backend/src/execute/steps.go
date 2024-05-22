@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gookit/event"
 	"github.com/joshtyf/flowforge/src/database"
@@ -43,16 +44,15 @@ func (e *apiStepExecutor) execute(ctx context.Context, l *logger.ExecutorLogger)
 	}
 	requestMethod := step.Parameters["method"]
 	url := step.Parameters["url"]
-	req, err := http.NewRequest(requestMethod, url, nil)
+	req, err := http.NewRequest(strings.ToUpper(requestMethod), url, nil)
 	l.Info(fmt.Sprintf("method=%s url=%s", requestMethod, url))
 	if err != nil {
 		return nil, err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := http.DefaultClient.Do(req) // TODO: currently not sure how to log the response as the struct is not defined
 	if err != nil {
 		return nil, err
 	}
-	l.Info(fmt.Sprintf("%v", resp))
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("non-200 response")
