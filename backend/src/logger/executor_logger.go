@@ -35,13 +35,13 @@ func NewExecutorLogger(w io.Writer, stepName string) *ExecutorLogger {
 }
 
 func (l *ExecutorLogger) Info(msg string) {
-	l.logger.Println(fmt.Printf("[INFO] %s", msg))
+	l.logger.Printf("[INFO] %s", msg)
 }
 
 func (l *ExecutorLogger) Error(msg string) {
-	l.logger.Println(fmt.Printf("[ERROR] %s", msg))
+	l.logger.Printf("[ERROR] %s", msg)
 }
 
 func (l *ExecutorLogger) Warn(msg string) {
-	l.logger.Println(fmt.Printf("[WARN] %s", msg))
+	l.logger.Printf("[WARN] %s", msg)
 }
