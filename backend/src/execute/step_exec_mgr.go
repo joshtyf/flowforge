@@ -139,7 +139,6 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 	}
 
 	// Create a log file for the current step
-	// TODO: file is not persisted in Docker container
 	f, err := os.OpenFile(
 		logger.CreateExecutorLogFilePath(serviceRequest.Id.Hex(), step.StepName),
 		os.O_RDWR|os.O_CREATE|os.O_APPEND,
