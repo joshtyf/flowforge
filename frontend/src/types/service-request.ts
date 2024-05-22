@@ -25,7 +25,7 @@ type ServiceRequestStep = {
   name: string
   status: StepStatus
   updated_at?: string
-  approved_by?: string
+  updated_by?: string
   next_step_name: string
 }
 
