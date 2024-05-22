@@ -9,7 +9,8 @@ import { ServiceRequestStatusBadge } from "@/components/layouts/service-request-
 import { ExternalLink } from "lucide-react"
 import { DataTableColumnHeaderFilterableValue } from "@/components/data-table/data-table-column-header-filterable-value"
 import CreatedByInfo from "@/components/layouts/created-by-info"
-import { approveServiceRequest } from "@/lib/service"
+import { approveServiceRequest, rejectServiceRequest } from "@/lib/service"
+import { toast } from "@/components/ui/use-toast"
 
 export const orgServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
   {
@@ -86,11 +87,41 @@ export const orgServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
           approveRequest={(serviceRequestId: string) => {
             // TODO: Replace with actual approval action
             approveServiceRequest(serviceRequestId)
+              .then(() => {
+                toast({
+                  title: "Approve Service Request Successful",
+                  description:
+                    "Please check the dashboard for the updated status of the Service Request.",
+                  variant: "destructive",
+                })
+              })
+              .catch((error) => {
+                toast({
+                  title: "Approve Service Request Error",
+                  description:
+                    "Failed to approve Service Requests for organization. Please try again later.",
+                })
+                console.error(error)
+              })
           }}
           rejectRequest={(serviceRequestId: string, remarks?: string) => {
-            // TODO: Replace with actual rejection action
-            console.log("Reject service request for: ", serviceRequestId)
-            console.log("Remarks: ", remarks)
+            rejectServiceRequest(serviceRequestId, remarks)
+              .then(() => {
+                toast({
+                  title: "Reject Service Request Successful",
+                  description:
+                    "Please check the dashboard for the updated status of the Service Request.",
+                })
+              })
+              .catch((error) => {
+                toast({
+                  title: "Reject Service Request Error",
+                  description:
+                    "Failed to reject Service Requests for organization. Please try again later.",
+                  variant: "destructive",
+                })
+                console.error(error)
+              })
           }}
         />
       )
