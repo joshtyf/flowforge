@@ -7,7 +7,7 @@ enum ServiceRequestStatus {
   NOT_STARTED = "Not Started",
   RUNNING = "Running",
   PENDING = "Pending",
-  FAILURE = "Failure",
+  FAILED = "Failed",
   CANCELLED = "Canceled",
   COMPLETED = "Completed",
 }
