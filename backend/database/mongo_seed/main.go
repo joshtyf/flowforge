@@ -39,8 +39,8 @@ func main() {
 				NextStepName: "step2",
 				PrevStepName: "",
 				Parameters: map[string]string{
-					"method": "GET",
-					"url":    "https://example.com?param=${param}",
+					"method": "${method}",
+					"url":    "https://httpbin.org/${method}?param=${param}",
 				},
 				IsTerminalStep: false,
 			},
@@ -316,7 +316,8 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"param":  "test_param",
+			"method": "get",
 		},
 	}
 
@@ -337,7 +338,8 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"param":  "test_param",
+			"method": "post",
 		},
 	}
 
