@@ -500,9 +500,13 @@ func handleRejectServiceRequest(logger logger.ServerLogger, client *mongo.Client
 
 		// Add that SR is rejected at start of remarks
 		newRemarks := fmt.Sprintf("%s\n%s\n%s", fmt.Sprintf("Rejected by %s", user.Name), "Comments:", body.Remarks)
-		appendedRemarks := fmt.Sprintf("%s\n\n%s", serviceRequest.Remarks, newRemarks)
 
-		database.NewServiceRequest(client).UpdateRemarks(serviceRequestId, appendedRemarks)
+		if serviceRequest.Remarks != "" {
+			// Append new remarks to existing remarks with a new line in between
+			newRemarks = fmt.Sprintf("%s\n\n%s", serviceRequest.Remarks, newRemarks)
+		}
+
+		database.NewServiceRequest(client).UpdateRemarks(serviceRequestId, newRemarks)
 		encode[any](w, r, http.StatusOK, nil)
 	})
 }
