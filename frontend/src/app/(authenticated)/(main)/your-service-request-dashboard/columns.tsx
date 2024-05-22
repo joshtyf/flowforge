@@ -73,7 +73,7 @@ export const columns: ColumnDef<ServiceRequest>[] = [
       return (
         <ServiceRequestActions
           serviceRequest={serviceRequest}
-          onCancelRequest={(pipelineId: string) => {}}
+          onCancelRequest={(serviceRequestId: string) => {}}
           onStartRequest={(serviceRequestId) =>
             startServiceRequest(serviceRequestId)
               .then(() => {
