@@ -77,6 +77,16 @@ func (sr *ServiceRequest) UpdateStatus(id string, status models.ServiceRequestSt
 	return err
 }
 
+func (sr *ServiceRequest) UpdateRemarks(id string, remarks string) error {
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	_, err = sr.c.Database(DatabaseName).Collection("service_requests").UpdateOne(
+		context.Background(), bson.M{"_id": objectId}, bson.M{"$set": bson.M{"remarks": remarks}})
+	return err
+}
+
 type GetServiceRequestFilters struct {
 	UserId   string
 	Statuses []string
