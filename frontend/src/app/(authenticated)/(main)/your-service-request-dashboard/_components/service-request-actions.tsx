@@ -39,7 +39,10 @@ export default function ServiceRequestActions({
         >
           <Button variant="ghost">View Details</Button>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onStartRequest(serviceRequest.id)}>
+        <DropdownMenuItem
+          disabled={serviceRequest.status !== ServiceRequestStatus.NOT_STARTED}
+          onClick={() => onStartRequest(serviceRequest.id)}
+        >
           <Button variant="ghost">Start Request</Button>
         </DropdownMenuItem>
         <DropdownMenuItem
