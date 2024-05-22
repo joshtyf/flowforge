@@ -123,4 +123,4 @@ services:
       - MONGO_URI=${MONGO_URI}
 
 volumes:
-  flowforge:
+  flowforge_executor_logs:
