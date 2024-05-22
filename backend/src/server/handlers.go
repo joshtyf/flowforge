@@ -410,7 +410,18 @@ func handleApproveServiceRequest(logger logger.ServerLogger, client *mongo.Clien
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrFailedToApproveServiceRequest, http.StatusBadRequest))
 			return
 		}
-		logger.Info(fmt.Sprintf("approving service request %s at step %s", serviceRequestId, latestStep.StepName))
+
+		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		userId := token.RegisteredClaims.Subject
+
+		user, err := database.NewUser(psqlClient).GetUserById(userId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+
+		logger.Info(fmt.Sprintf("approvimg service request \"%s\" at step \"%s\", performed by %s", serviceRequestId, latestStep.StepName, user.Name))
 		// TODO: figure out how to pass the step result prior to the approval to the next step
 		// TODO: store approver details
 		event.FireAsync(events.NewStepCompletedEvent(latestStep.StepName, serviceRequest, nil, nil))
