@@ -1,3 +1,4 @@
+import ServiceRequestDetailsDialog from "@/components/layouts/service-request-details-dialog"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -7,18 +8,19 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { MoreHorizontal } from "lucide-react"
-import ServiceRequestDetailsDialog from "@/components/layouts/service-request-details-dialog"
-import { useState } from "react"
 import Link from "next/link"
+import { useState } from "react"
 
 interface ServiceRequestActionsProps {
   serviceRequest: ServiceRequest
-  onCancelRequest: (pipelineId: string) => void
+  onCancelRequest: (serviceRequestId: string) => void
+  onStartRequest: (serviceRequestId: string) => void
 }
 
 export default function ServiceRequestActions({
   serviceRequest,
   onCancelRequest,
+  onStartRequest,
 }: ServiceRequestActionsProps) {
   const [openDialog, setOpenDialog] = useState(false)
 
@@ -38,6 +40,12 @@ export default function ServiceRequestActions({
           <Button variant="ghost">View Details</Button>
         </DropdownMenuItem>
         <DropdownMenuItem
+          disabled={serviceRequest.status !== ServiceRequestStatus.NOT_STARTED}
+          onClick={() => onStartRequest(serviceRequest.id)}
+        >
+          <Button variant="ghost">Start Request</Button>
+        </DropdownMenuItem>
+        <DropdownMenuItem
           disabled={serviceRequest.status === ServiceRequestStatus.NOT_STARTED}
         >
           <Link href={`/service-request-logs/${serviceRequest.id}`}>
@@ -48,7 +56,7 @@ export default function ServiceRequestActions({
           {/* TODO: Add on click logic*/}
           <Button
             variant="ghost"
-            onClick={() => onCancelRequest(serviceRequest.pipeline_id)}
+            onClick={() => onCancelRequest(serviceRequest.id)}
           >
             Cancel Request
           </Button>

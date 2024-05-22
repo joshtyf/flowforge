@@ -93,6 +93,10 @@ export async function approveServiceRequest(serviceRequestId: string) {
   return apiClient.put(`/service_request/${serviceRequestId}/approve`)
 }
 
+export async function startServiceRequest(serviceRequestId: string) {
+  return apiClient.put(`/service_request/${serviceRequestId}/start`)
+}
+
 export async function rejectServiceRequest(
   serviceRequestId: string,
   remarks?: string

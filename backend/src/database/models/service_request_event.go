@@ -18,6 +18,6 @@ type ServiceRequestEventModel struct {
 	ServiceRequestId string
 	StepName         string
 	StepType         PipelineStepType
-	ApprovedBy       string
+	CreatedBy        string
 	CreatedAt        time.Time
 }

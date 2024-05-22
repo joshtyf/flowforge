@@ -104,7 +104,7 @@ func handleGetServiceRequest(logger logger.ServerLogger, mongoClient *mongo.Clie
 		Name         string           `json:"name"`
 		Status       models.EventType `json:"status"`
 		UpdatedAt    time.Time        `json:"updated_at"`
-		ApprovedBy   string           `json:"approved_by"`
+		UpdatedBy    string           `json:"updated_by"`
 		NextStepName string           `json:"next_step_name"`
 	}
 	type ResponseBodyPipeline struct {
@@ -150,7 +150,7 @@ func handleGetServiceRequest(logger logger.ServerLogger, mongoClient *mongo.Clie
 				Name:         event.StepName,
 				Status:       event.EventType,
 				UpdatedAt:    event.CreatedAt,
-				ApprovedBy:   event.ApprovedBy,
+				UpdatedBy:    event.CreatedBy,
 				NextStepName: step.NextStepName,
 			}
 		}
@@ -172,7 +172,7 @@ func handleGetServiceRequestStepDetails(logger logger.ServerLogger, mongoClient 
 		Name         string           `json:"name"`
 		Status       models.EventType `json:"status"`
 		UpdatedAt    time.Time        `json:"updated_at"`
-		ApprovedBy   string           `json:"approved_by"`
+		UpdatedBy    string           `json:"updated_by"`
 		NextStepName string           `json:"next_step_name"`
 	}
 	type ResponseBody struct {
@@ -215,7 +215,7 @@ func handleGetServiceRequestStepDetails(logger logger.ServerLogger, mongoClient 
 				Name:         event.StepName,
 				Status:       event.EventType,
 				UpdatedAt:    event.CreatedAt,
-				ApprovedBy:   event.ApprovedBy,
+				UpdatedBy:    event.CreatedBy,
 				NextStepName: step.NextStepName,
 			}
 		}
@@ -411,8 +411,7 @@ func handleApproveServiceRequest(logger logger.ServerLogger, client *mongo.Clien
 			return
 		}
 
-		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
-		userId := token.RegisteredClaims.Subject
+		userId := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims).RegisteredClaims.Subject
 
 		user, err := database.NewUser(psqlClient).GetUserById(userId)
 		if err != nil {
@@ -423,8 +422,7 @@ func handleApproveServiceRequest(logger logger.ServerLogger, client *mongo.Clien
 
 		logger.Info(fmt.Sprintf("approvimg service request \"%s\" at step \"%s\", performed by %s", serviceRequestId, latestStep.StepName, user.Name))
 		// TODO: figure out how to pass the step result prior to the approval to the next step
-		// TODO: store approver details
-		event.FireAsync(events.NewStepCompletedEvent(latestStep.StepName, serviceRequest, nil, nil))
+		event.FireAsync(events.NewStepCompletedEvent(latestStep.StepName, serviceRequest, userId, nil, nil))
 		encode[any](w, r, http.StatusOK, nil)
 	})
 }
@@ -473,8 +471,7 @@ func handleRejectServiceRequest(logger logger.ServerLogger, client *mongo.Client
 			return
 		}
 
-		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
-		userId := token.RegisteredClaims.Subject
+		userId := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims).RegisteredClaims.Subject
 
 		user, err := database.NewUser(psqlClient).GetUserById(userId)
 		if err != nil {
