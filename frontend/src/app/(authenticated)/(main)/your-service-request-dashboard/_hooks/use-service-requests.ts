@@ -179,7 +179,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     steps: {
       Approval: {
         name: "Approval",
-        status: StepStatus.STEP_FAILURE,
+        status: StepStatus.STEP_FAILED,
         next_step_name: "Create EC2",
       },
 
@@ -215,7 +215,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
 
       "Create EC2": {
         name: "Create EC2",
-        status: StepStatus.STEP_FAILURE,
+        status: StepStatus.STEP_FAILED,
         next_step_name: "",
       },
     },
@@ -238,7 +238,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     steps: {
       Approval: {
         name: "Approval",
-        status: StepStatus.STEP_FAILURE,
+        status: StepStatus.STEP_FAILED,
         next_step_name: "Create EC2",
       },
 

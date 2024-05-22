@@ -1,4 +1,4 @@
-import { Pipeline, StepStatus } from "./pipeline"
+import { StepStatus } from "./pipeline"
 import { JsonFormComponents } from "./json-form-components"
 
 type ServiceRequestForm = object
@@ -8,7 +8,7 @@ enum ServiceRequestStatus {
   RUNNING = "Running",
   PENDING = "Pending",
   FAILED = "Failed",
-  CANCELLED = "Canceled",
+  CANCELLED = "Cancelled",
   COMPLETED = "Completed",
 }
 

@@ -15,7 +15,7 @@ const stepStatusIconVariant = cva("", {
       [StepStatus.STEP_NOT_STARTED]: "text-slate-500",
       [StepStatus.STEP_RUNNING]: "text-blue-500",
       [StepStatus.STEP_COMPLETED]: "text-green-500",
-      [StepStatus.STEP_FAILURE]: "text-red-500",
+      [StepStatus.STEP_FAILED]: "text-red-500",
       [StepStatus.STEP_CANCELLED]: "text-orange-500",
     },
   },
@@ -32,7 +32,7 @@ export const stepStatusBadgeVariant = cva(
         [StepStatus.STEP_NOT_STARTED]: `${stepStatusIconVariant({ status: StepStatus.STEP_NOT_STARTED })} border-slate-300`,
         [StepStatus.STEP_RUNNING]: `${stepStatusIconVariant({ status: StepStatus.STEP_RUNNING })} border-blue-300`,
         [StepStatus.STEP_COMPLETED]: `${stepStatusIconVariant({ status: StepStatus.STEP_COMPLETED })} border-green-300`,
-        [StepStatus.STEP_FAILURE]: `${stepStatusIconVariant({ status: StepStatus.STEP_FAILURE })} border-red-300`,
+        [StepStatus.STEP_FAILED]: `${stepStatusIconVariant({ status: StepStatus.STEP_FAILED })} border-red-300`,
         [StepStatus.STEP_CANCELLED]: `${stepStatusIconVariant({ status: StepStatus.STEP_CANCELLED })} border-orange-300`,
       },
     },
@@ -71,7 +71,7 @@ export const StepStatusIcon = ({
           className={cn(stepStatusIconVariant({ status }), className)}
         />
       )
-    case StepStatus.STEP_FAILURE:
+    case StepStatus.STEP_FAILED:
       return (
         <AlertCircle
           className={cn(stepStatusIconVariant({ status }), className)}
