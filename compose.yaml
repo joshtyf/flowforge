@@ -20,6 +20,8 @@ services:
       - be
     build:
       context: backend
+    volumes:
+      - flowforge:/backend/executor_logs
     environment:
       - ENV=${ENV}
       - MONGO_URI=${MONGO_URI}
@@ -119,3 +121,6 @@ services:
       - mongo
     environment:
       - MONGO_URI=${MONGO_URI}
+
+volumes:
+  flowforge:
