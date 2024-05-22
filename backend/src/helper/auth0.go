@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -76,11 +77,24 @@ func getAuth0UserIdByEmail(user *models.UserModel, token *ManagementApiToken) er
 		return err
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		defer resp.Body.Close()
+		bytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("response code %d encountered while retrieving user id: %s", resp.StatusCode, string(bytes))
+	}
+
 	var userId []*Auth0UserId
 	err = json.NewDecoder(resp.Body).Decode(&userId)
 	if err != nil {
 		return err
 	}
+	if len(userId) <= 0 {
+		return fmt.Errorf("user with %s has not been created", user.Email)
+	}
+
 	user.UserId = userId[0].UserId
 	return nil
 }
