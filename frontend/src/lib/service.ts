@@ -89,6 +89,10 @@ export async function getServiceRequest(
     .then((res) => res.data)
 }
 
+export async function startServiceRequest(serviceRequestId: string) {
+  return apiClient.put(`/service_request/${serviceRequestId}/start`)
+}
+
 export async function approveServiceRequest(
   serviceRequestId: string,
   organizationId: string
