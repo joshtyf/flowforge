@@ -7,6 +7,7 @@ import Link from "next/link"
 import ServiceRequestActions from "./_components/service-request-actions"
 import { ServiceRequestStatusBadge } from "@/components/layouts/service-request-status-badge"
 import { startServiceRequest } from "@/lib/service"
+import { toast } from "@/components/ui/use-toast"
 
 export const columns: ColumnDef<ServiceRequest>[] = [
   {
@@ -73,7 +74,25 @@ export const columns: ColumnDef<ServiceRequest>[] = [
         <ServiceRequestActions
           serviceRequest={serviceRequest}
           onCancelRequest={(pipelineId: string) => {}}
-          onStartRequest={startServiceRequest}
+          onStartRequest={(serviceRequestId) =>
+            startServiceRequest(serviceRequestId)
+              .then(() => {
+                toast({
+                  title: "Service Request Started",
+                  description:
+                    "Please check the dashboard for the updated status of the Service Request.",
+                })
+              })
+              .catch((error) => {
+                toast({
+                  title: "Start Service Request Error",
+                  description:
+                    "Failed to start Service Request. Please try again later.",
+                  variant: "destructive",
+                })
+                console.error(error)
+              })
+          }
         />
       )
     },
