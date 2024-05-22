@@ -309,8 +309,6 @@ func handleCancelStartedServiceRequest(logger logger.ServerLogger, client *mongo
 			return
 		}
 
-		// TODO: implement cancellation of sr
-
 		err = database.NewServiceRequest(client).UpdateStatus(requestId, models.CANCELLED)
 
 		// TODO: discuss how to handle this error

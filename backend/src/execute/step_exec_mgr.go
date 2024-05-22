@@ -214,6 +214,17 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 		return err
 	}
 
+	// Check if SR has been cancelled
+	sr, err := database.NewServiceRequest(srm.mongoClient).GetById(serviceRequest.Id.Hex())
+	if err != nil {
+		srm.logger.Error(fmt.Sprintf("error encounter while verifying sr status: %s", err))
+		return err
+	}
+	if sr.Status == models.CANCELLED {
+		srm.logger.Info(fmt.Sprintf("service request %s has been cancelled. Will not proceed to execute next step", sr.Id.Hex()))
+		return nil
+	}
+
 	// Set the current executor to the next executor
 	nextStep := pipeline.GetPipelineStep(completedStepModel.NextStepName)
 	if nextStep == nil {
