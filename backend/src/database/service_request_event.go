@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/joshtyf/flowforge/src/database/models"
 )
@@ -114,24 +113,4 @@ func (sr *ServiceRequestEvent) GetLatestStepEvent(serviceRequestId string) (*mod
 		return nil, err
 	}
 	return srem, nil
-}
-
-func (sr *ServiceRequestEvent) UpdateStepEventStatus(eventId int, eventType models.EventType) error {
-	queryStr := `
-		UPDATE service_request_event
-		SET event_type = $1
-		WHERE event_id = $2;`
-
-	result, err := sr.db.Exec(queryStr, eventType, eventId)
-	if err != nil {
-		return err
-	}
-
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return errors.New("unable to retrieve rows affected")
-	} else if rows < 1 {
-		return errors.New("membership does not exist")
-	}
-	return nil
 }

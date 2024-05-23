@@ -490,14 +490,6 @@ func handleRejectServiceRequest(logger logger.ServerLogger, client *mongo.Client
 			return
 		}
 
-		// Update Step Event Status
-		err = database.NewServiceRequestEvent(psqlClient).UpdateStepEventStatus(latestStep.EventId, models.STEP_FAILED)
-		if err != nil {
-			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
-			return
-		}
-
 		// Add that SR is rejected at start of remarks
 		logger.Info(fmt.Sprintf("%s\n%s\n%s", fmt.Sprintf("Rejected by %s", user.Name), "Remarks by admin:", body.Remarks))
 		encode[any](w, r, http.StatusOK, nil)
