@@ -490,6 +490,18 @@ func handleRejectServiceRequest(logger logger.ServerLogger, client *mongo.Client
 			return
 		}
 
+		err = database.NewServiceRequestEvent(psqlClient).Create(&models.ServiceRequestEventModel{
+			EventType:        models.STEP_FAILED,
+			ServiceRequestId: serviceRequest.Id.Hex(),
+			StepName:         latestStep.StepName,
+			CreatedBy:        userId,
+			StepType:         latestStep.StepType,
+		})
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
+			return
+		}
+
 		// Add that SR is rejected at start of remarks
 		logger.Info(fmt.Sprintf("%s\n%s\n%s", fmt.Sprintf("Rejected by %s", user.Name), "Remarks by admin:", body.Remarks))
 		encode[any](w, r, http.StatusOK, nil)
