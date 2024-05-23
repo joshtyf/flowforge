@@ -2,6 +2,7 @@ package execute
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -49,10 +50,13 @@ func (e *apiStepExecutor) execute(ctx context.Context, l *logger.ExecutorLogger)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := http.DefaultClient.Do(req) // TODO: currently not sure how to log the response as the struct is not defined
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
+	var unmarshalledResp interface{}
+	json.NewDecoder(resp.Body).Decode(&unmarshalledResp)
+	l.Info(fmt.Sprintf("response_body=%v", unmarshalledResp))
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("non-200 response")
