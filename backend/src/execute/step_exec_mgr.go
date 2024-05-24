@@ -58,6 +58,7 @@ func NewStepExecutionManager(mongoClient *mongo.Client, psqlClient *sql.DB, logg
 // Starts the manager by registering event listeners
 func (srm *ExecutionManager) Start() {
 	event.On(events.NewServiceRequestEventName, event.ListenerFunc(srm.handleNewServiceRequestEvent), event.Normal)
+	event.On(events.StepFailedEventName, event.ListenerFunc(srm.handleFailedStepEvent), event.Normal)
 	event.On(events.StepCompletedEventName, event.ListenerFunc(srm.handleCompletedStepEvent), event.Normal)
 }
 
@@ -233,5 +234,65 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 	}
 
 	srm.execute(serviceRequest, nextStep, nextExecutor)
+	return nil
+}
+
+func (srm *ExecutionManager) handleFailedStepEvent(e event.Event) error {
+	srm.logger.Info("handling step failed event")
+	failedStepEvent := e.(*events.StepFailedEvent)
+	failedStep := failedStepEvent.FailedStep()
+	if failedStep == "" {
+		srm.logger.Error(fmt.Sprintf("event %s missing data: %s", e.Name(), "failed step"))
+		return fmt.Errorf("failed step is not provided")
+	}
+	serviceRequest := failedStepEvent.ServiceRequest()
+	if serviceRequest == nil {
+		srm.logger.Error(fmt.Sprintf("event %s missing data: %s", e.Name(), "service request"))
+		return fmt.Errorf("service request is nil")
+	}
+
+	pipeline, err := database.NewPipeline(srm.mongoClient).GetById(serviceRequest.PipelineId)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		srm.logger.Error(fmt.Sprintf("pipeline not found: %s", serviceRequest.PipelineId))
+		return err
+	}
+	if err != nil {
+		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
+		return err
+	}
+
+	f, err := logger.GetExecutorLogFileForWrite(serviceRequest.Id.Hex(), failedStep)
+
+	if err != nil {
+		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
+		return err
+	}
+	defer f.Close()
+
+	executor_logger := logger.NewExecutorLogger(io.MultiWriter(os.Stdout, f), failedStep)
+
+	// Log remarks
+	if failedStepEvent.Remarks() != "" {
+		executor_logger.Error(failedStepEvent.Remarks())
+
+	}
+	failedStepModel := pipeline.GetPipelineStep(failedStep)
+
+	// Create step failed event
+	serviceRequestEvent := database.NewServiceRequestEvent(srm.psqlClient)
+	err = serviceRequestEvent.Create(&models.ServiceRequestEventModel{
+		EventType:        models.STEP_FAILED,
+		ServiceRequestId: serviceRequest.Id.Hex(),
+		StepName:         failedStep,
+		CreatedBy:        failedStepEvent.CreatedBy(),
+		StepType:         failedStepModel.StepType,
+	})
+	if err != nil {
+		// TODO: not sure if we should return here. We need to handle the error better
+		srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
+		return err
+	}
+
+	// Stop execution of any future steps
 	return nil
 }
