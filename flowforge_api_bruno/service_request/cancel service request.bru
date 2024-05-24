@@ -1,0 +1,15 @@
+meta {
+  name: cancel service request
+  type: http
+  seq: 8
+}
+
+put {
+  url: {{HOST}}/service_request/{{service_request_id}}/cancel
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  service_request_id: 9feaaa1741e2da3ca236dac0
+}
