@@ -1,11 +1,11 @@
 meta {
   name: [admin] all service requests
   type: http
-  seq: 5
+  seq: 2
 }
 
 get {
-  url: {{HOST}}/service_request/admin?org_id=1&page=1&page_size=1
+  url: {{HOST}}/service_request/admin?org_id=1&page=1&page_size=20
   body: none
   auth: inherit
 }
@@ -13,5 +13,5 @@ get {
 query {
   org_id: 1
   page: 1
-  page_size: 1
+  page_size: 20
 }

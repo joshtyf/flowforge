@@ -135,7 +135,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     pipeline_id: "65d48c02d62a1281c4f4ba3e",
     pipeline_name: "Service 1",
     pipeline_version: "0",
-    status: ServiceRequestStatus.FAILURE,
+    status: ServiceRequestStatus.FAILED,
     created_on: "2024-02-21T00:00:00",
     created_by: "User 4",
     last_updated: "2024-02-21T00:00:00",
@@ -165,7 +165,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     pipeline_id: "65d48c02d62a1281c4f4ba3e",
     pipeline_name: "Service 1",
     pipeline_version: "0",
-    status: ServiceRequestStatus.FAILURE,
+    status: ServiceRequestStatus.FAILED,
     created_on: "2024-02-20T00:00:00",
     created_by: "User 1",
     last_updated: "2024-02-20T00:00:00",
@@ -178,7 +178,7 @@ const DUMMY_SERVICE_REQUESTS: ServiceRequest[] = [
     steps: {
       Approval: {
         name: "Approval",
-        status: StepStatus.STEP_FAILURE,
+        status: StepStatus.STEP_FAILED,
         next_step_name: "Create EC2",
       },
 

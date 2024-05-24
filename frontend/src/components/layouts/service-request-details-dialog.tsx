@@ -89,7 +89,7 @@ function ServiceRequestDetails({ serviceRequest }: ServiceRequestDetailsProps) {
       </div>
       <div className="col-span-2">
         <Label className="text-muted-foreground">Remarks</Label>
-        <p>{remarks}</p>
+        <p className="whitespace-pre-line">{remarks}</p>
       </div>
       <div className="col-span-2">
         <Label className="text-muted-foreground">Steps</Label>

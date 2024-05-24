@@ -23,6 +23,10 @@ func FindExecutorLogFile(serviceRequestId, stepName string) (*os.File, error) {
 	return os.Open(fmt.Sprintf("%s/%s/%s.log", baseLogDir, serviceRequestId, stepName))
 }
 
+func GetExecutorLogFileForWrite(serviceRequestId, stepName string) (*os.File, error) {
+	return os.OpenFile(fmt.Sprintf("%s/%s/%s.log", baseLogDir, serviceRequestId, stepName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+}
+
 type ExecutorLogger struct {
 	logger *log.Logger
 }

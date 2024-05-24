@@ -29,7 +29,7 @@ func (sre *ServiceRequestEvent) Create(srem *models.ServiceRequestEventModel) er
 	return err
 }
 
-func (sre *ServiceRequestEvent) GetStepsLatestEvent(serviceReequestId string) ([]*models.ServiceRequestEventModel, error) {
+func (sre *ServiceRequestEvent) GetStepsLatestEvent(serviceRequestId string) ([]*models.ServiceRequestEventModel, error) {
 	queryStr := `
 		WITH LatestEvents AS (
 			SELECT *, ROW_NUMBER() OVER (PARTITION BY step_name ORDER BY created_at DESC) AS row_num
@@ -39,7 +39,7 @@ func (sre *ServiceRequestEvent) GetStepsLatestEvent(serviceReequestId string) ([
 		SELECT event_id, event_type, service_request_id, step_name, step_type, created_by, created_at FROM LatestEvents
 		WHERE row_num = 1;`
 
-	rows, err := sre.db.Query(queryStr, serviceReequestId)
+	rows, err := sre.db.Query(queryStr, serviceRequestId)
 	if err != nil {
 		return nil, err
 	}

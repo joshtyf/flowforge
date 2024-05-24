@@ -15,7 +15,7 @@ export default function StepLogs({
   return stepName === "" ? (
     <Skeleton className="h-[70vh]" />
   ) : (
-    <div className="bg-gray-900 text-green-300 border-none rounded-lg p-3 focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-mono h-[70vh] overflow-auto">
+    <div className="bg-gray-900 text-green-300 border-none rounded-lg p-3 focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-mono h-[65vh] overflow-auto">
       {logs.map((log, index) => (
         <div key={index} className="flex space-x-2">
           <p className="opacity-70">{index + 1}</p>

@@ -59,6 +59,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/service_request/{requestId}/cancel", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleCancelStartedServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PUT")
 	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleStartServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PUT")
 	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgAdmin(s.psqlClient, handleApproveServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("PUT")
+	r.Handle("/api/service_request/{requestId}/reject", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgAdmin(s.psqlClient, handleRejectServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("PUT")
 	r.Handle("/api/service_request/{requestId}/logs/{stepName}", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetStepExecutionLogs(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
 	r.Handle("/api/service_request/{requestId}/steps", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetServiceRequestStepDetails(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
 
@@ -409,10 +410,89 @@ func handleApproveServiceRequest(logger logger.ServerLogger, client *mongo.Clien
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrFailedToApproveServiceRequest, http.StatusBadRequest))
 			return
 		}
+
 		userId := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims).RegisteredClaims.Subject
-		logger.Info(fmt.Sprintf("approving service request %s at step %s", serviceRequestId, latestStep.StepName))
+
+		user, err := database.NewUser(psqlClient).GetUserById(userId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+
+		logger.Info(fmt.Sprintf("approving service request \"%s\" at step \"%s\", performed by %s", serviceRequestId, latestStep.StepName, user.Name))
 		// TODO: figure out how to pass the step result prior to the approval to the next step
 		event.FireAsync(events.NewStepCompletedEvent(latestStep.StepName, serviceRequest, userId, nil, nil))
+		encode[any](w, r, http.StatusOK, nil)
+	})
+}
+
+func handleRejectServiceRequest(logger logger.ServerLogger, client *mongo.Client, psqlClient *sql.DB) http.Handler {
+	type requestBody struct {
+		Remarks string `json:"remarks"`
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		params := mux.Vars(r)
+		serviceRequestId := params["requestId"]
+		serviceRequest, err := database.NewServiceRequest(client).GetById(serviceRequestId)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			logger.Error(fmt.Sprintf("%s %s not found", "service request", serviceRequestId))
+			encode(w, r, http.StatusNotFound, newHandlerError(ErrInvalidServiceRequestId, http.StatusNotFound))
+		}
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+
+		if serviceRequest.Status != models.PENDING {
+			logger.Error(fmt.Sprintf("unable to reject service request %s: request is not pending approval", serviceRequestId))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrFailedToApproveServiceRequest, http.StatusBadRequest))
+			return
+		}
+
+		latestStep, err := database.NewServiceRequestEvent(psqlClient).GetLatestStepEvent(serviceRequestId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+		if latestStep.StepType != models.WaitForApprovalStep {
+			// This check should be redundant but just in case
+			logger.Error(fmt.Sprintf("unable to approve service request %s: latest step is not approval step ", serviceRequestId))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrFailedToApproveServiceRequest, http.StatusBadRequest))
+			return
+		}
+
+		body, err := decode[requestBody](r)
+		if err != nil {
+			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+
+		userId := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims).RegisteredClaims.Subject
+
+		user, err := database.NewUser(psqlClient).GetUserById(userId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+
+		logger.Info(fmt.Sprintf("rejecting service request \"%s\" at step \"%s\", performed by %s", serviceRequestId, latestStep.StepName, user.Name))
+
+		// Update Service Request Status
+		err = database.NewServiceRequest(client).UpdateStatus(serviceRequestId, models.FAILED)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+
+		// Add that SR is rejected at start of remarks
+		failedEventRemarks := fmt.Sprintf("%s\n%s\n%s", fmt.Sprintf("Rejected by %s", user.Name), "Remarks by admin:", body.Remarks)
+		event.FireAsync(events.NewStepFailedEvent(latestStep.StepName, serviceRequest, userId, failedEventRemarks, nil))
 		encode[any](w, r, http.StatusOK, nil)
 	})
 }

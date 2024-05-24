@@ -30,7 +30,7 @@ type Pipeline = PipelineDetails & {
 enum StepStatus {
   STEP_NOT_STARTED = "Not Started",
   STEP_RUNNING = "Running",
-  STEP_FAILURE = "Failure",
+  STEP_FAILED = "Failed",
   STEP_CANCELLED = "Canceled",
   STEP_COMPLETED = "Completed",
 }

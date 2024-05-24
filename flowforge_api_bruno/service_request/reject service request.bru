@@ -1,0 +1,21 @@
+meta {
+  name: reject service request
+  type: http
+  seq: 10
+}
+
+put {
+  url: {{HOST}}/service_request/{{service_request_id}}/reject
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "remarks": "Test comments"
+  }
+}
+
+vars:pre-request {
+  service_request_id: 
+}
