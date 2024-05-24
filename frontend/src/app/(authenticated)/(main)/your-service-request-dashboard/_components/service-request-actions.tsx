@@ -10,6 +10,7 @@ import { ServiceRequest, ServiceRequestStatus } from "@/types/service-request"
 import { MoreHorizontal } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
+import { CancelConfirmationDialog } from "./cancel-confirmation-dialog"
 
 interface ServiceRequestActionsProps {
   serviceRequest: ServiceRequest
@@ -23,7 +24,8 @@ export default function ServiceRequestActions({
   onStartRequest,
 }: ServiceRequestActionsProps) {
   const [openDialog, setOpenDialog] = useState(false)
-
+  const [openCancelConfirmationDialog, setOpenCancelConfirmationDialog] =
+    useState(false)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -52,20 +54,26 @@ export default function ServiceRequestActions({
         >
           <Button variant="ghost">Start Request</Button>
         </DropdownMenuItem>
-        <DropdownMenuItem>
-          {/* TODO: Add on click logic*/}
-          <Button
-            variant="ghost"
-            onClick={() => onCancelRequest(serviceRequest.id)}
-          >
-            Cancel Request
-          </Button>
+        <DropdownMenuItem
+          // Only allow cancelling if request is running or pending
+          disabled={
+            serviceRequest.status !== ServiceRequestStatus.RUNNING &&
+            serviceRequest.status !== ServiceRequestStatus.PENDING
+          }
+          onClick={() => setOpenCancelConfirmationDialog(true)}
+        >
+          <Button variant="ghost">Cancel Request</Button>
         </DropdownMenuItem>
       </DropdownMenuContent>
       <ServiceRequestDetailsDialog
         open={openDialog}
         setOpen={setOpenDialog}
         serviceRequest={serviceRequest}
+      />
+      <CancelConfirmationDialog
+        open={openCancelConfirmationDialog}
+        setOpen={setOpenCancelConfirmationDialog}
+        onCancel={() => onCancelRequest(serviceRequest.id)}
       />
     </DropdownMenu>
   )
