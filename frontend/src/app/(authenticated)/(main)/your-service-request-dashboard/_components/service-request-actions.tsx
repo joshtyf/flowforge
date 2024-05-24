@@ -40,17 +40,17 @@ export default function ServiceRequestActions({
           <Button variant="ghost">View Details</Button>
         </DropdownMenuItem>
         <DropdownMenuItem
-          disabled={serviceRequest.status !== ServiceRequestStatus.NOT_STARTED}
-          onClick={() => onStartRequest(serviceRequest.id)}
-        >
-          <Button variant="ghost">Start Request</Button>
-        </DropdownMenuItem>
-        <DropdownMenuItem
           disabled={serviceRequest.status === ServiceRequestStatus.NOT_STARTED}
         >
           <Link href={`/service-request-logs/${serviceRequest.id}`}>
             <Button variant="ghost">View Logs</Button>
           </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={serviceRequest.status !== ServiceRequestStatus.NOT_STARTED}
+          onClick={() => onStartRequest(serviceRequest.id)}
+        >
+          <Button variant="ghost">Start Request</Button>
         </DropdownMenuItem>
         <DropdownMenuItem>
           {/* TODO: Add on click logic*/}
