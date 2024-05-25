@@ -74,31 +74,52 @@ const DEFAULT_PIPELINE = {
   ],
 }
 
-const createServiceSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  description: z.string(),
-  form: z
-    .string()
-    .min(1, "Form Schema is required")
-    .superRefine((val, ctx) => {
-      const errorList = validateFormSchema(val)
-      if (errorList.length > 0) {
+const createServiceSchema = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+    description: z.string(),
+    form: z
+      .string()
+      .min(1, "Form Schema is required")
+      .superRefine((val, ctx) => {
+        const errorList = validateFormSchema(val)
+        if (errorList.length > 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: errorList.join(" , "),
+          })
+        }
+      })
+      .refine((arg) => isJson(arg), {
+        message: "Ensure that Form is valid JSON Schema",
+      }),
+    pipeline: z
+      .string()
+      .min(1, "Pipeline Steps Schema is required")
+      .refine((arg) => isJson(arg), {
+        message: "Ensure that Form is valid JSON Schema",
+      }),
+  })
+  .superRefine((val, ctx) => {
+    const pipelineParameters = val.pipeline
+      .match(/\${(.*?)}/g)
+      ?.map((match) => match.slice(2, -1)) // strip ${ and }
+    const formJson: JsonFormComponents = JSON.parse(
+      val.form
+    ) as JsonFormComponents
+    pipelineParameters
+      ?.filter(
+        (pipelineParameter) =>
+          !formJson.fields.find((field) => field.name === pipelineParameter)
+      )
+      .forEach((undefinedPipelineParameter) => {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: errorList.join(" , "),
+          message: `Pipeline schema parameter '${undefinedPipelineParameter}' not found in form schema. Declare a field with the name '${undefinedPipelineParameter}' in the form schema.`,
+          path: ["form"],
         })
-      }
-    })
-    .refine((arg) => isJson(arg), {
-      message: "Ensure that Form is valid JSON Schema",
-    }),
-  pipeline: z
-    .string()
-    .min(1, "Pipeline Steps Schema is required")
-    .refine((arg) => isJson(arg), {
-      message: "Ensure that Form is valid JSON Schema",
-    }),
-})
+      })
+  })
 
 interface UseCreateServiceProps {
   router: AppRouterInstance
