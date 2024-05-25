@@ -1,21 +1,20 @@
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { isJson } from "@/lib/utils"
-import { KeyboardEvent, useState } from "react"
-import { validateFormSchema } from "../_utils/validation"
+import { toast } from "@/components/ui/use-toast"
 import { createPipeline } from "@/lib/service"
-import { Pipeline } from "@/types/pipeline"
+import { isJson } from "@/lib/utils"
 import {
   FormCheckboxes,
-  FormComponent,
   FormFieldType,
   FormInput,
   FormSelect,
   JsonFormComponents,
 } from "@/types/json-form-components"
-import { toast } from "@/components/ui/use-toast"
+import { Pipeline } from "@/types/pipeline"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
+import { KeyboardEvent, useState } from "react"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+import { crossValidateSchema, validateFormSchema } from "../_utils/validation"
 
 const DEFAULT_FORM: JsonFormComponents = {
   fields: [
@@ -101,29 +100,19 @@ const createServiceSchema = z
       }),
   })
   .superRefine((val, ctx) => {
-    const pipelineParameters = val.pipeline
-      .match(/\${(.*?)}/g)
-      ?.map((match) => match.slice(2, -1)) // strip ${ and }
-    const formJson: JsonFormComponents = JSON.parse(
-      val.form
-    ) as JsonFormComponents
-    pipelineParameters
-      ?.filter(
-        (pipelineParameter) =>
-          !formJson.fields.find((field) => field.name === pipelineParameter)
-      )
-      .forEach((undefinedPipelineParameter) => {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Pipeline schema parameter '${undefinedPipelineParameter}' not found in form schema. Declare a field with the name '${undefinedPipelineParameter}' in the form schema.`,
-          path: ["form"],
-        })
+    crossValidateSchema(val.form, val.pipeline).forEach((error) => {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: error,
+        path: ["form"],
       })
+    })
   })
 
 interface UseCreateServiceProps {
   router: AppRouterInstance
 }
+
 const useCreateService = ({ router }: UseCreateServiceProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
