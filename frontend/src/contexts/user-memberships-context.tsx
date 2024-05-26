@@ -1,7 +1,6 @@
 import useOrganizationId from "@/hooks/use-organization-id"
 import { getUserMemberships } from "@/lib/service"
 import { Role, UserMemberships } from "@/types/membership"
-import { getCookie, hasCookie } from "cookies-next"
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
 
 interface MembershipContextValue {

@@ -2,7 +2,7 @@
 
 import NotFoundPage from "@/app/not-found"
 import MainNavigationLayout from "@/components/layouts/main-navigation-layout"
-import { useUserMemberships } from "@/context/user-memberships-context"
+import { useUserMemberships } from "@/contexts/user-memberships-context"
 import { ReactNode, useState } from "react"
 
 interface AdminLayoutProps {

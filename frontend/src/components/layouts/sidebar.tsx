@@ -3,7 +3,7 @@ import Link from "next/link"
 import React from "react"
 import { buttonVariants } from "../ui/button"
 import { LibraryBig, Workflow, LockKeyhole } from "lucide-react"
-import { useUserMemberships } from "@/context/user-memberships-context"
+import { useUserMemberships } from "@/contexts/user-memberships-context"
 
 type LinkType = {
   title: string

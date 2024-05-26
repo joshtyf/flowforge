@@ -9,7 +9,7 @@ import HeaderAccessory from "@/components/ui/header-accessory"
 import { useRouter } from "next/navigation"
 import ServicesSkeletonView from "./_views/services-skeleton-view"
 import ServicesView from "./_views/services-view"
-import { useUserMemberships } from "@/context/user-memberships-context"
+import { useUserMemberships } from "@/contexts/user-memberships-context"
 
 export default function ServiceCatalogPage() {
   const { services, isServicesLoading } = useServices()
