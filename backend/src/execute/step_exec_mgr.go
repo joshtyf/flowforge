@@ -106,31 +106,6 @@ func (srm *ExecutionManager) handleNewServiceRequestEvent(e event.Event) error {
 }
 
 func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel, step *models.PipelineStepModel, executor *stepExecutor) error {
-	// Check if SR has been cancelled
-	sr, err := database.NewServiceRequest(srm.mongoClient).GetById(serviceRequest.Id.Hex())
-	if err != nil {
-		srm.logger.Error(fmt.Sprintf("error encounter while verifying sr status: %s", err))
-		return err
-	}
-	if sr.Status == models.CANCELLED {
-		// Log step started event
-		serviceRequestEvent := database.NewServiceRequestEvent(srm.psqlClient)
-		err = serviceRequestEvent.Create(&models.ServiceRequestEventModel{
-			EventType:        models.STEP_CANCELLED,
-			ServiceRequestId: serviceRequest.Id.Hex(),
-			StepName:         step.StepName,
-			CreatedBy:        "", // TODO: Add user id
-			StepType:         step.StepType,
-		})
-		if err != nil {
-			srm.logger.Error(fmt.Sprintf("error encountered while handling event: %s", err))
-			return err
-		}
-
-		srm.logger.Info(fmt.Sprintf("service request %s has been cancelled. Will not proceed to execute next step", sr.Id.Hex()))
-		return nil
-	}
-
 	// Parse and replace step parameters with service request form data
 	for key, val := range step.Parameters {
 		replaced, err := helper.ReplacePlaceholders(val, serviceRequest.FormData)
@@ -152,7 +127,7 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 	)
 	// Log step started event
 	serviceRequestEvent := database.NewServiceRequestEvent(srm.psqlClient)
-	err = serviceRequestEvent.Create(&models.ServiceRequestEventModel{
+	err := serviceRequestEvent.Create(&models.ServiceRequestEventModel{
 		EventType:        models.STEP_RUNNING,
 		ServiceRequestId: serviceRequest.Id.Hex(),
 		StepName:         step.StepName,
@@ -240,6 +215,17 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 			// Need to ensure idempotency or figure out a rollback solution
 			srm.logger.Error(fmt.Sprintf("failed to mark service request %s successful: %s", serviceRequest.Id.Hex(), err))
 		}
+		return nil
+	}
+
+	// Check if SR has been cancelled
+	sr, err := database.NewServiceRequest(srm.mongoClient).GetById(serviceRequest.Id.Hex())
+	if err != nil {
+		srm.logger.Error(fmt.Sprintf("error encounter while verifying sr status: %s", err))
+		return err
+	}
+	if sr.Status == models.CANCELLED {
+		srm.logger.Info(fmt.Sprintf("service request %s has been cancelled. Will not proceed to execute next step", sr.Id.Hex()))
 		return nil
 	}
 
