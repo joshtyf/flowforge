@@ -9,13 +9,6 @@ import (
 
 const (
 	baseLogDir = "./executor_logs"
-
-	errGettingServiceReqFromCtxMsg     = "error getting service request from context"
-	errGettingStepFromCtxMsg           = "error getting step from context"
-	httpRequestMsg                     = "%s %s" // method, url TODO: add request body, params
-	httpResponseStatusMsg              = "status code: %d"
-	waitingForApprovalMsg              = "waiting for approval"
-	errUpdatingServiceRequestStatusMsg = "error updating service request status: %s"
 )
 
 func CreateExecutorLogDir(serviceRequestId string) error {
@@ -30,6 +23,10 @@ func FindExecutorLogFile(serviceRequestId, stepName string) (*os.File, error) {
 	return os.Open(fmt.Sprintf("%s/%s/%s.log", baseLogDir, serviceRequestId, stepName))
 }
 
+func GetExecutorLogFileForWrite(serviceRequestId, stepName string) (*os.File, error) {
+	return os.OpenFile(fmt.Sprintf("%s/%s/%s.log", baseLogDir, serviceRequestId, stepName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+}
+
 type ExecutorLogger struct {
 	logger *log.Logger
 }
@@ -41,29 +38,14 @@ func NewExecutorLogger(w io.Writer, stepName string) *ExecutorLogger {
 	}
 }
 
-func (l *ExecutorLogger) ErrGettingStepFromCtx() {
-	l.logger.Println(errGettingStepFromCtxMsg)
+func (l *ExecutorLogger) Info(msg string) {
+	l.logger.Printf("[INFO] %s", msg)
 }
 
-func (l *ExecutorLogger) ErrGettingServiceReqFromCtx() {
-	l.logger.Println(errGettingServiceReqFromCtxMsg)
+func (l *ExecutorLogger) Error(msg string) {
+	l.logger.Printf("[ERROR] %s", msg)
 }
 
-// Logs the method and url of the API call
-func (l *ExecutorLogger) HttpRequest(method, url string) {
-	l.logger.Printf(httpRequestMsg, method, url)
-}
-
-// Logs the status code of the HTTP response
-func (l *ExecutorLogger) HttpResponseStatus(statusCode int) {
-	l.logger.Printf(httpResponseStatusMsg, statusCode)
-}
-
-// Logs that the step is waiting for approval
-func (l *ExecutorLogger) WaitingForApproval() {
-	l.logger.Println(waitingForApprovalMsg)
-}
-
-func (l *ExecutorLogger) ErrUpdatingServiceRequestStatus(err error) {
-	l.logger.Printf(errUpdatingServiceRequestStatusMsg, err)
+func (l *ExecutorLogger) Warn(msg string) {
+	l.logger.Printf("[WARN] %s", msg)
 }

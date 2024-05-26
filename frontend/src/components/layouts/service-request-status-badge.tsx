@@ -17,7 +17,7 @@ const statusIconVariant = cva("", {
       [ServiceRequestStatus.PENDING]: "text-yellow-500",
       [ServiceRequestStatus.RUNNING]: "text-blue-500",
       [ServiceRequestStatus.COMPLETED]: "text-green-500",
-      [ServiceRequestStatus.FAILURE]: "text-red-500",
+      [ServiceRequestStatus.FAILED]: "text-red-500",
       [ServiceRequestStatus.CANCELLED]: "text-orange-500",
     },
   },
@@ -35,7 +35,7 @@ export const serviceRequestStatusBadgeVariant = cva(
         [ServiceRequestStatus.PENDING]: `${statusIconVariant({ status: ServiceRequestStatus.PENDING })} border-yellow-300`,
         [ServiceRequestStatus.RUNNING]: `${statusIconVariant({ status: ServiceRequestStatus.RUNNING })} border-blue-300`,
         [ServiceRequestStatus.COMPLETED]: `${statusIconVariant({ status: ServiceRequestStatus.COMPLETED })} border-green-300`,
-        [ServiceRequestStatus.FAILURE]: `${statusIconVariant({ status: ServiceRequestStatus.FAILURE })} border-red-300`,
+        [ServiceRequestStatus.FAILED]: `${statusIconVariant({ status: ServiceRequestStatus.FAILED })} border-red-300`,
         [ServiceRequestStatus.CANCELLED]: `${statusIconVariant({ status: ServiceRequestStatus.CANCELLED })} border-orange-300`,
       },
     },
@@ -81,7 +81,7 @@ const ServiceRequestStatusIcon = ({
           className={cn(statusIconVariant({ status }), className)}
         />
       )
-    case ServiceRequestStatus.FAILURE:
+    case ServiceRequestStatus.FAILED:
       return (
         <AlertCircle className={cn(statusIconVariant({ status }), className)} />
       )
