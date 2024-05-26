@@ -64,7 +64,7 @@ func (e *apiStepExecutor) execute(ctx context.Context, l *logger.ExecutorLogger)
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("non-200 response")
 	}
-	event.FireAsync(events.NewStepCompletedEvent(step.StepName, serviceRequest, "", &stepExecResult{}, nil))
+	event.FireAsync(events.NewStepCompletedEvent(step.StepName, serviceRequest.Id.Hex(), "", &stepExecResult{}, nil))
 	return &stepExecResult{}, nil
 }
 
