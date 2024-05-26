@@ -9,23 +9,26 @@ import HeaderAccessory from "@/components/ui/header-accessory"
 import { useRouter } from "next/navigation"
 import ServicesSkeletonView from "./_views/services-skeleton-view"
 import ServicesView from "./_views/services-view"
+import { useUserMemberships } from "@/context/user-memberships-context"
 
 export default function ServiceCatalogPage() {
   const { services, isServicesLoading } = useServices()
   const router = useRouter()
-
+  const { isAdmin } = useUserMemberships()
   return (
     <>
       <div className="flex flex-col justify-start py-10">
         <HeaderAccessory />
         <div className="flex items-baseline">
           <p className="font-bold text-3xl pt-5">Service Catalog</p>
-          <Button
-            className="ml-auto"
-            onClick={() => router.push("/service-catalog/create-service")}
-          >
-            Create Service
-          </Button>
+          {isAdmin && (
+            <Button
+              className="ml-auto"
+              onClick={() => router.push("/service-catalog/create-service")}
+            >
+              Create Service
+            </Button>
+          )}
         </div>
       </div>
       {isServicesLoading ? (

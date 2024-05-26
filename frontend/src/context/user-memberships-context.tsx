@@ -5,7 +5,7 @@ import { getCookie, hasCookie } from "cookies-next"
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
 
 interface MembershipContextValue {
-  isAdmin: boolean
+  isAdmin?: boolean
 }
 
 const MembershipContext = createContext<MembershipContextValue | null>(null)
@@ -26,13 +26,11 @@ export function UserMembershipsProvider({
   }, [])
   const { organizationId } = useOrganizationId()
 
-  const isAdminOfCurrentOrg: boolean = useMemo(() => {
-    return (
-      userMemberships?.memberships.some(
-        (membership) =>
-          membership.org_id === organizationId &&
-          (membership.role === Role.Admin || membership.role === Role.Owner)
-      ) ?? false
+  const isAdminOfCurrentOrg = useMemo(() => {
+    return userMemberships?.memberships.some(
+      (membership) =>
+        membership.org_id === organizationId &&
+        (membership.role === Role.Admin || membership.role === Role.Owner)
     )
   }, [userMemberships, organizationId])
 
