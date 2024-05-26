@@ -1,5 +1,6 @@
 "use client"
 
+import { CurrentUserInfoContextProvider } from "@/contexts/current-user-info-context"
 import apiClient from "@/lib/apiClient"
 import { getCookie, hasCookie } from "cookies-next"
 import { useRouter } from "next/navigation"
@@ -23,5 +24,11 @@ export default function AuthenticatedLayout({
     }
     apiClient.defaults.headers.Authorization = `Bearer ${getCookie("access_token") as string}`
   }, [router])
-  return render && children
+  return (
+    render && (
+      <CurrentUserInfoContextProvider>
+        {children}
+      </CurrentUserInfoContextProvider>
+    )
+  )
 }
