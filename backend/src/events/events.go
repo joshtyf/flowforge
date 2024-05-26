@@ -30,20 +30,20 @@ func (e *NewServiceRequestEvent) ServiceRequest() *models.ServiceRequestModel {
 
 type StepCompletedEvent struct {
 	event.BasicEvent
-	completedStep  string
-	serviceRequest *models.ServiceRequestModel
-	createdBy      string
-	results        interface{}
-	err            error
+	completedStep    string
+	serviceRequestId string
+	createdBy        string
+	results          interface{}
+	err              error
 }
 
-func NewStepCompletedEvent(completedStep string, serviceRequest *models.ServiceRequestModel, createdBy string, results interface{}, err error) *StepCompletedEvent {
+func NewStepCompletedEvent(completedStep string, serviceRequestId string, createdBy string, results interface{}, err error) *StepCompletedEvent {
 	e := &StepCompletedEvent{
-		completedStep:  completedStep,
-		serviceRequest: serviceRequest,
-		createdBy:      createdBy,
-		results:        results,
-		err:            err,
+		completedStep:    completedStep,
+		serviceRequestId: serviceRequestId,
+		createdBy:        createdBy,
+		results:          results,
+		err:              err,
 	}
 	e.SetName(StepCompletedEventName)
 	return e
@@ -53,8 +53,8 @@ func (e *StepCompletedEvent) CompletedStep() string {
 	return e.completedStep
 }
 
-func (e *StepCompletedEvent) ServiceRequest() *models.ServiceRequestModel {
-	return e.serviceRequest
+func (e *StepCompletedEvent) ServiceRequestId() string {
+	return e.serviceRequestId
 }
 
 func (e *StepCompletedEvent) CreatedBy() string {

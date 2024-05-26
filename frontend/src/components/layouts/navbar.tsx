@@ -10,6 +10,7 @@ import apiClient from "@/lib/apiClient"
 import { getAuth0LogoutLink } from "@/lib/auth0"
 import { deleteCookie } from "cookies-next"
 import { ChevronDown, LucideUser, Menu } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 interface UserActionsDropdownProps {
@@ -20,7 +21,9 @@ const UserActionsDropdown = ({ username }: UserActionsDropdownProps) => {
   const router = useRouter()
   const logout = () => {
     // Reset auth token upon logout
+    deleteCookie("logged_in")
     deleteCookie("access_token")
+    deleteCookie("org_id")
     delete apiClient.defaults.headers.Authorization
     router.push(getAuth0LogoutLink())
   }
@@ -39,12 +42,24 @@ const UserActionsDropdown = ({ username }: UserActionsDropdownProps) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuGroup>
-          <DropdownMenuItem>
+          <DropdownMenuItem className={"cursor-pointer hover:bg-muted"}>
+            <Link href="/organization">
+              <Button
+                variant="ghost"
+                className="hover:text-primary hover:bg-transparent"
+              >
+                Select Organization
+              </Button>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={logout}
+            className={"cursor-pointer hover:bg-muted"}
+          >
             <Button
               data-testid="logout-button"
               className="hover:text-primary hover:bg-transparent"
               variant="ghost"
-              onClick={logout}
             >
               <p>Logout</p>
             </Button>

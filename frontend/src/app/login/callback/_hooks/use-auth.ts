@@ -10,7 +10,7 @@ const useAuthentication = () => {
     const accessToken = search.get("access_token")
     // Set default to 7200 seconds (2 hours)
     const expiresIn: string = search.get("expires_in") ?? "7200"
-    setCookie("loggedIn", "true")
+    setCookie("logged_in", "true")
     setCookie("access_token", accessToken, {
       maxAge: Number(expiresIn),
     })

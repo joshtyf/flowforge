@@ -4,11 +4,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/gookit/event"
 	"github.com/joshtyf/flowforge/src/database"
 	"github.com/joshtyf/flowforge/src/database/client"
 	"github.com/joshtyf/flowforge/src/database/models"
-	"github.com/joshtyf/flowforge/src/events"
 	"github.com/joshtyf/flowforge/src/logger"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -41,6 +39,7 @@ func main() {
 				Parameters: map[string]string{
 					"method": "${method}",
 					"url":    "https://httpbin.org/${method}?param=${param}",
+					"data":   "{\"key\": \"${value}\", \"${key}\": \"hardcoded_value\"}",
 				},
 				IsTerminalStep: false,
 			},
@@ -318,6 +317,8 @@ func main() {
 		FormData: models.FormData{
 			"param":  "test_param",
 			"method": "get",
+			"key":    "test_key",
+			"value":  "test_value",
 		},
 	}
 
@@ -340,6 +341,8 @@ func main() {
 		FormData: models.FormData{
 			"param":  "test_param",
 			"method": "post",
+			"key":    "test_key",
+			"value":  "test_value",
 		},
 	}
 
@@ -601,13 +604,4 @@ func main() {
 			panic("Inserted ID is not an ObjectID")
 		}
 	}
-
-	// start SRs
-	event.FireAsync(events.NewNewServiceRequestEvent(&serviceRequest1))
-	event.FireAsync(events.NewNewServiceRequestEvent(&serviceRequest7))
-	event.FireAsync(events.NewNewServiceRequestEvent(&serviceRequest3))
-	event.FireAsync(events.NewNewServiceRequestEvent(&serviceRequest6))
-	event.FireAsync(events.NewNewServiceRequestEvent(&serviceRequest9))
-	event.FireAsync(events.NewNewServiceRequestEvent(&serviceRequest12))
-
 }

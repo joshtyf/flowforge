@@ -141,7 +141,6 @@ func (srm *ExecutionManager) execute(serviceRequest *models.ServiceRequestModel,
 	}
 
 	// Create a log file for the current step
-	// TODO: file is not persisted in Docker container
 	f, err := os.OpenFile(
 		logger.CreateExecutorLogFilePath(serviceRequest.Id.Hex(), step.StepName),
 		os.O_RDWR|os.O_CREATE|os.O_APPEND,
@@ -177,13 +176,19 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 		srm.logger.Error(fmt.Sprintf("event %s missing data: %s", e.Name(), "completed step"))
 		return fmt.Errorf("completed step is not provided")
 	}
-	serviceRequest := completedStepEvent.ServiceRequest()
-	if serviceRequest == nil {
+	serviceRequestId := completedStepEvent.ServiceRequestId()
+	if serviceRequestId == "" {
 		srm.logger.Error(fmt.Sprintf("event %s missing data: %s", e.Name(), "service request"))
 		return fmt.Errorf("service request is nil")
 	}
 
-	pipeline, err := database.NewPipeline(srm.mongoClient).GetById(serviceRequest.PipelineId)
+	serviceRequest, err := database.NewServiceRequest(srm.mongoClient).GetById(serviceRequestId)
+	if err != nil {
+		srm.logger.Error(fmt.Sprintf("error encounter while verifying sr status: %s", err))
+		return err
+	}
+
+	pipeline, err := database.NewPipeline(srm.mongoClient).GetById(serviceRequestId)
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		srm.logger.Error(fmt.Sprintf("pipeline not found: %s", serviceRequest.PipelineId))
 		return err
@@ -217,6 +222,12 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 			// Need to ensure idempotency or figure out a rollback solution
 			srm.logger.Error(fmt.Sprintf("failed to mark service request %s successful: %s", serviceRequest.Id.Hex(), err))
 		}
+		return nil
+	}
+
+	// Check if SR has been cancelled
+	if serviceRequest.Status == models.CANCELLED {
+		srm.logger.Info(fmt.Sprintf("service request %s has been cancelled. Will not proceed to execute next step", serviceRequestId))
 		return nil
 	}
 

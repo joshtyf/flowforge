@@ -53,24 +53,21 @@ export default function AdminServiceRequestActions({
         </DropdownMenuItem>
         <DropdownMenuItem
           disabled={serviceRequest.status !== ServiceRequestStatus.PENDING}
+          onClick={() => setOpenApproveConfirmationDialog(true)}
         >
           <Button
             variant="ghost"
             className="text-green-700 hover:text-green-500"
-            onClick={() => setOpenApproveConfirmationDialog(true)}
           >
             Approve
           </Button>
         </DropdownMenuItem>
         <DropdownMenuItem
           disabled={serviceRequest.status !== ServiceRequestStatus.PENDING}
+          onClick={() => setOpenRejectConfirmationDialog(true)}
         >
           {/* TODO: Add on click logic*/}
-          <Button
-            variant="ghost"
-            className="text-red-700 hover:text-red-500"
-            onClick={() => setOpenRejectConfirmationDialog(true)}
-          >
+          <Button variant="ghost" className="text-red-700 hover:text-red-500">
             Reject
           </Button>
         </DropdownMenuItem>

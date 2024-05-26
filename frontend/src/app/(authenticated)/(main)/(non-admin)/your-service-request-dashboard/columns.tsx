@@ -6,7 +6,7 @@ import { ExternalLink } from "lucide-react"
 import Link from "next/link"
 import ServiceRequestActions from "./_components/service-request-actions"
 import { ServiceRequestStatusBadge } from "@/components/layouts/service-request-status-badge"
-import { startServiceRequest } from "@/lib/service"
+import { cancelServiceRequest, startServiceRequest } from "@/lib/service"
 import { toast } from "@/components/ui/use-toast"
 
 export const columns: ColumnDef<ServiceRequest>[] = [
@@ -73,7 +73,25 @@ export const columns: ColumnDef<ServiceRequest>[] = [
       return (
         <ServiceRequestActions
           serviceRequest={serviceRequest}
-          onCancelRequest={(serviceRequestId: string) => {}}
+          onCancelRequest={(serviceRequestId: string) => {
+            cancelServiceRequest(serviceRequestId)
+              .then(() => {
+                toast({
+                  title: "Service Request Cancel Successful",
+                  description:
+                    "Please check the dashboard for the updated status of the Service Request.",
+                })
+              })
+              .catch((error) => {
+                toast({
+                  title: "Cancel Service Request Error",
+                  description:
+                    "Failed to cancel Service Request. Please try again later.",
+                  variant: "destructive",
+                })
+                console.error(error)
+              })
+          }}
           onStartRequest={(serviceRequestId) =>
             startServiceRequest(serviceRequestId)
               .then(() => {

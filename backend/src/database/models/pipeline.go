@@ -37,6 +37,19 @@ const (
 	WaitForApprovalStep PipelineStepType = "WAIT_FOR_APPROVAL"
 )
 
+var cancellableStepTypes = []PipelineStepType{
+	WaitForApprovalStep,
+}
+
+func IsCancellablePipelineStepType(stepType PipelineStepType) bool {
+	for _, cancellableStepType := range cancellableStepTypes {
+		if stepType == cancellableStepType {
+			return true
+		}
+	}
+	return false
+}
+
 var allPipelineStepTypes = []PipelineStepType{APIStep, WaitForApprovalStep}
 
 func IsValidPipelineStepType(stepType PipelineStepType) bool {

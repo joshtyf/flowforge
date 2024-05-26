@@ -56,7 +56,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
 	r.Handle("/api/service_request", isAuthenticated(getOrgIdFromRequestBody(isOrgMember(s.psqlClient, handleCreateServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 	r.Handle("/api/service_request/{requestId}", isAuthenticated(getOrgIdFromRequestBody(isOrgMember(s.psqlClient, handleUpdateServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
-	r.Handle("/api/service_request/{requestId}/cancel", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleCancelStartedServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PUT")
+	r.Handle("/api/service_request/{requestId}/cancel", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleCancelServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("PUT")
 	r.Handle("/api/service_request/{requestId}/start", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleStartServiceRequest(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("PUT")
 	r.Handle("/api/service_request/{requestId}/approve", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgAdmin(s.psqlClient, handleApproveServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("PUT")
 	r.Handle("/api/service_request/{requestId}/reject", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgAdmin(s.psqlClient, handleRejectServiceRequest(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("PUT")
@@ -72,7 +72,9 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	// User
 	r.Handle("/api/user", isAuthenticated(handleGetAllUsers(s.logger, s.psqlClient), s.logger)).Methods("GET")
 	r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.logger, s.psqlClient), s.logger)).Methods("GET")
-	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.logger, s.psqlClient), s.logger)).Methods("GET")
+	// TODO: revisit on integrating SSO
+	// r.Handle("/api/login", isAuthenticated(handleUserLogin(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 
 	// Organization
 	r.Handle("/api/organization", isAuthenticated(handleCreateOrganization(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
@@ -287,7 +289,7 @@ func handleCreateServiceRequest(logger logger.ServerLogger, mongoClient *mongo.C
 	})
 }
 
-func handleCancelStartedServiceRequest(logger logger.ServerLogger, client *mongo.Client) http.Handler {
+func handleCancelServiceRequest(logger logger.ServerLogger, client *mongo.Client, psqlClient *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		requestId := vars["requestId"]
@@ -298,19 +300,18 @@ func handleCancelStartedServiceRequest(logger logger.ServerLogger, client *mongo
 			return
 		}
 		status := sr.Status
-		if status != models.PENDING && status != models.RUNNING {
-			logger.Error(fmt.Sprintf("failed to %s service request %s: %s", "cancel", requestId, "execution has been completed"))
+		if status == models.COMPLETED || status == models.FAILED || status == models.CANCELLED {
+			logger.Error(fmt.Sprintf("failed to %s service request %s: sr status %s not eligible for cancellation", "cancel", requestId, status))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestAlreadyCompleted, http.StatusBadRequest))
 			return
 		}
 
-		if status == models.NOT_STARTED {
-			logger.Error(fmt.Sprintf("failed to %s service request %s: %s", "cancel", requestId, "execution has not been started"))
-			encode(w, r, http.StatusBadRequest, newHandlerError(ErrServiceRequestNotStarted, http.StatusBadRequest))
+		sre, err := database.NewServiceRequestEvent(psqlClient).GetLatestStepEvent(requestId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
-
-		// TODO: implement cancellation of sr
 
 		err = database.NewServiceRequest(client).UpdateStatus(requestId, models.CANCELLED)
 
@@ -320,6 +321,24 @@ func handleCancelStartedServiceRequest(logger logger.ServerLogger, client *mongo
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
+
+		if models.IsCancellablePipelineStepType(sre.StepType) {
+			userId := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims).RegisteredClaims.Subject
+			// Log step cancelled event
+			serviceRequestEvent := database.NewServiceRequestEvent(psqlClient)
+			err = serviceRequestEvent.Create(&models.ServiceRequestEventModel{
+				EventType:        models.STEP_COMPLETED,
+				ServiceRequestId: sr.Id.Hex(),
+				StepName:         sre.StepName,
+				CreatedBy:        userId,
+				StepType:         sre.StepType,
+			})
+			if err != nil {
+				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+				return
+			}
+		}
+
 		encode[any](w, r, http.StatusOK, nil)
 	})
 }
@@ -422,7 +441,7 @@ func handleApproveServiceRequest(logger logger.ServerLogger, client *mongo.Clien
 
 		logger.Info(fmt.Sprintf("approving service request \"%s\" at step \"%s\", performed by %s", serviceRequestId, latestStep.StepName, user.Name))
 		// TODO: figure out how to pass the step result prior to the approval to the next step
-		event.FireAsync(events.NewStepCompletedEvent(latestStep.StepName, serviceRequest, userId, nil, nil))
+		event.FireAsync(events.NewStepCompletedEvent(latestStep.StepName, serviceRequest.Id.Hex(), userId, nil, nil))
 		encode[any](w, r, http.StatusOK, nil)
 	})
 }
@@ -563,26 +582,13 @@ func handleGetAllPipelines(logger logger.ServerLogger, client *mongo.Client) htt
 	})
 }
 
-// NOTE: handler and data functions used in here are subjected to change depending on if frontend is able to validate that user has been previously registered in auth0
 func handleUserLogin(logger logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		um, err := decode[models.UserModel](r)
-		if err != nil {
-			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
-			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
-			return
-		}
-		_, err = database.NewUser(client).GetUserById(um.UserId)
+		userId := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims).RegisteredClaims.Subject
+		user, err := database.NewUser(client).GetUserById(userId)
 		if errors.Is(err, sql.ErrNoRows) {
-			user, err := database.NewUser(client).Create(&um)
-			if err != nil {
-				logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
-				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserCreateFail, http.StatusInternalServerError))
-				return
-			}
-
-			logger.Info(fmt.Sprintf("%s %s created", "user", user.UserId))
-			encode[any](w, r, http.StatusCreated, nil)
+			logger.Error(fmt.Sprintf("user %s has not been created", userId))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidUserId, http.StatusBadRequest))
 			return
 		} else if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
@@ -590,8 +596,8 @@ func handleUserLogin(logger logger.ServerLogger, client *sql.DB) http.Handler {
 			return
 		}
 
-		logger.Info(fmt.Sprintf("user %s logged in", um.UserId))
-		encode[any](w, r, http.StatusOK, nil)
+		logger.Info(fmt.Sprintf("user %s logged in", userId))
+		encode(w, r, http.StatusOK, user)
 	})
 }
 

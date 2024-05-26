@@ -98,6 +98,10 @@ export async function startServiceRequest(serviceRequestId: string) {
   return apiClient.put(`/service_request/${serviceRequestId}/start`)
 }
 
+export async function cancelServiceRequest(serviceRequestId: string) {
+  return apiClient.put(`/service_request/${serviceRequestId}/cancel`)
+}
+
 export async function rejectServiceRequest(
   serviceRequestId: string,
   remarks?: string
@@ -149,4 +153,8 @@ export async function getUserById(userId: string): Promise<UserInfo> {
 
 export async function getUserMemberships(): Promise<UserMemberships> {
   return apiClient.get(`/membership`).then((res) => res.data)
+}
+
+export async function login(): Promise<UserInfo> {
+  return apiClient.get("login").then((res) => res.data)
 }
