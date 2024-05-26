@@ -97,6 +97,10 @@ export async function startServiceRequest(serviceRequestId: string) {
   return apiClient.put(`/service_request/${serviceRequestId}/start`)
 }
 
+export async function cancelServiceRequest(serviceRequestId: string) {
+  return apiClient.put(`/service_request/${serviceRequestId}/cancel`)
+}
+
 export async function rejectServiceRequest(
   serviceRequestId: string,
   remarks?: string
