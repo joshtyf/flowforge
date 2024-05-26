@@ -439,7 +439,7 @@ func handleApproveServiceRequest(logger logger.ServerLogger, client *mongo.Clien
 
 		logger.Info(fmt.Sprintf("approving service request \"%s\" at step \"%s\", performed by %s", serviceRequestId, latestStep.StepName, user.Name))
 		// TODO: figure out how to pass the step result prior to the approval to the next step
-		event.FireAsync(events.NewStepCompletedEvent(latestStep.StepName, serviceRequest, userId, nil, nil))
+		event.FireAsync(events.NewStepCompletedEvent(latestStep.StepName, serviceRequest.Id.Hex(), userId, nil, nil))
 		encode[any](w, r, http.StatusOK, nil)
 	})
 }
