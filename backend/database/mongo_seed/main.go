@@ -38,10 +38,11 @@ func main() {
 				StepType:     models.APIStep,
 				NextStepName: "step2",
 				PrevStepName: "",
-				Parameters: map[string]string{
-					"method": "${method}",
-					"url":    "https://httpbin.org/${method}?param=${param}",
-					"data":   "{\"key\": \"${value}\", \"${key}\": \"hardcoded_value\"}",
+				Parameters: map[string]any{
+					"method":  "${method}",
+					"url":     "https://httpbin.org/${method}?param=${param}",
+					"data":    "{\"key\": \"${value}\", \"${key}\": \"hardcoded_value\"}",
+					"headers": map[string]any{"Authorization": "Bearer ${token}"},
 				},
 				IsTerminalStep: false,
 			},
@@ -50,7 +51,7 @@ func main() {
 				StepType:       models.WaitForApprovalStep,
 				NextStepName:   "",
 				PrevStepName:   "step1",
-				Parameters:     map[string]string{},
+				Parameters:     map[string]any{},
 				IsTerminalStep: true,
 			},
 		},
@@ -99,7 +100,7 @@ func main() {
 				StepType:     models.APIStep,
 				NextStepName: "step2",
 				PrevStepName: "",
-				Parameters: map[string]string{
+				Parameters: map[string]any{
 					"method": "GET",
 					"url":    "https://example.com?param=${param}",
 				},
@@ -110,7 +111,7 @@ func main() {
 				StepType:     models.APIStep,
 				NextStepName: "step3",
 				PrevStepName: "step1",
-				Parameters: map[string]string{
+				Parameters: map[string]any{
 					"method": "GET",
 					"url":    "https://example.com?param=${param}",
 				},
@@ -121,7 +122,7 @@ func main() {
 				StepType:     models.APIStep,
 				NextStepName: "",
 				PrevStepName: "step2",
-				Parameters: map[string]string{
+				Parameters: map[string]any{
 					"method": "GET",
 					"url":    "https://example.com?param=${param}",
 				},
@@ -173,7 +174,7 @@ func main() {
 				StepType:     models.APIStep,
 				NextStepName: "step2",
 				PrevStepName: "",
-				Parameters: map[string]string{
+				Parameters: map[string]any{
 					"method": "GET",
 					"url":    "https://example.com?param=${param}",
 				},
@@ -184,7 +185,7 @@ func main() {
 				StepType:       models.WaitForApprovalStep,
 				NextStepName:   "step3",
 				PrevStepName:   "step1",
-				Parameters:     map[string]string{},
+				Parameters:     map[string]any{},
 				IsTerminalStep: false,
 			},
 			{
@@ -192,7 +193,7 @@ func main() {
 				StepType:     models.APIStep,
 				NextStepName: "",
 				PrevStepName: "step2",
-				Parameters: map[string]string{
+				Parameters: map[string]any{
 					"method": "GET",
 					"url":    "https://example.com?param=${param}",
 				},
@@ -244,7 +245,7 @@ func main() {
 				StepType:       models.WaitForApprovalStep,
 				NextStepName:   "step2",
 				PrevStepName:   "",
-				Parameters:     map[string]string{},
+				Parameters:     map[string]any{},
 				IsTerminalStep: false,
 			},
 			{
@@ -252,7 +253,7 @@ func main() {
 				StepType:     models.APIStep,
 				NextStepName: "",
 				PrevStepName: "step1",
-				Parameters: map[string]string{
+				Parameters: map[string]any{
 					"method": "GET",
 					"url":    "https://example.com?param=${param}",
 				},
@@ -321,6 +322,7 @@ func main() {
 			"method": "get",
 			"key":    "test_key",
 			"value":  "test_value",
+			"token":  "test_token",
 		},
 	}
 
@@ -345,6 +347,7 @@ func main() {
 			"method": "post",
 			"key":    "test_key",
 			"value":  "test_value",
+			"token":  "test_token",
 		},
 	}
 
