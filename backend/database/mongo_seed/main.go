@@ -41,6 +41,7 @@ func main() {
 				Parameters: map[string]string{
 					"method": "${method}",
 					"url":    "https://httpbin.org/${method}?param=${param}",
+					"data":   "{\"key\": \"${value}\", \"${key}\": \"hardcoded_value\"}",
 				},
 				IsTerminalStep: false,
 			},
@@ -318,6 +319,8 @@ func main() {
 		FormData: models.FormData{
 			"param":  "test_param",
 			"method": "get",
+			"key":    "test_key",
+			"value":  "test_value",
 		},
 	}
 
@@ -340,6 +343,8 @@ func main() {
 		FormData: models.FormData{
 			"param":  "test_param",
 			"method": "post",
+			"key":    "test_key",
+			"value":  "test_value",
 		},
 	}
 

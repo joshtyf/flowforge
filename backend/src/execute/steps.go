@@ -1,6 +1,7 @@
 package execute
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -45,8 +46,10 @@ func (e *apiStepExecutor) execute(ctx context.Context, l *logger.ExecutorLogger)
 	}
 	requestMethod := step.Parameters["method"]
 	url := step.Parameters["url"]
-	req, err := http.NewRequest(strings.ToUpper(requestMethod), url, nil)
-	l.Info(fmt.Sprintf("method=%s url=%s", requestMethod, url))
+	requestBody := step.Parameters["data"]
+	req, err := http.NewRequest(strings.ToUpper(requestMethod), url, bytes.NewBuffer([]byte(requestBody)))
+	req.Header.Set("Content-Type", "application/json")
+	l.Info(fmt.Sprintf("method=%s url=%s data=%s", requestMethod, url, requestBody))
 	if err != nil {
 		return nil, err
 	}
