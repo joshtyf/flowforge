@@ -6,6 +6,7 @@ import {
 } from "@/types/service-request"
 import { UserInfo } from "@/types/user-profile"
 import apiClient from "./apiClient"
+import { UserMemberships } from "@/types/membership"
 
 /* Pipeline */
 
@@ -144,4 +145,8 @@ export async function getAllOrgsForUser() {
 
 export async function getUserById(userId: string): Promise<UserInfo> {
   return apiClient.get(`/user/${userId}`).then((res) => res.data)
+}
+
+export async function getUserMemberships(): Promise<UserMemberships> {
+  return apiClient.get(`/membership`).then((res) => res.data)
 }
