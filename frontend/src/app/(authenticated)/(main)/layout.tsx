@@ -1,5 +1,6 @@
 "use client"
 
+import MainNavigationLayout from "@/components/layouts/main-navigation-layout"
 import Navbar from "@/components/layouts/navbar"
 import Sidebar from "@/components/layouts/sidebar"
 import { Toaster } from "@/components/ui/toaster"
@@ -32,37 +33,13 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const toggleSidebar = () => {
     setIsSidebarOpen((isSidebarOpen) => !isSidebarOpen)
   }
-  const [userProfile, setUserProfile] = useState<Auth0UserProfile>()
-  useEffect(() => {
-    getUserProfile(getCookie("access_token") as string)
-      .then((userProfile) => setUserProfile(userProfile))
-      .catch((error) => {
-        console.log(error)
-      })
-  }, [])
 
   return (
     render && (
       <QueryClientProvider client={queryClient}>
         <UserMembershipsProvider>
-          <div
-            className="flex flex-row w-full min-h-[100vh]"
-            suppressHydrationWarning
-          >
-            <Sidebar
-              className={` ${isSidebarOpen ? "min-w-[300px] w-[300px]" : "min-w-0 w-0"} overflow-x-hidden transition-width duration-300 ease-in-out`}
-            />
-            <div className="w-full">
-              <Navbar
-                toggleSidebar={toggleSidebar}
-                username={userProfile?.nickname ?? ""}
-              />
-              <div className="w-full h-full max-h-[90vh] flex justify-center items-center flex-col relative">
-                <div className="w-5/6 h-full relative">{children}</div>
-              </div>
-            </div>
-            <Toaster />
-          </div>
+          {children}
+          <Toaster />
         </UserMembershipsProvider>
       </QueryClientProvider>
     )
