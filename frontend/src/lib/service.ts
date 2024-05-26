@@ -149,3 +149,7 @@ export async function getAllOrgsForUser() {
 export async function getUserById(userId: string): Promise<UserInfo> {
   return apiClient.get(`/user/${userId}`).then((res) => res.data)
 }
+
+export async function login(): Promise<UserInfo> {
+  return apiClient.get("login").then((res) => res.data)
+}
