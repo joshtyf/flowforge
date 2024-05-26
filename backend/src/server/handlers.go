@@ -72,7 +72,9 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	// User
 	r.Handle("/api/user", isAuthenticated(handleGetAllUsers(s.logger, s.psqlClient), s.logger)).Methods("GET")
 	r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.logger, s.psqlClient), s.logger)).Methods("GET")
-	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.logger, s.psqlClient), s.logger)).Methods("GET")
+	// TODO: revisit on integrating SSO
+	// r.Handle("/api/login", isAuthenticated(handleUserLogin(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 
 	// Organization
 	r.Handle("/api/organization", isAuthenticated(handleCreateOrganization(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
@@ -563,26 +565,13 @@ func handleGetAllPipelines(logger logger.ServerLogger, client *mongo.Client) htt
 	})
 }
 
-// NOTE: handler and data functions used in here are subjected to change depending on if frontend is able to validate that user has been previously registered in auth0
 func handleUserLogin(logger logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		um, err := decode[models.UserModel](r)
-		if err != nil {
-			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
-			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
-			return
-		}
-		_, err = database.NewUser(client).GetUserById(um.UserId)
+		userId := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims).RegisteredClaims.Subject
+		user, err := database.NewUser(client).GetUserById(userId)
 		if errors.Is(err, sql.ErrNoRows) {
-			user, err := database.NewUser(client).Create(&um)
-			if err != nil {
-				logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
-				encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserCreateFail, http.StatusInternalServerError))
-				return
-			}
-
-			logger.Info(fmt.Sprintf("%s %s created", "user", user.UserId))
-			encode[any](w, r, http.StatusCreated, nil)
+			logger.Error(fmt.Sprintf("user %s has not been created", userId))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidUserId, http.StatusBadRequest))
 			return
 		} else if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
@@ -590,8 +579,8 @@ func handleUserLogin(logger logger.ServerLogger, client *sql.DB) http.Handler {
 			return
 		}
 
-		logger.Info(fmt.Sprintf("user %s logged in", um.UserId))
-		encode[any](w, r, http.StatusOK, nil)
+		logger.Info(fmt.Sprintf("user %s logged in", userId))
+		encode(w, r, http.StatusOK, user)
 	})
 }
 
