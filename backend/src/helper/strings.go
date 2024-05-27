@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"regexp"
 	"strconv"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 var (
@@ -62,7 +64,7 @@ func ReplacePlaceholders(input any, values map[string]any) (any, error) {
 	case reflect.Slice:
 		// If the input is a slice, iterate over each element and replace placeholders
 		output := make([]any, 0)
-		for _, elem := range input.([]any) {
+		for _, elem := range input.(bson.A) {
 			replaced, err := ReplacePlaceholders(elem, values)
 			if err != nil {
 				return nil, err
