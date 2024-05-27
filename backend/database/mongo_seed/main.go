@@ -39,7 +39,7 @@ func main() {
 				Parameters: map[string]any{
 					"method":  "${method}",
 					"url":     "https://httpbin.org/${method}?param=${param}",
-					"data":    "{\"key\": \"${value}\", \"${key}\": \"hardcoded_value\"}",
+					"data":    map[string]any{"key": "${value}", "${key}": "hardcoded_value"},
 					"headers": map[string]any{"Authorization": "Bearer ${token}"},
 				},
 				IsTerminalStep: false,
