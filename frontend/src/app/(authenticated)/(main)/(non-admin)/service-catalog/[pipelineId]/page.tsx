@@ -32,7 +32,6 @@ export default function ServiceRequestPage() {
   ) : (
     <ServiceRequestView
       router={router}
-      returnRoute={"/service-catalog"}
       pipelineName={pipelineName ?? ""}
       pipelineDescription={pipelineDescription}
       rjsfSchema={rjsfSchema}
