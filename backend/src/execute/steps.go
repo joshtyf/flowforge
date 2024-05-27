@@ -53,7 +53,7 @@ func (e *apiStepExecutor) execute(ctx context.Context, l *logger.ExecutorLogger)
 	for k, v := range headers {
 		req.Header.Set(k, v.(string))
 	}
-	l.Info(fmt.Sprintf("method=%s url=%s data=%s", requestMethod, url, requestBody))
+	l.Info(fmt.Sprintf("request=%v", req))
 	if err != nil {
 		return nil, err
 	}
