@@ -15,7 +15,7 @@ export default function RequestCreatedTextWithCountdown({
   })
   return (
     <p>
-      You will be redirected to <strong>Your Service Requests</strong> dashboard
+      You will be redirected to <strong>Your Service Requests Dashboard</strong>{" "}
       in {countdown}s.
     </p>
   )
