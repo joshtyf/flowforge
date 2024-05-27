@@ -78,25 +78,6 @@ export default function CreateServicePage() {
             <div className="flex w-full justify-center space-x-5">
               <FormField
                 control={form.control}
-                name="form"
-                render={({ field }) => (
-                  <FormItem className="w-1/2">
-                    <FormLabel className="font-bold text-lg">Form</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        id="textarea"
-                        placeholder="Form schema"
-                        className="h-[300px]"
-                        onKeyDown={handleTextAreaTabKeyDown}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name="pipeline"
                 render={({ field }) => (
                   <FormItem className="w-1/2">
@@ -108,6 +89,25 @@ export default function CreateServicePage() {
                         id="textarea"
                         className="h-[300px]"
                         placeholder="Pipeline schema"
+                        onKeyDown={handleTextAreaTabKeyDown}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="form"
+                render={({ field }) => (
+                  <FormItem className="w-1/2">
+                    <FormLabel className="font-bold text-lg">Form</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        id="textarea"
+                        placeholder="Form schema"
+                        className="h-[300px]"
                         onKeyDown={handleTextAreaTabKeyDown}
                         {...field}
                       />
