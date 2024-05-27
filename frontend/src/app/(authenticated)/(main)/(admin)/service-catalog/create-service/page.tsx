@@ -24,7 +24,7 @@ export default function CreateServicePage() {
     handleSubmitForm,
     isSubmitting,
     submitted,
-  } = useCreateService({ router })
+  } = useCreateService()
 
   return (
     <>
