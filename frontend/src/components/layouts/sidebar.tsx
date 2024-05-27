@@ -4,6 +4,7 @@ import React from "react"
 import { buttonVariants } from "../ui/button"
 import { LibraryBig, Workflow, LockKeyhole } from "lucide-react"
 import { useUserMemberships } from "@/contexts/user-memberships-context"
+import { usePathname } from "next/navigation"
 
 type LinkType = {
   title: string
@@ -29,7 +30,7 @@ const links: LinkType[] = [
     variant: "ghost",
   },
   {
-    title: "Your Service Requests",
+    title: "Your Service Requests Dashboard",
     icon: Workflow,
     href: "/your-service-request-dashboard",
     variant: "ghost",
@@ -49,6 +50,7 @@ interface SidebarProps {
 
 export default function Sidebar({ className }: SidebarProps) {
   const { isAdmin } = useUserMemberships()
+  const pathname = usePathname()
   return (
     <div className={cn("group flex flex-col gap-4 border-r", className)}>
       <nav className="grid gap-y-2">
@@ -76,6 +78,7 @@ export default function Sidebar({ className }: SidebarProps) {
                 buttonVariants({ variant: link.variant, size: "sm" }),
                 link.variant === "default" &&
                   "dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white",
+                pathname === link.href && "font-semibold",
                 "justify-start"
               )}
             >
