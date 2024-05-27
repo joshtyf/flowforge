@@ -72,14 +72,7 @@ const useServiceRequestForm = ({
       .then(() => {
         toast({
           title: "Request Submission Successful",
-          description: (
-            <RequestCreatedTextWithCountdown
-              countdownStart={3}
-              onCountdownComplete={() => {
-                router.push("/your-service-request-dashboard")
-              }}
-            />
-          ),
+          description: <RequestCreatedTextWithCountdown />,
           variant: "success",
         })
       })
