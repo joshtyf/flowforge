@@ -8,10 +8,11 @@ import (
 )
 
 var (
-	ErrPlaceholderNotReplaced = errors.New("some placeholders were not replaced")
+	ErrPlaceholderNotReplaced               = errors.New("some placeholders were not replaced")
+	ErrInvalidTypeForPlaceholderReplacement = errors.New("placeholder replacement is only supported for strings, slices, and maps")
 )
 
-func ReplacePlaceholders(input string, values map[string]any) (string, error) {
+func ReplacePlaceholdersInString(input string, values map[string]any) (string, error) {
 	// Regular expression to find placeholders
 	re := regexp.MustCompile(`\$\{(.*?)\}`)
 
@@ -52,6 +53,41 @@ func ReplacePlaceholders(input string, values map[string]any) (string, error) {
 	}
 
 	return replaced, nil
+}
+
+func ReplacePlaceholders(input any, values map[string]any) (any, error) {
+	switch reflect.TypeOf(input).Kind() {
+	case reflect.String:
+		return ReplacePlaceholdersInString(input.(string), values)
+	case reflect.Slice:
+		// If the input is a slice, iterate over each element and replace placeholders
+		output := make([]any, 0)
+		for _, elem := range input.([]any) {
+			replaced, err := ReplacePlaceholders(elem, values)
+			if err != nil {
+				return nil, err
+			}
+			output = append(output, replaced)
+		}
+		return output, nil
+	case reflect.Map:
+		// If the input is a map, iterate over each key and value and replace placeholders
+		output := make(map[string]any)
+		for key, value := range input.(map[string]any) {
+			replacedKey, err := ReplacePlaceholdersInString(key, values)
+			if err != nil {
+				return nil, err
+			}
+			replacedValue, err := ReplacePlaceholders(value, values)
+			if err != nil {
+				return nil, err
+			}
+			output[replacedKey] = replacedValue
+		}
+		return output, nil
+	default:
+		return nil, ErrInvalidTypeForPlaceholderReplacement
+	}
 }
 
 func StringSliceEqual(a, b []string) bool {
