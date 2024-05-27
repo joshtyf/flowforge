@@ -1,14 +1,15 @@
 import { toast } from "@/components/ui/use-toast"
 import useOrganizationId from "@/hooks/use-organization-id"
 import usePipeline from "@/hooks/use-pipeline"
-import { createServiceRequest, getPipeline } from "@/lib/service"
+import { createServiceRequest } from "@/lib/service"
 import { generateUiSchema } from "@/lib/rjsf-utils"
 import { convertServiceRequestFormToRJSFSchema } from "@/lib/rjsf-utils"
 import { FormFieldType, JsonFormComponents } from "@/types/json-form-components"
-import { Pipeline } from "@/types/pipeline"
 import { IChangeEvent } from "@rjsf/core"
 import { RJSFSchema } from "@rjsf/utils"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
+import RequestCreatedTextWithCountdown from "../_components/request-created-text-with-countdown"
+import { useRouter } from "next/navigation"
 
 interface UseServiceRequestFormOptions {
   pipelineId: string
@@ -53,6 +54,7 @@ const useServiceRequestForm = ({
   })
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
   const { organizationId } = useOrganizationId()
+  const router = useRouter()
   const handleCreateServiceRequest = (
     data: IChangeEvent<object, RJSFSchema, object>
   ) => {
@@ -67,14 +69,19 @@ const useServiceRequestForm = ({
       return
     }
     createServiceRequest(organizationId, pipelineId, formData, service?.version)
-      .then((data) => {
+      .then(() => {
         toast({
           title: "Request Submission Successful",
-          description:
-            "Please check the dashboard for the status of the request.",
+          description: (
+            <RequestCreatedTextWithCountdown
+              countdownStart={3}
+              onCountdownComplete={() => {
+                router.push("/your-service-request-dashboard")
+              }}
+            />
+          ),
           variant: "success",
         })
-        console.log("Response: ", data)
       })
       .catch((err) => {
         console.log(err)
