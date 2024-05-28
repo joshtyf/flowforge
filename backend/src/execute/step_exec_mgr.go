@@ -188,7 +188,7 @@ func (srm *ExecutionManager) handleCompletedStepEvent(e event.Event) error {
 		return err
 	}
 
-	pipeline, err := database.NewPipeline(srm.mongoClient).GetById(serviceRequestId)
+	pipeline, err := database.NewPipeline(srm.mongoClient).GetById(serviceRequest.PipelineId)
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		srm.logger.Error(fmt.Sprintf("pipeline not found: %s", serviceRequest.PipelineId))
 		return err
