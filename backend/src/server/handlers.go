@@ -64,10 +64,9 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/service_request/{requestId}/steps", isAuthenticated(getOrgIdUsingSrId(s.mongoClient, isOrgMember(s.psqlClient, handleGetServiceRequestStepDetails(s.logger, s.mongoClient, s.psqlClient), s.logger), s.logger), s.logger)).Methods("GET")
 
 	// Pipeline
-	// TODO: @joshtyf need to integrate orgId in some way into these routes or the pipeline model, esp for the post method.
-	r.Handle("/api/pipeline", isAuthenticated(handleGetAllPipelines(s.logger, s.mongoClient), s.logger)).Methods("GET")
-	r.Handle("/api/pipeline/{pipelineId}", isAuthenticated(handleGetPipeline(s.logger, s.mongoClient), s.logger)).Methods("GET")
-	r.Handle("/api/pipeline", isAuthenticated(validateCreatePipelineRequest(handleCreatePipeline(s.logger, s.mongoClient), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/pipeline", isAuthenticated(getOrgIdFromQuery(isOrgMember(s.psqlClient, handleGetAllPipelines(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("GET")
+	r.Handle("/api/pipeline/{pipelineId}", isAuthenticated(getOrgIdFromQuery(isOrgMember(s.psqlClient, handleGetPipeline(s.logger, s.mongoClient), s.logger), s.logger), s.logger)).Methods("GET")
+	r.Handle("/api/pipeline", isAuthenticated(getOrgIdFromRequestBody(isOrgAdmin(s.psqlClient, validateCreatePipelineRequest(handleCreatePipeline(s.logger, s.mongoClient), s.logger), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 
 	// User
 	r.Handle("/api/user", isAuthenticated(handleGetAllUsers(s.logger, s.psqlClient), s.logger)).Methods("GET")
@@ -539,8 +538,10 @@ func handleCreatePipeline(logger logger.ServerLogger, client *mongo.Client) http
 			}
 		}
 
+		userId := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims).RegisteredClaims.Subject
 		pipeline.CreatedOn = time.Now()
 		pipeline.Version = 1
+		pipeline.UserId = userId
 		res, err := database.NewPipeline(client).Create(&pipeline)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
@@ -572,7 +573,13 @@ func handleGetPipeline(logger logger.ServerLogger, client *mongo.Client) http.Ha
 
 func handleGetAllPipelines(logger logger.ServerLogger, client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		pipelines, err := database.NewPipeline(client).GetAll()
+		orgId, err := extractQueryParam[int](r.URL.Query(), "org_id", false, -1, integerConverter)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to extract org_id from query params: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganizationId, http.StatusBadRequest))
+			return
+		}
+		pipelines, err := database.NewPipeline(client).GetAllByOrgId(orgId)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))

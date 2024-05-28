@@ -54,3 +54,17 @@ func (p *Pipeline) GetAll() ([]*models.PipelineModel, error) {
 	}
 	return pipelines, nil
 }
+
+func (p *Pipeline) GetAllByOrgId(orgId int) ([]*models.PipelineModel, error) {
+	res, err := p.c.Database(DatabaseName).Collection("pipelines").Find(context.Background(), bson.M{"org_id": orgId})
+	if err != nil {
+		return nil, err
+	}
+	pipelines := []*models.PipelineModel{}
+	for res.Next(context.Background()) {
+		pipeline := &models.PipelineModel{}
+		res.Decode(pipeline)
+		pipelines = append(pipelines, pipeline)
+	}
+	return pipelines, nil
+}
