@@ -49,7 +49,11 @@ func (e *apiStepExecutor) execute(ctx context.Context, l *logger.ExecutorLogger)
 	requestBody := step.Parameters["data"].(string)
 	req, err := http.NewRequest(strings.ToUpper(requestMethod), url, bytes.NewBuffer([]byte(requestBody)))
 	req.Header.Set("Content-Type", "application/json")
-	l.Info(fmt.Sprintf("method=%s url=%s data=%s", requestMethod, url, requestBody))
+	headers := step.Parameters["headers"].(map[string]interface{})
+	for k, v := range headers {
+		req.Header.Set(k, v.(string))
+	}
+	l.Info(fmt.Sprintf("request=%v", req))
 	if err != nil {
 		return nil, err
 	}
