@@ -1,6 +1,7 @@
 import { Pipeline } from "@/types/pipeline"
 import {
   ServiceRequest,
+  ServiceRequestDTO,
   ServiceRequestLogs,
   ServiceRequestSteps,
 } from "@/types/service-request"
@@ -82,9 +83,9 @@ export async function getAllServiceRequestForAdmin(
     .then((res) => res.data)
 }
 
-export async function getServiceRequest(
+export async function getServiceRequestDTO(
   serviceRequestId: string
-): Promise<ServiceRequest> {
+): Promise<ServiceRequestDTO> {
   return apiClient
     .get(`/service_request/${serviceRequestId}`)
     .then((res) => res.data)

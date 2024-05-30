@@ -49,7 +49,7 @@ type ServiceRequest = {
   first_step_name: string
   steps?: ServiceRequestSteps
   // TODO: To refactor in future when service request details is implemented
-  pipeline?: { form: JsonFormComponents }
+  pipeline?: { name: string; form: JsonFormComponents }
 }
 
 type ServiceRequestLogs = {
@@ -59,12 +59,20 @@ type ServiceRequestLogs = {
   next_offset: number
 }
 
+type ServiceRequestDTO = {
+  service_request: ServiceRequest
+  pipeline: { name: string; form: JsonFormComponents }
+  steps?: ServiceRequestSteps
+  first_step_name: string
+}
+
 export type {
   ServiceRequestForm,
   ServiceRequestStep,
   ServiceRequestSteps,
   ServiceRequest,
   ServiceRequestLogs,
+  ServiceRequestDTO,
 }
 
 export { ServiceRequestStatus }
