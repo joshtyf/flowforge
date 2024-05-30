@@ -272,3 +272,25 @@ export function validateFormSchema(jsonString: string) {
 
   return errorList
 }
+
+/**
+ * Validates the schema of a form against a pipeline.
+ * @param form - The JSON schema of the form.
+ * @param pipeline - The pipeline string containing parameters.
+ * @returns An array of error messages indicating missing parameters in the form schema.
+ */
+export function crossValidateSchema(form: string, pipeline: string): string[] {
+  const pipelineParameters = pipeline
+    .match(/\${(.*?)}/g)
+    ?.map((match) => match.slice(2, -1)) // strip ${ and }
+  if (!pipelineParameters) return []
+  const formJson: JsonFormComponents = JSON.parse(form) as JsonFormComponents
+  return pipelineParameters
+    .filter(
+      (pipelineParameter) =>
+        !formJson.fields.find((field) => field.name === pipelineParameter)
+    )
+    .map((undefinedPipelineParameter) => {
+      return `Pipeline schema parameter '${undefinedPipelineParameter}' not found in form schema. Declare a field with the name '${undefinedPipelineParameter}' in the form schema.`
+    })
+}

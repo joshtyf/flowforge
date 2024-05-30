@@ -62,12 +62,12 @@ func IsValidPipelineStepType(stepType PipelineStepType) bool {
 }
 
 type PipelineStepModel struct {
-	StepName       string            `bson:"step_name" json:"step_name"`
-	StepType       PipelineStepType  `bson:"step_type" json:"step_type"`
-	NextStepName   string            `bson:"next_step_name" json:"next_step_name"`
-	PrevStepName   string            `bson:"prev_step_name" json:"prev_step_name"`
-	Parameters     map[string]string `bson:"parameters" json:"parameters"`
-	IsTerminalStep bool              `bson:"is_terminal_step" json:"is_terminal_step"`
+	StepName       string           `bson:"step_name" json:"step_name"`
+	StepType       PipelineStepType `bson:"step_type" json:"step_type"`
+	NextStepName   string           `bson:"next_step_name" json:"next_step_name"`
+	PrevStepName   string           `bson:"prev_step_name" json:"prev_step_name"`
+	Parameters     map[string]any   `bson:"parameters" json:"parameters"`
+	IsTerminalStep bool             `bson:"is_terminal_step" json:"is_terminal_step"`
 }
 
 type PipelineModel struct {

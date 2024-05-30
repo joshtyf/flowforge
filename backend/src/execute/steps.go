@@ -44,12 +44,20 @@ func (e *apiStepExecutor) execute(ctx context.Context, l *logger.ExecutorLogger)
 		l.Error("error getting service request from context")
 		return nil, errors.New("error getting service request from context")
 	}
-	requestMethod := step.Parameters["method"]
-	url := step.Parameters["url"]
-	requestBody := step.Parameters["data"]
-	req, err := http.NewRequest(strings.ToUpper(requestMethod), url, bytes.NewBuffer([]byte(requestBody)))
+	requestMethod := step.Parameters["method"].(string) // TODO: add documentation for parameters, specifically the type for safe type assertion
+	url := step.Parameters["url"].(string)
+	requestBody, err := json.Marshal(step.Parameters["data"])
+	if err != nil {
+		l.Error(fmt.Sprintf("error marshalling request body: %s", err))
+		return nil, err
+	}
+	req, err := http.NewRequest(strings.ToUpper(requestMethod), url, bytes.NewBuffer(requestBody))
 	req.Header.Set("Content-Type", "application/json")
-	l.Info(fmt.Sprintf("method=%s url=%s data=%s", requestMethod, url, requestBody))
+	headers := step.Parameters["headers"].(map[string]interface{})
+	for k, v := range headers {
+		req.Header.Set(k, v.(string))
+	}
+	l.Info(fmt.Sprintf("request=%v", req))
 	if err != nil {
 		return nil, err
 	}
