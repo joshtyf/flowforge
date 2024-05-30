@@ -12,9 +12,12 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const { isAdmin } = useUserMemberships()
 
-  return isAdmin ? (
-    <MainNavigationLayout>{children}</MainNavigationLayout>
-  ) : (
-    <NotFoundPage />
+  return (
+    isAdmin !== undefined &&
+    (isAdmin ? (
+      <MainNavigationLayout>{children}</MainNavigationLayout>
+    ) : (
+      <NotFoundPage />
+    ))
   )
 }
