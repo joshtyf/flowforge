@@ -10,7 +10,6 @@ interface UseServiceRequestInfoOptions {
 const useServiceRequestInfo = ({
   serviceRequestId,
 }: UseServiceRequestInfoOptions) => {
-  // TODO: Remove DUMMY_SERVICE_REQUEST when integrating with BE
   const { serviceRequest, isServiceRequestLoading } = useServiceRequestDTO({
     serviceRequestId,
   })
