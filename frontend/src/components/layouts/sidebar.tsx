@@ -3,6 +3,7 @@ import Link from "next/link"
 import React from "react"
 import { buttonVariants } from "../ui/button"
 import { LibraryBig, Workflow, LockKeyhole } from "lucide-react"
+import { useUserMemberships } from "@/contexts/user-memberships-context"
 
 type LinkType = {
   title: string
@@ -17,6 +18,7 @@ type LinkType = {
     | "secondary"
     | null
     | undefined
+  isAdminFeature?: boolean
 }
 
 const links: LinkType[] = [
@@ -37,6 +39,7 @@ const links: LinkType[] = [
     icon: LockKeyhole,
     href: "/admin-service-requests-dashboard",
     variant: "ghost",
+    isAdminFeature: true,
   },
 ]
 
@@ -45,6 +48,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ className }: SidebarProps) {
+  const { isAdmin } = useUserMemberships()
   return (
     <div className={cn("group flex flex-col gap-4 border-r", className)}>
       <nav className="grid gap-y-2">
@@ -61,21 +65,25 @@ export default function Sidebar({ className }: SidebarProps) {
             </span>
           </Link>
         </div>
-        {links.map((link, index) => (
-          <Link
-            key={index}
-            href={link.href}
-            className={cn(
-              buttonVariants({ variant: link.variant, size: "sm" }),
-              link.variant === "default" &&
-                "dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white",
-              "justify-start"
-            )}
-          >
-            <link.icon className="h-5 w-5 mr-2" />
-            <span className="inline">{link.title}</span>
-          </Link>
-        ))}
+        {links.map((link, index) =>
+          link.isAdminFeature && !isAdmin ? (
+            <></>
+          ) : (
+            <Link
+              key={index}
+              href={link.href}
+              className={cn(
+                buttonVariants({ variant: link.variant, size: "sm" }),
+                link.variant === "default" &&
+                  "dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white",
+                "justify-start"
+              )}
+            >
+              <link.icon className="h-5 w-5 mr-2" />
+              <span className="inline">{link.title}</span>
+            </Link>
+          )
+        )}
       </nav>
     </div>
   )
