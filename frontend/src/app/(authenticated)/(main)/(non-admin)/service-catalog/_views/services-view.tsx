@@ -68,68 +68,72 @@ export default function ServicesView({ services, router }: ServicesViewProps) {
     </div>
   ) : (
     <>
-      <div className=" grid grid-cols-auto-fill-min-20 gap-y-10 max-h-[75%] overflow-y-auto">
-        {servicesAtPage?.map((service) => (
-          <div key={service.id} className="flex items-center justify-center">
-            <Card className="w-[250px] shadow">
-              <CardHeader>
-                <CardTitle>{service.pipeline_name}</CardTitle>
-                {/* TODO: Add description once available */}
-                {/* <CardDescription>{service.description}</CardDescription> */}
-              </CardHeader>
-              <CardFooter className="flex justify-end">
+      <div className="h-[70vh] flex flex-col justify-between">
+        <div className=" grid grid-cols-auto-fill-min-20 gap-y-10 max-h-[80%] overflow-y-auto">
+          {servicesAtPage?.map((service) => (
+            <div key={service.id} className="flex items-center justify-center">
+              <Card className="w-[250px] shadow">
+                <CardHeader>
+                  <CardTitle>{service.pipeline_name}</CardTitle>
+                  {/* TODO: Add description once available */}
+                  {/* <CardDescription>{service.description}</CardDescription> */}
+                </CardHeader>
+                <CardFooter className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      router.push(`/service-catalog/${service.id}`)
+                    }
+                  >
+                    Request
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          ))}
+        </div>
+        <div className="w-full flex justify-center pb-2">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
                 <Button
-                  variant="outline"
-                  onClick={() => router.push(`/service-catalog/${service.id}`)}
+                  variant="ghost"
+                  className="p-0"
+                  disabled={isPrevDisabled}
+                  onClick={handleClickPrevPage}
                 >
-                  Request
+                  <PaginationPrevious />
                 </Button>
-              </CardFooter>
-            </Card>
-          </div>
-        ))}
-      </div>
-      <div className="w-full flex justify-center absolute bottom-0">
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <Button
-                variant="ghost"
-                className="p-0"
-                disabled={isPrevDisabled}
-                onClick={handleClickPrevPage}
-              >
-                <PaginationPrevious />
-              </Button>
-            </PaginationItem>
-            {createPaginationItems(page, noOfPages, handleClickPageNo)}
-            <PaginationItem>
-              <Button
-                variant="ghost"
-                className="p-0"
-                disabled={isNextDisabled}
-                onClick={handleClickNextPage}
-              >
-                <PaginationNext />
-              </Button>
-            </PaginationItem>
-            <Select defaultValue="10" onValueChange={handleSetItemsPerPage}>
-              <SelectTrigger className="w-[100px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Items per page</SelectLabel>
-                  <SelectItem value={"5"}>5</SelectItem>
-                  <SelectItem value={"10"}>10</SelectItem>
-                  <SelectItem value={"15"}>15</SelectItem>
-                  <SelectItem value={"20"}>20</SelectItem>
-                  <SelectItem value={"25"}>25</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </PaginationContent>
-        </Pagination>
+              </PaginationItem>
+              {createPaginationItems(page, noOfPages, handleClickPageNo)}
+              <PaginationItem>
+                <Button
+                  variant="ghost"
+                  className="p-0"
+                  disabled={isNextDisabled}
+                  onClick={handleClickNextPage}
+                >
+                  <PaginationNext />
+                </Button>
+              </PaginationItem>
+              <Select defaultValue="10" onValueChange={handleSetItemsPerPage}>
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Items per page</SelectLabel>
+                    <SelectItem value={"5"}>5</SelectItem>
+                    <SelectItem value={"10"}>10</SelectItem>
+                    <SelectItem value={"15"}>15</SelectItem>
+                    <SelectItem value={"20"}>20</SelectItem>
+                    <SelectItem value={"25"}>25</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </PaginationContent>
+          </Pagination>
+        </div>
       </div>
     </>
   )
