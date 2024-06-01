@@ -1,6 +1,6 @@
 "use client"
 
-import { useCountdown } from "@/lib/hooks"
+import { useCountdown } from "@/hooks/use-countdown"
 import { useRouter } from "next/navigation"
 import useAuthentication from "./_hooks/use-auth"
 

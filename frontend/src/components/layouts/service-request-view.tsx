@@ -16,7 +16,6 @@ import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.share
 
 interface ServiceRequestViewProps {
   router?: AppRouterInstance
-  returnRoute?: string
   pipelineName: string
   pipelineDescription?: string
   rjsfSchema: RJSFSchema
@@ -33,7 +32,6 @@ const widgets: RegistryWidgetsType = {
 
 export default function ServiceRequestView({
   router,
-  returnRoute,
   pipelineName,
   pipelineDescription,
   rjsfSchema,
@@ -54,11 +52,7 @@ export default function ServiceRequestView({
               size="icon"
               variant="ghost"
               onClick={() => {
-                if (returnRoute) {
-                  router.push(returnRoute)
-                } else {
-                  router.back()
-                }
+                router.back()
               }}
             >
               <ChevronLeft />

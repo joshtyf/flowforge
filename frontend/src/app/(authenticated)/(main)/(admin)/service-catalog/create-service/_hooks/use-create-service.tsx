@@ -8,6 +8,7 @@ import {
   FormSelect,
   JsonFormComponents,
 } from "@/types/json-form-components"
+import PipelineCreatedTextWithCountdown from "../_components/pipeline-created-text-with-countdown"
 import { Pipeline } from "@/types/pipeline"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
@@ -109,11 +110,7 @@ const createServiceSchema = z
     })
   })
 
-interface UseCreateServiceProps {
-  router: AppRouterInstance
-}
-
-const useCreateService = ({ router }: UseCreateServiceProps) => {
+const useCreateService = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const form = useForm<z.infer<typeof createServiceSchema>>({
@@ -160,11 +157,10 @@ const useCreateService = ({ router }: UseCreateServiceProps) => {
       .then(() => {
         toast({
           title: "Service Creation Successful",
-          description: "Redirecting to service catalog...",
+          description: <PipelineCreatedTextWithCountdown />,
           variant: "success",
         })
         setSubmitted(true)
-        setTimeout(() => router.push("/service-catalog"), 1500)
       })
       .catch((err) => {
         console.error(err)
