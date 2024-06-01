@@ -36,10 +36,11 @@ func main() {
 				StepType:     models.APIStep,
 				NextStepName: "step2",
 				PrevStepName: "",
-				Parameters: map[string]string{
-					"method": "${method}",
-					"url":    "https://httpbin.org/${method}?param=${param}",
-					"data":   "{\"key\": \"${value}\", \"${key}\": \"hardcoded_value\"}",
+				Parameters: map[string]any{
+					"method":  "${method}",
+					"url":     "https://httpbin.org/${method}?param=${param}",
+					"data":    map[string]any{"key": "${value}", "${key}": "hardcoded_value"},
+					"headers": map[string]any{"Authorization": "Bearer ${token}"},
 				},
 				IsTerminalStep: false,
 			},
@@ -48,7 +49,7 @@ func main() {
 				StepType:       models.WaitForApprovalStep,
 				NextStepName:   "",
 				PrevStepName:   "step1",
-				Parameters:     map[string]string{},
+				Parameters:     map[string]any{},
 				IsTerminalStep: true,
 			},
 		},
@@ -97,7 +98,7 @@ func main() {
 				StepType:     models.APIStep,
 				NextStepName: "step2",
 				PrevStepName: "",
-				Parameters: map[string]string{
+				Parameters: map[string]any{
 					"method": "GET",
 					"url":    "https://example.com?param=${param}",
 				},
@@ -108,7 +109,7 @@ func main() {
 				StepType:     models.APIStep,
 				NextStepName: "step3",
 				PrevStepName: "step1",
-				Parameters: map[string]string{
+				Parameters: map[string]any{
 					"method": "GET",
 					"url":    "https://example.com?param=${param}",
 				},
@@ -119,7 +120,7 @@ func main() {
 				StepType:     models.APIStep,
 				NextStepName: "",
 				PrevStepName: "step2",
-				Parameters: map[string]string{
+				Parameters: map[string]any{
 					"method": "GET",
 					"url":    "https://example.com?param=${param}",
 				},
@@ -171,7 +172,7 @@ func main() {
 				StepType:     models.APIStep,
 				NextStepName: "step2",
 				PrevStepName: "",
-				Parameters: map[string]string{
+				Parameters: map[string]any{
 					"method": "GET",
 					"url":    "https://example.com?param=${param}",
 				},
@@ -182,7 +183,7 @@ func main() {
 				StepType:       models.WaitForApprovalStep,
 				NextStepName:   "step3",
 				PrevStepName:   "step1",
-				Parameters:     map[string]string{},
+				Parameters:     map[string]any{},
 				IsTerminalStep: false,
 			},
 			{
@@ -190,7 +191,7 @@ func main() {
 				StepType:     models.APIStep,
 				NextStepName: "",
 				PrevStepName: "step2",
-				Parameters: map[string]string{
+				Parameters: map[string]any{
 					"method": "GET",
 					"url":    "https://example.com?param=${param}",
 				},
@@ -242,7 +243,7 @@ func main() {
 				StepType:       models.WaitForApprovalStep,
 				NextStepName:   "step2",
 				PrevStepName:   "",
-				Parameters:     map[string]string{},
+				Parameters:     map[string]any{},
 				IsTerminalStep: false,
 			},
 			{
@@ -250,7 +251,7 @@ func main() {
 				StepType:     models.APIStep,
 				NextStepName: "",
 				PrevStepName: "step1",
-				Parameters: map[string]string{
+				Parameters: map[string]any{
 					"method": "GET",
 					"url":    "https://example.com?param=${param}",
 				},
@@ -315,10 +316,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param":  "test_param",
-			"method": "get",
-			"key":    "test_key",
-			"value":  "test_value",
+			"field1": "test sr 1",
+			"field2": "Option 1",
+			"field3": []string{"Option 1"},
 		},
 	}
 
@@ -339,10 +339,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param":  "test_param",
-			"method": "post",
-			"key":    "test_key",
-			"value":  "test_value",
+			"field1": "test sr 2",
+			"field2": "Option 2",
+			"field3": []string{"Option 1", "Option 2"},
 		},
 	}
 
@@ -363,7 +362,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 3",
+			"field2": "Option 3",
+			"field3": []string{"Option 1", "Option 2", "Option 3"},
 		},
 	}
 
@@ -384,7 +385,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 4",
+			"field2": "Option 1",
+			"field3": []string{"Option 2"},
 		},
 	}
 
@@ -405,7 +408,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 5",
+			"field2": "Option 1",
+			"field3": []string{"Option 2", "Option 3"},
 		},
 	}
 
@@ -426,7 +431,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 6",
+			"field2": "Option 1",
+			"field3": []string{"Option 3"},
 		},
 	}
 
@@ -447,7 +454,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 7",
+			"field2": "Option 1",
+			"field3": []string{},
 		},
 	}
 
@@ -468,7 +477,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 8",
+			"field2": "Option 1",
+			"field3": []string{"Option 1"},
 		},
 	}
 
@@ -489,7 +500,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 9",
+			"field2": "Option 1",
+			"field3": []string{"Option 1"},
 		},
 	}
 
@@ -510,7 +523,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 10",
+			"field2": "Option 1",
+			"field3": []string{"Option 1"},
 		},
 	}
 
@@ -531,7 +546,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 11",
+			"field2": "Option 1",
+			"field3": []string{"Option 1"},
 		},
 	}
 
@@ -552,7 +569,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 12",
+			"field2": "Option 1",
+			"field3": []string{"Option 1"},
 		},
 	}
 
@@ -573,7 +592,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 13",
+			"field2": "Option 1",
+			"field3": []string{"Option 1"},
 		},
 	}
 

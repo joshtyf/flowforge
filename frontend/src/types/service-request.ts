@@ -41,15 +41,12 @@ type ServiceRequest = {
   pipeline_version: string
   status: ServiceRequestStatus
   created_on: string
-  // TODO: Make field mandatory once accounts are tag to service request
-  created_by?: string
   last_updated: string
   remarks: string
   form_data: ServiceRequestForm
   first_step_name: string
   steps?: ServiceRequestSteps
-  // TODO: To refactor in future when service request details is implemented
-  pipeline?: { form: JsonFormComponents }
+  pipeline?: { name: string; form: JsonFormComponents }
 }
 
 type ServiceRequestLogs = {
@@ -59,12 +56,20 @@ type ServiceRequestLogs = {
   next_offset: number
 }
 
+type ServiceRequestDTO = {
+  service_request: ServiceRequest
+  pipeline: { name: string; form: JsonFormComponents }
+  steps?: ServiceRequestSteps
+  first_step_name: string
+}
+
 export type {
   ServiceRequestForm,
   ServiceRequestStep,
   ServiceRequestSteps,
   ServiceRequest,
   ServiceRequestLogs,
+  ServiceRequestDTO,
 }
 
 export { ServiceRequestStatus }

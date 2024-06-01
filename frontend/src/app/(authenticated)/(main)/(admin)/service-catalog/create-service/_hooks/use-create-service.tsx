@@ -1,11 +1,6 @@
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { isJson } from "@/lib/utils"
-import { KeyboardEvent, useState } from "react"
-import { validateFormSchema } from "../_utils/validation"
+import { toast } from "@/components/ui/use-toast"
 import { createPipeline } from "@/lib/service"
-import { Pipeline } from "@/types/pipeline"
+import { isJson } from "@/lib/utils"
 import {
   FormCheckboxes,
   FormFieldType,
@@ -13,8 +8,14 @@ import {
   FormSelect,
   JsonFormComponents,
 } from "@/types/json-form-components"
-import { toast } from "@/components/ui/use-toast"
 import PipelineCreatedTextWithCountdown from "../_components/pipeline-created-text-with-countdown"
+import { Pipeline } from "@/types/pipeline"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
+import { KeyboardEvent, useState } from "react"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+import { crossValidateSchema, validateFormSchema } from "../_utils/validation"
 
 const DEFAULT_FORM: JsonFormComponents = {
   fields: [
@@ -73,33 +74,47 @@ const DEFAULT_PIPELINE = {
   ],
 }
 
-const createServiceSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  description: z.string(),
-  form: z
-    .string()
-    .min(1, "Form Schema is required")
-    .superRefine((val, ctx) => {
-      const errorList = validateFormSchema(val)
-      if (errorList.length > 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: errorList.join(" , "),
-        })
-      }
+const createServiceSchema = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+    description: z.string(),
+    form: z
+      .string()
+      .min(1, "Form Schema is required")
+      .superRefine((val, ctx) => {
+        const errorList = validateFormSchema(val)
+        if (errorList.length > 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: errorList.join(" , "),
+          })
+        }
+      })
+      .refine((arg) => isJson(arg), {
+        message: "Ensure that Form is valid JSON Schema",
+      }),
+    pipeline: z
+      .string()
+      .min(1, "Pipeline Steps Schema is required")
+      .refine((arg) => isJson(arg), {
+        message: "Ensure that Form is valid JSON Schema",
+      }),
+  })
+  .superRefine((val, ctx) => {
+    crossValidateSchema(val.form, val.pipeline).forEach((error) => {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: error,
+        path: ["form"],
+      })
     })
-    .refine((arg) => isJson(arg), {
-      message: "Ensure that Form is valid JSON Schema",
-    }),
-  pipeline: z
-    .string()
-    .min(1, "Pipeline Steps Schema is required")
-    .refine((arg) => isJson(arg), {
-      message: "Ensure that Form is valid JSON Schema",
-    }),
-})
+  })
 
-const useCreateService = () => {
+interface UseCreateServiceProps {
+  router: AppRouterInstance
+}
+
+const useCreateService = ({ router }: UseCreateServiceProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const form = useForm<z.infer<typeof createServiceSchema>>({

@@ -15,37 +15,6 @@ interface UseServiceRequestFormOptions {
   pipelineId: string
 }
 
-const DUMMY_PIPELINE_FORM: JsonFormComponents = {
-  fields: [
-    {
-      name: "input",
-      title: "Input",
-      description: "",
-      type: FormFieldType.INPUT,
-      required: true,
-      placeholder: "Enter text...",
-      min_length: 1,
-    },
-    {
-      name: "select",
-      title: "Select",
-      description: "",
-      type: FormFieldType.SELECT,
-      required: true,
-      placeholder: "Select an option",
-      options: ["Option 1", "Option 2", "Option 3"],
-      default: "Option 1",
-    },
-    {
-      name: "checkbox",
-      title: "Checkbox",
-      description: "",
-      type: FormFieldType.CHECKBOXES,
-      options: ["Option 1", "Option 2", "Option 3"],
-    },
-  ],
-}
-
 const useServiceRequestForm = ({
   pipelineId,
 }: UseServiceRequestFormOptions) => {

@@ -85,7 +85,6 @@ export const orgServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
         <AdminServiceRequestActions
           serviceRequest={serviceRequest}
           approveRequest={(serviceRequestId: string) => {
-            // TODO: Replace with actual approval action
             approveServiceRequest(serviceRequestId)
               .then(() => {
                 toast({
