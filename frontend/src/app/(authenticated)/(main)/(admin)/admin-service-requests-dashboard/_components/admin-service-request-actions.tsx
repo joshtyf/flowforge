@@ -66,7 +66,6 @@ export default function AdminServiceRequestActions({
           disabled={serviceRequest.status !== ServiceRequestStatus.PENDING}
           onClick={() => setOpenRejectConfirmationDialog(true)}
         >
-          {/* TODO: Add on click logic*/}
           <Button variant="ghost" className="text-red-700 hover:text-red-500">
             Reject
           </Button>

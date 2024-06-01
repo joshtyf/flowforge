@@ -316,11 +316,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param":  "test_param",
-			"method": "get",
-			"key":    "test_key",
-			"value":  "test_value",
-			"token":  "test_token",
+			"field1": "test sr 1",
+			"field2": "Option 1",
+			"field3": []string{"Option 1"},
 		},
 	}
 
@@ -341,11 +339,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param":  "test_param",
-			"method": "post",
-			"key":    "test_key",
-			"value":  "test_value",
-			"token":  "test_token",
+			"field1": "test sr 2",
+			"field2": "Option 2",
+			"field3": []string{"Option 1", "Option 2"},
 		},
 	}
 
@@ -366,7 +362,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 3",
+			"field2": "Option 3",
+			"field3": []string{"Option 1", "Option 2", "Option 3"},
 		},
 	}
 
@@ -387,7 +385,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 4",
+			"field2": "Option 1",
+			"field3": []string{"Option 2"},
 		},
 	}
 
@@ -408,7 +408,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 5",
+			"field2": "Option 1",
+			"field3": []string{"Option 2", "Option 3"},
 		},
 	}
 
@@ -429,7 +431,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 6",
+			"field2": "Option 1",
+			"field3": []string{"Option 3"},
 		},
 	}
 
@@ -450,7 +454,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 7",
+			"field2": "Option 1",
+			"field3": []string{},
 		},
 	}
 
@@ -471,7 +477,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 8",
+			"field2": "Option 1",
+			"field3": []string{"Option 1"},
 		},
 	}
 
@@ -492,7 +500,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 9",
+			"field2": "Option 1",
+			"field3": []string{"Option 1"},
 		},
 	}
 
@@ -513,7 +523,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 10",
+			"field2": "Option 1",
+			"field3": []string{"Option 1"},
 		},
 	}
 
@@ -534,7 +546,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 11",
+			"field2": "Option 1",
+			"field3": []string{"Option 1"},
 		},
 	}
 
@@ -555,7 +569,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 12",
+			"field2": "Option 1",
+			"field3": []string{"Option 1"},
 		},
 	}
 
@@ -576,7 +592,9 @@ func main() {
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		FormData: models.FormData{
-			"param": "test_param",
+			"field1": "test sr 13",
+			"field2": "Option 1",
+			"field3": []string{"Option 1"},
 		},
 	}
 

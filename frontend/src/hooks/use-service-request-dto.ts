@@ -1,19 +1,21 @@
 import { toast } from "@/components/ui/use-toast"
-import { getServiceRequest } from "@/lib/service"
-import { ServiceRequest } from "@/types/service-request"
+import { getServiceRequestDTO } from "@/lib/service"
+import { ServiceRequestDTO } from "@/types/service-request"
 import { useEffect, useState } from "react"
 
 interface UseServiceRequestOptions {
   serviceRequestId: string
 }
 
-const useServiceRequest = ({ serviceRequestId }: UseServiceRequestOptions) => {
-  const [serviceRequest, setServiceRequest] = useState<ServiceRequest>()
+const useServiceRequestDTO = ({
+  serviceRequestId,
+}: UseServiceRequestOptions) => {
+  const [serviceRequest, setServiceRequest] = useState<ServiceRequestDTO>()
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     setLoading(true)
-    getServiceRequest(serviceRequestId)
+    getServiceRequestDTO(serviceRequestId)
       .then(setServiceRequest)
       .catch((err) => {
         console.log(err)
@@ -32,4 +34,4 @@ const useServiceRequest = ({ serviceRequestId }: UseServiceRequestOptions) => {
   }
 }
 
-export default useServiceRequest
+export default useServiceRequestDTO

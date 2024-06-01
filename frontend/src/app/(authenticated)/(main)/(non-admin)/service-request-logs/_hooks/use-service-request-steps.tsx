@@ -1,4 +1,4 @@
-import useServiceRequest from "@/hooks/use-service-request"
+import useServiceRequestDTO from "@/hooks/use-service-request-dto"
 import { createStepsFromObject } from "@/lib/utils"
 import { useEffect, useMemo, useState } from "react"
 
@@ -8,7 +8,7 @@ type UseServiceRequestLogsOptions = {
 const useServiceRequestSteps = ({
   serviceRequestId,
 }: UseServiceRequestLogsOptions) => {
-  const { serviceRequest, isServiceRequestLoading } = useServiceRequest({
+  const { serviceRequest, isServiceRequestLoading } = useServiceRequestDTO({
     serviceRequestId,
   })
 
