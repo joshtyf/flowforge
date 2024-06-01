@@ -110,11 +110,7 @@ const createServiceSchema = z
     })
   })
 
-interface UseCreateServiceProps {
-  router: AppRouterInstance
-}
-
-const useCreateService = ({ router }: UseCreateServiceProps) => {
+const useCreateService = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const form = useForm<z.infer<typeof createServiceSchema>>({
