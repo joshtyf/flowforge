@@ -1,6 +1,6 @@
-# Flowforge Frontend
+# flowforge frontend
 
-The frontend is built with [NextJS 14](https://nextjs.org/blog/next-14), Typescript and TailwindCSS as our web app framework.
+The app is built with [NextJS 14](https://nextjs.org/blog/next-14), Typescript and TailwindCSS as our web app framework.
 
 We also use [shadcn/ui](https://ui.shadcn.com/) as our underlying UI library.
 
