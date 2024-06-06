@@ -71,14 +71,16 @@ type PipelineStepModel struct {
 }
 
 type PipelineModel struct {
-	Id            primitive.ObjectID  `bson:"_id,omitempty" json:"id,omitempty"` // unique id for the pipeline
-	PipelineName  string              `bson:"pipeline_name" json:"pipeline_name"`
-	Version       int                 `bson:"version" json:"version"`
-	PrevVersionId primitive.ObjectID  `bson:"prev_version_id" json:"prev_version_id"`
-	FirstStepName string              `bson:"first_step_name" json:"first_step_name"`
-	Steps         []PipelineStepModel `bson:"steps" json:"steps"`
-	CreatedOn     time.Time           `bson:"created_on" json:"created_on"`
-	Form          Form                `bson:"form" json:"form"`
+	Id             primitive.ObjectID  `bson:"_id,omitempty" json:"id,omitempty"` // unique id for the pipeline
+	UserId         string              `bson:"user_id" json:"user_id"`
+	OrganizationId int                 `bson:"org_id" json:"org_id"`
+	PipelineName   string              `bson:"pipeline_name" json:"pipeline_name"`
+	Version        int                 `bson:"version" json:"version"`
+	PrevVersionId  primitive.ObjectID  `bson:"prev_version_id" json:"prev_version_id"`
+	FirstStepName  string              `bson:"first_step_name" json:"first_step_name"`
+	Steps          []PipelineStepModel `bson:"steps" json:"steps"`
+	CreatedOn      time.Time           `bson:"created_on" json:"created_on"`
+	Form           Form                `bson:"form" json:"form"`
 }
 
 func (p *PipelineModel) GetPipelineStep(name string) *PipelineStepModel {

@@ -26,10 +26,12 @@ func main() {
 		panic(err)
 	}
 	pipeline1 := models.PipelineModel{
-		PipelineName:  pipelineName,
-		Id:            pipelineId,
-		Version:       1,
-		FirstStepName: "step1",
+		UserId:         "auth0|66010ad5095367b237799680", // zheng.zhiqiang49@gmail.com
+		OrganizationId: 1,
+		PipelineName:   pipelineName,
+		Id:             pipelineId,
+		Version:        1,
+		FirstStepName:  "step1",
 		Steps: []models.PipelineStepModel{
 			{
 				StepName:     "step1",
@@ -88,10 +90,12 @@ func main() {
 		panic(err)
 	}
 	pipeline2 := models.PipelineModel{
-		PipelineName:  pipelineName,
-		Id:            pipelineId,
-		Version:       1,
-		FirstStepName: "step1",
+		UserId:         "auth0|66010ad5095367b237799680", // zheng.zhiqiang49@gmail.com
+		OrganizationId: 1,
+		PipelineName:   pipelineName,
+		Id:             pipelineId,
+		Version:        1,
+		FirstStepName:  "step1",
 		Steps: []models.PipelineStepModel{
 			{
 				StepName:     "step1",
@@ -162,10 +166,12 @@ func main() {
 		panic(err)
 	}
 	pipeline3 := models.PipelineModel{
-		PipelineName:  pipelineName,
-		Id:            pipelineId,
-		Version:       1,
-		FirstStepName: "step1",
+		UserId:         "auth0|65e9dabff2dab546ed0c231e", // josh's user ID
+		OrganizationId: 2,
+		PipelineName:   pipelineName,
+		Id:             pipelineId,
+		Version:        1,
+		FirstStepName:  "step1",
 		Steps: []models.PipelineStepModel{
 			{
 				StepName:     "step1",
@@ -233,10 +239,12 @@ func main() {
 		panic(err)
 	}
 	pipeline4 := models.PipelineModel{
-		PipelineName:  pipelineName,
-		Id:            pipelineId,
-		Version:       1,
-		FirstStepName: "step1",
+		UserId:         "auth0|6640b87db9de48e5a6243618", // test1@example.com
+		OrganizationId: 3,
+		PipelineName:   pipelineName,
+		Id:             pipelineId,
+		Version:        1,
+		FirstStepName:  "step1",
 		Steps: []models.PipelineStepModel{
 			{
 				StepName:       "step1",
@@ -399,8 +407,8 @@ func main() {
 	serviceRequest5 := models.ServiceRequestModel{
 		Id:              serviceReqId,
 		UserId:          "auth0|65e9dabff2dab546ed0c231e", // josh's user ID
-		PipelineId:      pipeline3.Id.Hex(),
-		PipelineName:    pipeline3.PipelineName,
+		PipelineId:      pipeline1.Id.Hex(),
+		PipelineName:    pipeline1.PipelineName,
 		PipelineVersion: 1,
 		Status:          models.NOT_STARTED,
 		OrganizationId:  1,
@@ -422,8 +430,8 @@ func main() {
 	serviceRequest6 := models.ServiceRequestModel{
 		Id:              serviceReqId,
 		UserId:          "auth0|65e9dabff2dab546ed0c231e", // josh's user ID
-		PipelineId:      pipeline4.Id.Hex(),
-		PipelineName:    pipeline4.PipelineName,
+		PipelineId:      pipeline2.Id.Hex(),
+		PipelineName:    pipeline2.PipelineName,
 		PipelineVersion: 1,
 		Status:          models.NOT_STARTED,
 		OrganizationId:  1,
@@ -491,8 +499,8 @@ func main() {
 	serviceRequest9 := models.ServiceRequestModel{
 		Id:              serviceReqId,
 		UserId:          "auth0|66010ad5095367b237799680", // zheng.zhiqiang49@gmail.com
-		PipelineId:      pipeline3.Id.Hex(),
-		PipelineName:    pipeline3.PipelineName,
+		PipelineId:      pipeline2.Id.Hex(),
+		PipelineName:    pipeline2.PipelineName,
 		PipelineVersion: 1,
 		Status:          models.NOT_STARTED,
 		OrganizationId:  1,
@@ -514,8 +522,8 @@ func main() {
 	serviceRequest10 := models.ServiceRequestModel{
 		Id:              serviceReqId,
 		UserId:          "auth0|66010ad5095367b237799680", // zheng.zhiqiang49@gmail.com
-		PipelineId:      pipeline4.Id.Hex(),
-		PipelineName:    pipeline4.PipelineName,
+		PipelineId:      pipeline2.Id.Hex(),
+		PipelineName:    pipeline2.PipelineName,
 		PipelineVersion: 1,
 		Status:          models.NOT_STARTED,
 		OrganizationId:  1,
@@ -559,12 +567,12 @@ func main() {
 	}
 	serviceRequest12 := models.ServiceRequestModel{
 		Id:              serviceReqId,
-		UserId:          "auth0|66010ad5095367b237799680", // zheng.zhiqiang49@gmail.com
-		PipelineId:      pipeline2.Id.Hex(),
-		PipelineName:    pipeline2.PipelineName,
+		UserId:          "auth0|6640b87e9acbec524a253e74", // test2@example.com
+		PipelineId:      pipeline4.Id.Hex(),
+		PipelineName:    pipeline4.PipelineName,
 		PipelineVersion: 1,
 		Status:          models.NOT_STARTED,
-		OrganizationId:  1,
+		OrganizationId:  3,
 		Remarks:         "This is a test service request.",
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
@@ -583,11 +591,11 @@ func main() {
 	serviceRequest13 := models.ServiceRequestModel{
 		Id:              serviceReqId,
 		UserId:          "auth0|6640b87db9de48e5a6243618", // test1@example.com
-		PipelineId:      pipeline2.Id.Hex(),
-		PipelineName:    pipeline2.PipelineName,
+		PipelineId:      pipeline3.Id.Hex(),
+		PipelineName:    pipeline3.PipelineName,
 		PipelineVersion: 1,
 		Status:          models.NOT_STARTED,
-		OrganizationId:  1,
+		OrganizationId:  2,
 		Remarks:         "This is a test service request.",
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
