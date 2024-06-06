@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Flowforge Frontend
 
-## Getting Started
+The frontend is built with [NextJS 14](https://nextjs.org/blog/next-14), Typescript and TailwindCSS as our web app framework.
 
-First, install all the dependencies:
+We also use [shadcn/ui](https://ui.shadcn.com/) as our underlying UI library.
+
+## Commands
+
+Run the following to install all the dependencies:
 
 ```bash
 npm ci
 ```
 
-Second, run the development server:
+### NextJS Commands
+
+To run development server:
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+To create the production app:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+### Formatting/Checking Commands
 
-## Learn More
+To run Type check:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run check-types
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+To run Prettier format check:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+```bash
+npm run check-format
+```
 
-## Deploy on Vercel
+To run Prettier format:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run format
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+To run ESLint:
+
+```
+npm run check-lint
+```
+
+To run all checks:
+
+```
+npm run test-all
+```
+
+> Do note that Flowforge project uses [Husky](https://typicode.github.io/husky/) to run all these checks before git commit.
+
+## Environment Variables
+
+We rely on the following environment variables for our app. Please create an `.env.local` in development and store these variables:
+
+```bash
+NEXT_PUBLIC_APP_ENV=dev
+# Add your own Auth0 Domain
+NEXT_PUBLIC_AUTH0_DOMAIN=
+# Add your own Auth0 Client ID
+NEXT_PUBLIC_AUTH0_CLIENT_ID=
+# Add your own Auth0 Client Secret
+NEXT_PUBLIC_AUTH0_CLIENT_SECRET=
+NEXT_PUBLIC_APP_BASE_URL=http://localhost:3000
+NEXT_PUBLIC_AUTH0_AUDIENCE=https://flowforge.com
+```
+
+## Credits
+
+Here is the list of libraries that the app depende:
+
+- [NextJS 14](https://nextjs.org/blog/next-14)
+- [Radix UI](https://www.radix-ui.com/)
+- [react-jsonschema-form](https://rjsf-team.github.io/react-jsonschema-form/docs/)
+- [TanStack Query](https://tanstack.com/query/latest)
+- [TanStack Table](https://tanstack.com/table/latest)
+- [Axios](https://axios-http.com/docs/intro)
+- [react-hook-form](https://www.react-hook-form.com/)
+- [Zod](https://zod.dev/)
