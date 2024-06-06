@@ -60,7 +60,7 @@ const DEFAULT_PIPELINE = {
       prev_step_name: "",
       parameters: {
         method: "GET",
-        url: "https://example.com",
+        url: "https://example.com/${param}",
       },
       is_terminal_step: false,
     },
