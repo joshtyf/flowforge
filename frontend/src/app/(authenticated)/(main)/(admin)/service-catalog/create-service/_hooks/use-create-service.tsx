@@ -16,6 +16,7 @@ import { KeyboardEvent, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { crossValidateSchema, validateFormSchema } from "../_utils/validation"
+import useOrganizationId from "@/hooks/use-organization-id"
 
 const DEFAULT_FORM: JsonFormComponents = {
   fields: [
@@ -113,6 +114,7 @@ const createServiceSchema = z
 const useCreateService = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const { organizationId } = useOrganizationId()
   const form = useForm<z.infer<typeof createServiceSchema>>({
     resolver: zodResolver(createServiceSchema),
     defaultValues: {
@@ -153,7 +155,7 @@ const useCreateService = () => {
 
     setIsSubmitting(true)
 
-    createPipeline(pipelineJson)
+    createPipeline(pipelineJson, organizationId)
       .then(() => {
         toast({
           title: "Service Creation Successful",
