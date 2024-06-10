@@ -20,7 +20,7 @@ const usePagination = ({ services }: UsePaginationOptions) => {
   const [page, setPage] = useState<number>(1)
   const [itemsPerPage, setItemsPerPage] = useState<number>(ITEMS_PER_PAGE["10"])
   const [servicesAtPage, setServicesAtPage] = useState<Pipeline[]>(
-    services ? services.slice(0, itemsPerPage) : []
+    Array.isArray(services) ? services.slice(0, itemsPerPage) : []
   )
   const noOfPages = services ? Math.ceil(services.length / itemsPerPage) : 0
 
@@ -28,7 +28,9 @@ const usePagination = ({ services }: UsePaginationOptions) => {
     (pageNo: number, items: number = itemsPerPage) => {
       const startIndex = (pageNo - 1) * items
       const endIndex = pageNo * items
-      setServicesAtPage(services ? services.slice(startIndex, endIndex) : [])
+      setServicesAtPage(
+        Array.isArray(services) ? services.slice(startIndex, endIndex) : []
+      )
     },
     [services, itemsPerPage]
   )
