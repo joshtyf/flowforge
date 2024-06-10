@@ -120,8 +120,8 @@ const useCreateService = () => {
     defaultValues: {
       name: "",
       description: "",
-      form: JSON.stringify(DEFAULT_FORM, null, 4),
-      pipeline: JSON.stringify(DEFAULT_PIPELINE, null, 4),
+      form: "",
+      pipeline: "",
     },
   })
 
