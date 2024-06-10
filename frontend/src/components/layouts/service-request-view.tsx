@@ -22,6 +22,7 @@ interface ServiceRequestViewProps {
   uiSchema: UiSchema
   handleSubmit?: (event: IChangeEvent) => void
   isSubmittingRequest?: boolean
+  isSubmitButtonDisabled?: boolean
   viewOnly?: boolean
   formData?: object
 }
@@ -38,6 +39,7 @@ export default function ServiceRequestView({
   uiSchema,
   handleSubmit,
   isSubmittingRequest,
+  isSubmitButtonDisabled,
   viewOnly = false,
   formData,
 }: ServiceRequestViewProps) {
@@ -87,7 +89,7 @@ export default function ServiceRequestView({
               {isSubmitEnabled && (
                 <ButtonWithSpinner
                   type="submit"
-                  disabled={isSubmittingRequest}
+                  disabled={isSubmittingRequest || isSubmitButtonDisabled}
                   isLoading={isSubmittingRequest}
                   size="lg"
                 >

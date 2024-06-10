@@ -4,12 +4,10 @@ import usePipeline from "@/hooks/use-pipeline"
 import { createServiceRequest } from "@/lib/service"
 import { generateUiSchema } from "@/lib/rjsf-utils"
 import { convertServiceRequestFormToRJSFSchema } from "@/lib/rjsf-utils"
-import { FormFieldType, JsonFormComponents } from "@/types/json-form-components"
 import { IChangeEvent } from "@rjsf/core"
 import { RJSFSchema } from "@rjsf/utils"
 import { useMemo, useState } from "react"
 import RequestCreatedTextWithCountdown from "../_components/request-created-text-with-countdown"
-import { useRouter } from "next/navigation"
 
 interface UseServiceRequestFormOptions {
   pipelineId: string
@@ -22,8 +20,8 @@ const useServiceRequestForm = ({
     pipelineId,
   })
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
+  const [isSubmitButtonDisabled, setIsSubmitButtonDisabled] = useState(false)
   const { organizationId } = useOrganizationId()
-  const router = useRouter()
   const handleCreateServiceRequest = (
     data: IChangeEvent<object, RJSFSchema, object>
   ) => {
@@ -39,6 +37,7 @@ const useServiceRequestForm = ({
     }
     createServiceRequest(organizationId, pipelineId, formData, service?.version)
       .then(() => {
+        setIsSubmitButtonDisabled(true)
         toast({
           title: "Request Submission Successful",
           description: <RequestCreatedTextWithCountdown />,
@@ -72,6 +71,7 @@ const useServiceRequestForm = ({
     handleSubmit: handleCreateServiceRequest,
     isLoadingForm,
     isSubmittingRequest,
+    isSubmitButtonDisabled,
   }
 }
 
