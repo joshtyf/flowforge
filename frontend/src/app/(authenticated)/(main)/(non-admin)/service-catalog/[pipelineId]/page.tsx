@@ -20,6 +20,7 @@ export default function ServiceRequestPage() {
     handleSubmit,
     isLoadingForm,
     isSubmittingRequest,
+    isSubmitButtonDisabled,
   } = useServiceRequest({
     pipelineId: pipelineIdString,
   })
@@ -38,6 +39,7 @@ export default function ServiceRequestPage() {
       uiSchema={uiSchema}
       handleSubmit={handleSubmit}
       isSubmittingRequest={isSubmittingRequest}
+      isSubmitButtonDisabled={isSubmitButtonDisabled}
     />
   )
 }
