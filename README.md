@@ -20,11 +20,15 @@ Suppose a pipeline creator wants to create a service pipeline that will fetch da
 
 The pipeline creator will also define a form, in JSON schema, that will collect the requester's id. This form will be used to create a service request. When the service request is submitted, the requester will provide their id and the pipeline will be executed with the `API` step's `url` parameter set to `https://myorgdomain.com/api/data/${requester_id}`, with the placeholder `${requester_id}` being substituted with the submitted requester's id.
 
-**Video Demo**
+**Video Demos**
 
-[![Flowforge Demo]()](./docs/assets/Login%20to%20Create%20Service%20to%20Create%20SR%20to%20Approve%20SR.mp4)
+[`./docs/assets/Login to Create Service to Create SR to Approve SR.mp4`](./docs/assets/Login%20to%20Create%20Service%20to%20Create%20SR%20to%20Approve%20SR.mp4)
 
-[![Reject SR Demo]()](./docs/assets/Reject%20SR.mp4)
+https://github.com/joshtyf/flowforge/assets/51166055/832586d3-c148-438c-8a09-d2b3318290e3
+
+[`./docs/assets/Reject SR.mp4`](./docs/assets/Reject%20SR.mp4)
+
+https://github.com/joshtyf/flowforge/assets/51166055/45fd31b9-76b2-4fa3-a97f-b5fcabb08156
 
 ## Features
 
