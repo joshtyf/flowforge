@@ -6,13 +6,13 @@ Flowforge is a service request management system that allows teams with little d
 
 A traditional service request system will require a developer to customise a service request form and also create an automation script that will fulfil the request. In a team with few developers, and many different kinds of service requests to deal with, this can be a bottleneck.
 
-Flowforge aims to solve this problem by providing a simple way for developers to easily define small and reusable steps that can accept dynamic parameters. Non-developers can then craft service pipelines using these steps and map the required step parameters to static values defined by the pipeline creator. These static values can be further made dynamic by using placeholders in the form of `${parameter_name}` which will be replaced by the final requester when submitting the service request via a form. Apart from the steps which are defined in code, the pipelines and forms are only defined using JSON schema which are easily curated by non-developers.
+Flowforge aims to solve this problem by providing a simple way for developers to easily define small and reusable steps that can accept dynamic parameters. Non-developers can then craft service pipelines using these steps and map the required step parameters to static values defined by the pipeline creator. These static values can be further made dynamic by using placeholders in the form of `${placeholder_name}` which will be replaced by the final requester when submitting the service request via a form. Apart from the steps which are defined in code, the pipelines and forms are only defined using JSON schema which are easily curated by non-developers.
 
 This way, developers can focus on creating the steps and maintaining the system, while non-developers can easily create service pipelines and automate service request fulfilment.
 
 ## How does it work?
 
-Service pipelines are defined in JSON schema and consists of a series of execution steps that are already pre-defined in code. Out of the box, Flowforge provides two step types: `WAIT_FOR_APPROVAL` and `API`. The `WAIT_FOR_APPROVAL` step will pause the service request until an admin approves it. The `API` step will accept a URL, headers, query parameters, request body, and method to make an API request. These parameters are statically configured when defining the pipeline. They can also be made dynamic by using placeholders in the form of `${parameter_name}`.
+Service pipelines are defined in JSON schema and consists of a series of execution steps that are already pre-defined in code. Out of the box, Flowforge provides two step types: `WAIT_FOR_APPROVAL` and `API`. The `WAIT_FOR_APPROVAL` step will pause the service request until an admin approves it. The `API` step will accept a URL, headers, query parameters, request body, and method to make an API request. These parameters are statically configured when defining the pipeline. They can also be made dynamic by using placeholders in the form of `${placeholder_name}`.
 
 **Example**
 
