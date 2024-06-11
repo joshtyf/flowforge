@@ -71,4 +71,4 @@ https://github.com/joshtyf/flowforge/assets/51166055/45fd31b9-76b2-4fa3-a97f-b5f
 
 ## Development
 
-For the development guide, please refer to the respective frontend and backedn development guides in [docs/](./docs/).
+For the development guide, please refer to the respective frontend and backend development guides in [docs/](./docs/).
