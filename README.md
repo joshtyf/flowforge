@@ -1,7 +1,7 @@
 <p align="center">
   <img src="./docs/assets/flowforge.png" alt="Flowforge's logo" width="100" height="120"/>
 </p>
-<h1 style="text-align: center;">Flowforge</h1>
+<h1 align="center">Flowforge</h1>
 
 Flowforge is a service request management system that allows teams with little developer resources to easily create service pipelines and automate service request fulfilment.
 
