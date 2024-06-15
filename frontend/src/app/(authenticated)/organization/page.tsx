@@ -7,33 +7,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { getAllOrgsForUser } from "@/lib/service"
-import { Organization } from "@/types/organization"
 import { setCookie } from "cookies-next"
 import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import useOrganizations from "./_hooks/use-organizations"
 
 export default function OrganizationsPage() {
-  const [organizations, setOrganizations] = useState<Organization[]>([])
-  const [loading, setLoading] = useState(true)
-
-  const fetchOrgs = () => {
-    getAllOrgsForUser().then((orgs) => {
-      setOrganizations(orgs)
-      setLoading(false)
-    })
-  }
-
-  useEffect(() => {
-    fetchOrgs()
-  }, [])
+  const { organizations, loadingOrgs, refetchOrgs } = useOrganizations()
 
   const router = useRouter()
   return (
     <div className="mt-20 flex flex-col justify-center items-center">
       <p className="mb-8 text-2xl">Your Organizations</p>
-      {loading ? (
+      {loadingOrgs ? (
         <div className="space-y-4 w-2/5">
           <Skeleton className={"h-12 rounded-md"} />
           <Skeleton className={"h-12 rounded-md"} />
