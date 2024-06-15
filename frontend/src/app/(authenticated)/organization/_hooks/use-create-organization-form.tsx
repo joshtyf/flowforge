@@ -38,6 +38,7 @@ export default function useCreateOrganizationForm({
       .then(() => {
         refetchOrgs()
         toast({
+          variant: "success",
           title: "Organization Created Successfully",
           description: (
             <p>
