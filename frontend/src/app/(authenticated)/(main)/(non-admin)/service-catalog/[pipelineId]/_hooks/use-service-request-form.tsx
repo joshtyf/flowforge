@@ -7,7 +7,7 @@ import { convertServiceRequestFormToRJSFSchema } from "@/lib/rjsf-utils"
 import { IChangeEvent } from "@rjsf/core"
 import { RJSFSchema } from "@rjsf/utils"
 import { useMemo, useState } from "react"
-import RequestCreatedTextWithCountdown from "../_components/request-created-text-with-countdown"
+import { useRouter } from "next/navigation"
 
 interface UseServiceRequestFormOptions {
   pipelineId: string
@@ -22,6 +22,8 @@ const useServiceRequestForm = ({
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
   const [isSubmitButtonDisabled, setIsSubmitButtonDisabled] = useState(false)
   const { organizationId } = useOrganizationId()
+  const router = useRouter()
+
   const handleCreateServiceRequest = (
     data: IChangeEvent<object, RJSFSchema, object>
   ) => {
@@ -40,9 +42,15 @@ const useServiceRequestForm = ({
         setIsSubmitButtonDisabled(true)
         toast({
           title: "Request Submission Successful",
-          description: <RequestCreatedTextWithCountdown />,
+          description: (
+            <p>
+              You are being redirected to{" "}
+              <strong>Your Service Requests Dashboard</strong>.
+            </p>
+          ),
           variant: "success",
         })
+        router.push("/your-service-request-dashboard")
       })
       .catch((err) => {
         console.log(err)

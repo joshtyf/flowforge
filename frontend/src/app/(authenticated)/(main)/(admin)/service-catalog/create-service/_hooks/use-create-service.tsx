@@ -8,15 +8,14 @@ import {
   FormSelect,
   JsonFormComponents,
 } from "@/types/json-form-components"
-import PipelineCreatedTextWithCountdown from "../_components/pipeline-created-text-with-countdown"
 import { Pipeline } from "@/types/pipeline"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
 import { KeyboardEvent, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { crossValidateSchema, validateFormSchema } from "../_utils/validation"
 import useOrganizationId from "@/hooks/use-organization-id"
+import { useRouter } from "next/navigation"
 
 const DEFAULT_FORM: JsonFormComponents = {
   fields: [
@@ -115,6 +114,7 @@ const useCreateService = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const { organizationId } = useOrganizationId()
+  const router = useRouter()
   const form = useForm<z.infer<typeof createServiceSchema>>({
     resolver: zodResolver(createServiceSchema),
     defaultValues: {
@@ -159,10 +159,15 @@ const useCreateService = () => {
       .then(() => {
         toast({
           title: "Service Creation Successful",
-          description: <PipelineCreatedTextWithCountdown />,
+          description: (
+            <p>
+              You are being redirected to <strong>Service Catalog</strong>.
+            </p>
+          ),
           variant: "success",
         })
         setSubmitted(true)
+        router.push("/service-catalog")
       })
       .catch((err) => {
         console.error(err)
