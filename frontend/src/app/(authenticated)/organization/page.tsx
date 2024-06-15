@@ -1,25 +1,25 @@
 "use client"
 
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import { setCookie } from "cookies-next"
-import { Plus } from "lucide-react"
+import { PlusSquare } from "lucide-react"
 import { useRouter } from "next/navigation"
 import useOrganizations from "./_hooks/use-organizations"
+import CreateOrgFormDialog from "./_components/create-org-form-dialog"
+import { useState } from "react"
+import { Toaster } from "@/components/ui/toaster"
 
 export default function OrganizationsPage() {
-  const { organizations, loadingOrgs, refetchOrgs } = useOrganizations()
+  const [openFormDialog, setOpenFormDialog] = useState(false)
+
+  const { organizations, orgsLoading, handleCreateOrg, createOrgloading } =
+    useOrganizations({ setOpenFormDialog })
 
   const router = useRouter()
   return (
     <div className="mt-20 flex flex-col justify-center items-center">
       <p className="mb-8 text-2xl">Your Organizations</p>
-      {loadingOrgs ? (
+      {orgsLoading ? (
         <div className="space-y-4 w-2/5">
           <Skeleton className={"h-12 rounded-md"} />
           <Skeleton className={"h-12 rounded-md"} />
@@ -40,22 +40,23 @@ export default function OrganizationsPage() {
                 {org.name}
               </li>
             ))}
-            <TooltipProvider>
-              <Tooltip delayDuration={300}>
-                <TooltipTrigger
-                  className="w-full px-8 py-4 cursor-pointer text-xl hover:text-blue-500 flex justify-center items-center"
-                  onClick={() => {}}
-                >
-                  <Plus />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Create New Organization</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <li
+              className="w-full px-8 py-4 space-x-3 cursor-pointer text-xl text-gray-400 hover:text-blue-500 flex justify-center items-center"
+              onClick={() => setOpenFormDialog(true)}
+            >
+              <PlusSquare />
+              <p>Create new Organization</p>
+            </li>
           </ul>
+          <CreateOrgFormDialog
+            open={openFormDialog}
+            setOpen={setOpenFormDialog}
+            handleCreateOrg={handleCreateOrg}
+            createOrgloading={createOrgloading}
+          />
         </div>
       )}
+      <Toaster />
     </div>
   )
 }

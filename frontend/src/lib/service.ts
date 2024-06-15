@@ -168,6 +168,12 @@ export async function getAllOrgsForUser() {
   return apiClient.get("/organization").then((res) => res.data)
 }
 
+export async function createOrg(orgName: string) {
+  return apiClient
+    .post("/organization", { name: orgName })
+    .then((res) => res.data)
+}
+
 export async function getUserById(userId: string): Promise<UserInfo> {
   return apiClient.get(`/user/${userId}`).then((res) => res.data)
 }
