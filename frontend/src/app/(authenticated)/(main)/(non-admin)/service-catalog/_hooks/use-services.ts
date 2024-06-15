@@ -1,12 +1,15 @@
 import { toast } from "@/components/ui/use-toast"
+import useOrganizationId from "@/hooks/use-organization-id"
 import { getAllPipeline } from "@/lib/service"
 import { useQuery } from "@tanstack/react-query"
 
 const useServices = () => {
+  const { organizationId } = useOrganizationId()
+
   const { isLoading, data: pipelines } = useQuery({
     queryKey: ["pipelines"],
     queryFn: () =>
-      getAllPipeline().catch((err) => {
+      getAllPipeline(organizationId).catch((err) => {
         console.log(err)
         toast({
           title: "Fetching Services Error",

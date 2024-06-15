@@ -11,16 +11,36 @@ import { UserMemberships } from "@/types/membership"
 
 /* Pipeline */
 
-export async function createPipeline(pipeline: Pipeline): Promise<Pipeline> {
-  return apiClient.post("/pipeline", pipeline)
+export async function createPipeline(
+  pipeline: Pipeline,
+  organizationId: number
+): Promise<Pipeline> {
+  return apiClient.post("/pipeline", { ...pipeline, org_id: organizationId })
 }
 
-export async function getAllPipeline(): Promise<Pipeline[]> {
-  return apiClient.get("/pipeline").then((res) => res.data)
+export async function getAllPipeline(
+  organizationId: number
+): Promise<Pipeline[]> {
+  return apiClient
+    .get("/pipeline", {
+      params: {
+        org_id: organizationId,
+      },
+    })
+    .then((res) => res.data)
 }
 
-export async function getPipeline(pipelineId: string): Promise<Pipeline> {
-  return apiClient.get(`/pipeline/${pipelineId}`).then((res) => res.data)
+export async function getPipeline(
+  pipelineId: string,
+  organizationId: number
+): Promise<Pipeline> {
+  return apiClient
+    .get(`/pipeline/${pipelineId}`, {
+      params: {
+        org_id: organizationId,
+      },
+    })
+    .then((res) => res.data)
 }
 
 /* Service Request */
