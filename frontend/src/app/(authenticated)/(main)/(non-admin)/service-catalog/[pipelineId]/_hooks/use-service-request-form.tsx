@@ -1,5 +1,5 @@
 import { toast } from "@/components/ui/use-toast"
-import useOrganizationId from "@/hooks/use-organization-id"
+import useOrganization from "@/hooks/use-organization"
 import usePipeline from "@/hooks/use-pipeline"
 import { createServiceRequest } from "@/lib/service"
 import { generateUiSchema } from "@/lib/rjsf-utils"
@@ -21,7 +21,7 @@ const useServiceRequestForm = ({
   })
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
   const [isSubmitButtonDisabled, setIsSubmitButtonDisabled] = useState(false)
-  const { organizationId } = useOrganizationId()
+  const { organizationId } = useOrganization()
   const router = useRouter()
 
   const handleCreateServiceRequest = (

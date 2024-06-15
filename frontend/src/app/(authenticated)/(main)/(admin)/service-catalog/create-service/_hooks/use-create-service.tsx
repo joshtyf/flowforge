@@ -14,7 +14,7 @@ import { KeyboardEvent, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { crossValidateSchema, validateFormSchema } from "../_utils/validation"
-import useOrganizationId from "@/hooks/use-organization-id"
+import useOrganization from "@/hooks/use-organization"
 import { useRouter } from "next/navigation"
 
 const DEFAULT_FORM: JsonFormComponents = {
@@ -113,7 +113,7 @@ const createServiceSchema = z
 const useCreateService = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const { organizationId } = useOrganizationId()
+  const { organizationId } = useOrganization()
   const router = useRouter()
   const form = useForm<z.infer<typeof createServiceSchema>>({
     resolver: zodResolver(createServiceSchema),

@@ -1,5 +1,5 @@
 import { toast } from "@/components/ui/use-toast"
-import useOrganizationId from "@/hooks/use-organization-id"
+import useOrganization from "@/hooks/use-organization"
 import { getAllServiceRequest } from "@/lib/service"
 import { useQuery } from "@tanstack/react-query"
 import { useMemo } from "react"
@@ -10,7 +10,7 @@ interface UseServiceRequestProps {
 }
 
 const useServiceRequests = ({ page, pageSize }: UseServiceRequestProps) => {
-  const { organizationId } = useOrganizationId()
+  const { organizationId } = useOrganization()
   const { isLoading, data } = useQuery({
     queryKey: ["user_service_requests", page, pageSize],
     queryFn: () => {
