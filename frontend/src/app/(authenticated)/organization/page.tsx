@@ -6,15 +6,18 @@ import { PlusSquare } from "lucide-react"
 import { useRouter } from "next/navigation"
 import useOrganizations from "./_hooks/use-organizations"
 import CreateOrgFormDialog from "./_components/create-org-form-dialog"
-import { useState } from "react"
 import { Toaster } from "@/components/ui/toaster"
+import useCreateOrganizationForm from "./_hooks/use-create-organization-form"
 
 export default function OrganizationsPage() {
-  const [openFormDialog, setOpenFormDialog] = useState(false)
-
-  const { organizations, orgsLoading, handleCreateOrg, createOrgloading } =
-    useOrganizations({ setOpenFormDialog })
-
+  const { organizations, orgsLoading, refetchOrgs } = useOrganizations()
+  const {
+    form,
+    openFormDialog,
+    setOpenFormDialog,
+    createOrgLoading,
+    handleCreateOrg,
+  } = useCreateOrganizationForm({ refetchOrgs })
   const router = useRouter()
   return (
     <div className="mt-20 flex flex-col justify-center items-center">
@@ -49,10 +52,11 @@ export default function OrganizationsPage() {
             </li>
           </ul>
           <CreateOrgFormDialog
-            open={openFormDialog}
-            setOpen={setOpenFormDialog}
+            form={form}
+            openFormDialog={openFormDialog}
+            setOpenFormDialog={setOpenFormDialog}
+            createOrgLoading={createOrgLoading}
             handleCreateOrg={handleCreateOrg}
-            createOrgloading={createOrgloading}
           />
         </div>
       )}
