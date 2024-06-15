@@ -1,4 +1,3 @@
-import Spinner from "@/components/layouts/spinner"
 import { Button, ButtonWithSpinner } from "@/components/ui/button"
 import {
   Dialog,
@@ -16,7 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { FieldValues, UseFormReturn } from "react-hook-form"
+import { UseFormReturn } from "react-hook-form"
 import { z } from "zod"
 import { createOrgformSchema } from "../_hooks/use-create-organization-form"
 
@@ -68,8 +67,12 @@ export default function CreateOrgFormDialog({
                 >
                   Cancel
                 </Button>
-                <ButtonWithSpinner type="submit" disabled={createOrgLoading}>
-                  {createOrgLoading ? <Spinner /> : "Create"}
+                <ButtonWithSpinner
+                  type="submit"
+                  disabled={createOrgLoading}
+                  isLoading={createOrgLoading}
+                >
+                  Create
                 </ButtonWithSpinner>
               </DialogFooter>
             </div>
