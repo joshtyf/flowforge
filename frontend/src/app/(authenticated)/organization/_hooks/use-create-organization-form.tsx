@@ -39,10 +39,10 @@ export default function useCreateOrganizationForm({
         refetchOrgs()
         toast({
           variant: "success",
-          title: "Organization Created Successfully",
+          title: "Organization Created Successful",
           description: (
             <p>
-              Check the new organization under{" "}
+              Check the new organization <i>{name}</i> under{" "}
               <strong>Your Organizations</strong>.
             </p>
           ),
