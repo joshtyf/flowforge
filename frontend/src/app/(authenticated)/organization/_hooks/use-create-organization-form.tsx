@@ -16,7 +16,7 @@ export const createOrgformSchema = z.object({
     .max(39, {
       message: "Organization name can only have a maximum of 39 characters.",
     })
-    .min(1, "Organization name is required"),
+    .min(1, "Organization name is required."),
 })
 
 export default function useCreateOrganizationForm({
