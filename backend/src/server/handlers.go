@@ -595,7 +595,7 @@ func handleUserLogin(logger logger.ServerLogger, client *sql.DB) http.Handler {
 		user, err := database.NewUser(client).GetUserById(userId)
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error(fmt.Sprintf("user %s has not been created", userId))
-			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidUserId, http.StatusBadRequest))
+			encode(w, r, http.StatusNotFound, newHandlerError(ErrInvalidUserId, http.StatusNotFound))
 			return
 		} else if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
