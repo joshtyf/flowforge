@@ -108,3 +108,5 @@ func (e *stepExecutor) execute(ctx context.Context, l *logger.ExecutorLogger) (*
 The `execute` function of the `stepExecutor` interface takes in an `ExecutorLogger` parameter. This logger is prepared and initialised by the `StepExecutionManager`. When used, the logger will log messages to the step's log file within the service requests logs directory. All service requests logs can be found in the base directory at `./executor_logs`.
 
 For example, a service request with `id=1` and step `step_name=Make API Call` will have a log file located at `./executor_logs/1/Make API Call.log`.
+
+**Note**: steps which are not started will not have a log file created for them.

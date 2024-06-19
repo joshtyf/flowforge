@@ -28,8 +28,6 @@ Then run the following command to start both the frontend and backend:
 docker compose --profile main -p flowforge up --build
 ```
 
-TODO: @yang, please verify that the frontend will work as expected
-
 ## Why Flowforge?
 
 A traditional service request system will require a developer to customise a service request form and also create an automation script that will fulfil the request. In a team with few developers, and many different kinds of service requests to deal with, this can be a bottleneck.
@@ -46,7 +44,49 @@ Service pipelines are defined in JSON schema and consists of a series of executi
 
 Suppose a pipeline creator wants to create a service pipeline that will fetch data from an API based on the requester's id, the creator can use the `API` step and map the `url` parameter to the following value: `https://myorgdomain.com/api/data/${requester_id}`. The `requester_id` parameter is a dynamic value that will be provided by the final requester when submitting the service request.
 
+This is the JSON schema for the pipeline:
+
+```json
+{
+  "version": 1,
+  "first_step_name": "Make API Call",
+  "steps": [
+    {
+      "step_name": "Make API Call",
+      "step_type": "API",
+      "next_step_name": "",
+      "prev_step_name": "",
+      "parameters": {
+        "method": "GET",
+        "url": "https://myorgdomain.com/api/data/${requester_id}",
+        "data": {},
+        "headers": {}
+      },
+      "is_terminal_step": true
+    }
+  ]
+}
+```
+
 The pipeline creator will also define a form, in JSON schema, that will collect the requester's id. This form will be used to create a service request. When the service request is submitted, the requester will provide their id and the pipeline will be executed with the `API` step's `url` parameter set to `https://myorgdomain.com/api/data/${requester_id}`, with the placeholder `${requester_id}` being substituted with the submitted requester's id.
+
+This is the form schema:
+
+```json
+{
+  "fields": [
+    {
+      "name": "requester_id",
+      "title": "RequesterId",
+      "description": "Id to be used as the query parameter of the API call",
+      "type": "input",
+      "required": true,
+      "min_length": 1,
+      "placeholder": "Enter text..."
+    }
+  ]
+}
+```
 
 **Video Demos**
 
