@@ -22,6 +22,18 @@ type Auth0UserId struct {
 	UserId string `json:"user_id"`
 }
 
+type Auth0Identity struct {
+	Connection string `json:"connection"`
+	UserId     string `json:"user_id"`
+	Provider   string `json:"provider"`
+	IsSocial   bool   `json:"isSocial"`
+}
+
+type Auth0UserDetails struct {
+	Email      string          `json:"email"`
+	Identities []Auth0Identity `json:"identities"`
+}
+
 func CreateUsersInAuth0(users []models.UserModel, passwords []string) ([]models.UserModel, error) {
 	token, err := getManagementApiToken()
 	if err != nil {
@@ -52,6 +64,50 @@ func GetUserIdForUsers(users []models.UserModel) ([]models.UserModel, error) {
 	}
 
 	return users, nil
+}
+
+func GetAuth0UserDetailsForUser(user *models.UserModel) error {
+	token, err := getManagementApiToken()
+	if err != nil {
+		return err
+	}
+
+	url, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/api/v2/users/" + user.UserId)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		defer resp.Body.Close()
+		bytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("response code %d encountered while retrieving user details: %s", resp.StatusCode, string(bytes))
+	}
+
+	var userDetails *Auth0UserDetails
+	err = json.NewDecoder(resp.Body).Decode(&userDetails)
+	if err != nil {
+		return err
+	}
+
+	user.Email = userDetails.Email
+	user.IdentityProvider = userDetails.Identities[0].Provider
+	return nil
 }
 
 func getAuth0UserIdByEmail(user *models.UserModel, token *ManagementApiToken) error {
