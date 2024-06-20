@@ -37,6 +37,7 @@ export default function OrganizationsPage() {
                 className="px-8 py-4 cursor-pointer text-xl hover:text-blue-500"
                 onClick={() => {
                   setCookie("org_id", org.org_id)
+                  setCookie("org_name", org.name)
                   router.push("/")
                 }}
               >

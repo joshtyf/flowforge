@@ -1,10 +1,10 @@
 import { toast } from "@/components/ui/use-toast"
-import useOrganizationId from "@/hooks/use-organization-id"
+import useOrganization from "@/hooks/use-organization"
 import { getAllPipeline } from "@/lib/service"
 import { useQuery } from "@tanstack/react-query"
 
 const useServices = () => {
-  const { organizationId } = useOrganizationId()
+  const { organizationId } = useOrganization()
 
   const { isLoading, data: pipelines } = useQuery({
     queryKey: ["pipelines"],

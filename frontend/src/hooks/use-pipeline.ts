@@ -1,7 +1,7 @@
 import { getPipeline } from "@/lib/service"
 import { Pipeline } from "@/types/pipeline"
 import { useEffect, useState } from "react"
-import useOrganizationId from "./use-organization-id"
+import useOrganization from "./use-organization"
 
 interface UsePipelineOptions {
   pipelineId: string
@@ -10,7 +10,7 @@ interface UsePipelineOptions {
 const usePipeline = ({ pipelineId }: UsePipelineOptions) => {
   const [pipeline, setPipeline] = useState<Pipeline>()
   const [loading, setLoading] = useState(false)
-  const { organizationId } = useOrganizationId()
+  const { organizationId } = useOrganization()
   useEffect(() => {
     setLoading(true)
     getPipeline(pipelineId, organizationId)
