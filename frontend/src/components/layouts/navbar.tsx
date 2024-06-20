@@ -14,6 +14,7 @@ import { deleteCookie } from "cookies-next"
 import { ChevronDown, LucideUser, Menu } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 interface UserActionsDropdownProps {
   username: string
@@ -44,6 +45,19 @@ const UserActionsDropdown = ({ username }: UserActionsDropdownProps) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
+        <DropdownMenuGroup>
+          <DropdownMenuItem className={"cursor-pointer hover:bg-muted"}>
+            <Link href="/settings">
+              <Button
+                variant="ghost"
+                className="hover:text-primary hover:bg-transparent"
+              >
+                Settings
+              </Button>
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem className={"cursor-pointer hover:bg-muted"}>
             <Link href="/organization">

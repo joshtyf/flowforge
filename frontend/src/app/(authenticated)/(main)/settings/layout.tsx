@@ -26,6 +26,7 @@ export default function SettingsLayout({
     <>
       <Navbar
         enableSidebarToggle={false}
+        enableOrgName={false}
         username={userProfile?.nickname ?? ""}
       />
       <div className="flex justify-center pt-10">

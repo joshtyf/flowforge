@@ -174,6 +174,12 @@ export async function createOrg(orgName: string) {
     .then((res) => res.data)
 }
 
+export async function updateOrgName(orgId: number, orgName: string) {
+  return apiClient
+    .patch("/organization", { org_id: orgId, name: orgName })
+    .then((res) => res.data)
+}
+
 export async function getUserById(userId: string): Promise<UserInfo> {
   return apiClient.get(`/user/${userId}`).then((res) => res.data)
 }
