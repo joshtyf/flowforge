@@ -22,6 +22,8 @@ func SeedMongo() {
 		panic(err)
 	}
 	seeded_user := users[0]
+	// Actual auth0 user_id concatenates the identity provider and user ID with a pipe separator
+	seeded_user.UserId = seeded_user.IdentityProvider + "|" + seeded_user.UserId
 
 	// pipeline 1
 	pipelineIdInHex := "8A7F3EBCD951246A5F0E9B87"
