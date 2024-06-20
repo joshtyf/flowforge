@@ -9,12 +9,10 @@ import { ReactNode, useEffect, useState } from "react"
 
 interface MainNavigationLayoutProps {
   children: ReactNode
-  name?: string
 }
 
 export default function MainNavigationLayout({
   children,
-  name,
 }: MainNavigationLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const toggleSidebar = () => {
