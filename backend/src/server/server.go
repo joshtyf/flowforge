@@ -24,7 +24,7 @@ func New(c *ServerConfig) http.Server {
 	return http.Server{
 		Addr: c.Address,
 		Handler: handlers.CORS(
-			handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"}),
+			handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE"}),
 			handlers.AllowedOrigins([]string{"http://localhost:3000"}),
 			handlers.AllowedHeaders([]string{
 				"Content-Type",
