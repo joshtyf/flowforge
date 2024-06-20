@@ -2,6 +2,7 @@
 
 import Navbar from "@/components/layouts/navbar"
 import Sidebar from "@/components/layouts/sidebar"
+import { useCurrentUserInfo } from "@/contexts/current-user-info-context"
 import { getUserProfile } from "@/lib/auth0"
 import { Auth0UserProfile } from "@/types/user-profile"
 import { getCookie } from "cookies-next"
@@ -9,24 +10,20 @@ import { ReactNode, useEffect, useState } from "react"
 
 interface MainNavigationLayoutProps {
   children: ReactNode
+  enableOrgName?: boolean
 }
 
 export default function MainNavigationLayout({
   children,
+  enableOrgName = true,
 }: MainNavigationLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const toggleSidebar = () => {
     setIsSidebarOpen((isSidebarOpen) => !isSidebarOpen)
   }
 
-  const [userProfile, setUserProfile] = useState<Auth0UserProfile>()
-  useEffect(() => {
-    getUserProfile(getCookie("access_token") as string)
-      .then((userProfile) => setUserProfile(userProfile))
-      .catch((error) => {
-        console.log(error)
-      })
-  }, [])
+  const userInfo = useCurrentUserInfo()
+
   return (
     <div
       className="flex flex-row w-full min-h-[100vh]"
@@ -38,7 +35,8 @@ export default function MainNavigationLayout({
       <div className="w-full">
         <Navbar
           toggleSidebar={toggleSidebar}
-          username={userProfile?.nickname ?? ""}
+          username={userInfo?.name ?? ""}
+          enableOrgName={enableOrgName}
         />
         <div className="w-full h-full max-h-[90vh] flex justify-center items-center flex-col relative">
           <div className="w-5/6 h-full relative">{children}</div>
