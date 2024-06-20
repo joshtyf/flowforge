@@ -6,6 +6,7 @@ import (
 
 	"github.com/joshtyf/flowforge/src/database"
 	"github.com/joshtyf/flowforge/src/database/client"
+	"github.com/joshtyf/flowforge/src/helper"
 	"github.com/joshtyf/flowforge/src/logger"
 )
 
@@ -24,7 +25,7 @@ func SeedPostgres() {
 	createUsers := os.Getenv("CREATE_USERS")
 	if createUsers == "true" {
 		logger.Info("Creating users in Auth0")
-		createUsersInAuth0(users, passwords)
+		helper.CreateUsersInAuth0(users, passwords)
 	}
 	// Auth0 automatically concatenates the identity provider and user ID with a pipe separator
 	for _, user := range users {

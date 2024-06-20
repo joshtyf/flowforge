@@ -16,6 +16,7 @@ import (
 	"github.com/joshtyf/flowforge/src/database"
 	"github.com/joshtyf/flowforge/src/database/models"
 	"github.com/joshtyf/flowforge/src/events"
+	"github.com/joshtyf/flowforge/src/helper"
 	"github.com/joshtyf/flowforge/src/logger"
 	"github.com/joshtyf/flowforge/src/util"
 	"github.com/joshtyf/flowforge/src/validation"
@@ -72,8 +73,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/user", isAuthenticated(handleGetAllUsers(s.logger, s.psqlClient), s.logger)).Methods("GET")
 	r.Handle("/api/user/{userId}", isAuthenticated(handleGetUserById(s.logger, s.psqlClient), s.logger)).Methods("GET")
 	r.Handle("/api/login", isAuthenticated(handleUserLogin(s.logger, s.psqlClient), s.logger)).Methods("GET")
-	// TODO: revisit on integrating SSO
-	// r.Handle("/api/login", isAuthenticated(handleUserLogin(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/user", isAuthenticated(handleCreateUser(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 
 	// Organization
 	r.Handle("/api/organization", isAuthenticated(handleCreateOrganization(s.logger, s.psqlClient), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
@@ -595,7 +595,7 @@ func handleUserLogin(logger logger.ServerLogger, client *sql.DB) http.Handler {
 		user, err := database.NewUser(client).GetUserById(userId)
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error(fmt.Sprintf("user %s has not been created", userId))
-			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidUserId, http.StatusBadRequest))
+			encode(w, r, http.StatusNotFound, newHandlerError(ErrInvalidUserId, http.StatusNotFound))
 			return
 		} else if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
@@ -604,6 +604,36 @@ func handleUserLogin(logger logger.ServerLogger, client *sql.DB) http.Handler {
 		}
 
 		logger.Info(fmt.Sprintf("user %s logged in", userId))
+		encode(w, r, http.StatusOK, user)
+	})
+}
+
+func handleCreateUser(logger logger.ServerLogger, client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		um, err := decode[models.UserModel](r)
+		if err != nil {
+			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		userId := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims).RegisteredClaims.Subject
+		um.UserId = userId
+
+		err = helper.GetAuth0UserDetailsForUser(&um)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error encountered while retrieving user details: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+
+		user, err := database.NewUser(client).Create(&um)
+		if err != nil {
+			logger.Error(fmt.Sprintf("failed to create user: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+
+		logger.Info(fmt.Sprintf("user %s created", user.UserId))
 		encode(w, r, http.StatusOK, user)
 	})
 }

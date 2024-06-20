@@ -1,4 +1,4 @@
-import useOrganizationId from "@/hooks/use-organization-id"
+import useOrganization from "@/hooks/use-organization"
 import { getUserMemberships } from "@/lib/service"
 import { Role, UserMemberships } from "@/types/membership"
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
@@ -23,7 +23,7 @@ export function UserMembershipsProvider({
         console.error(err)
       })
   }, [])
-  const { organizationId } = useOrganizationId()
+  const { organizationId } = useOrganization()
 
   const isAdminOfCurrentOrg = useMemo(() => {
     return userMemberships?.memberships.some(

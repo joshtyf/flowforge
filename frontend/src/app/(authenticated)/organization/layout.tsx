@@ -17,7 +17,11 @@ export default function AuthenticatedLayout({
 
   return (
     <>
-      <Navbar username={userInfo?.name ?? ""} enableSidebarToggle={false} />
+      <Navbar
+        username={userInfo?.name ?? ""}
+        enableSidebarToggle={false}
+        enableOrgName={false}
+      />
       {children}
     </>
   )

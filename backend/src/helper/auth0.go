@@ -1,4 +1,4 @@
-package seeders
+package helper
 
 import (
 	"bytes"
@@ -23,7 +23,19 @@ type Auth0UserId struct {
 	UserId string `json:"user_id"`
 }
 
-func createUsersInAuth0(users []*models.UserModel, passwords []string) ([]*models.UserModel, error) {
+type Auth0Identity struct {
+	Connection string `json:"connection"`
+	UserId     string `json:"user_id"`
+	Provider   string `json:"provider"`
+	IsSocial   bool   `json:"isSocial"`
+}
+
+type Auth0UserDetails struct {
+	Email      string          `json:"email"`
+	Identities []Auth0Identity `json:"identities"`
+}
+
+func CreateUsersInAuth0(users []*models.UserModel, passwords []string) ([]*models.UserModel, error) {
 	token, err := getManagementApiToken()
 	if err != nil {
 		return nil, err
@@ -40,66 +52,49 @@ func createUsersInAuth0(users []*models.UserModel, passwords []string) ([]*model
 	return users, nil
 }
 
-// func GetUserIdForUsers(users []models.UserModel) ([]models.UserModel, error) {
-// 	token, err := getManagementApiToken()
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func GetAuth0UserDetailsForUser(user *models.UserModel) error {
+	token, err := getManagementApiToken()
+	if err != nil {
+		return err
+	}
 
-// 	for i := 0; i < len(users); i++ {
-// 		err = getAuth0UserIdByEmail(&users[i], token)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 	}
+	url, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/api/v2/users/" + user.UserId)
+	if err != nil {
+		return err
+	}
 
-// 	return users, nil
-// }
+	req, err := http.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return err
+	}
 
-// func getAuth0UserIdByEmail(user *models.UserModel, token *ManagementApiToken) error {
-// 	url, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/api/v2/users-by-email")
-// 	if err != nil {
-// 		return err
-// 	}
+	req.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
 
-// 	req, err := http.NewRequest("GET", url.String(), nil)
-// 	if err != nil {
-// 		return err
-// 	}
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
 
-// 	q := req.URL.Query()
-// 	q.Add("email", user.Email)
-// 	q.Add("fields", "user_id")
-// 	req.URL.RawQuery = q.Encode()
-// 	req.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
+	if resp.StatusCode != http.StatusOK {
+		defer resp.Body.Close()
+		bytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("response code %d encountered while retrieving user details: %s", resp.StatusCode, string(bytes))
+	}
 
-// 	client := &http.Client{}
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		return err
-// 	}
+	var userDetails *Auth0UserDetails
+	err = json.NewDecoder(resp.Body).Decode(&userDetails)
+	if err != nil {
+		return err
+	}
 
-// 	if resp.StatusCode != http.StatusOK {
-// 		defer resp.Body.Close()
-// 		bytes, err := io.ReadAll(resp.Body)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		return fmt.Errorf("response code %d encountered while retrieving user id: %s", resp.StatusCode, string(bytes))
-// 	}
-
-// 	var userId []*Auth0UserId
-// 	err = json.NewDecoder(resp.Body).Decode(&userId)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if len(userId) <= 0 {
-// 		return fmt.Errorf("user with %s has not been created", user.Email)
-// 	}
-
-// 	user.UserId = userId[0].UserId
-// 	return nil
-// }
+	user.Email = userDetails.Email
+	user.IdentityProvider = userDetails.Identities[0].Provider
+	return nil
+}
 
 func createUserInAuth0(user *models.UserModel, password string, token *ManagementApiToken) error {
 	url, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/api/v2/users")
