@@ -185,3 +185,7 @@ export async function getUserMemberships(): Promise<UserMemberships> {
 export async function login(): Promise<UserInfo> {
   return apiClient.get("login").then((res) => res.data)
 }
+
+export async function createUser(name: string): Promise<UserInfo> {
+  return apiClient.post("/user", { name }).then((res) => res.data)
+}
