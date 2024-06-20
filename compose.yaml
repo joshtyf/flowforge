@@ -69,7 +69,8 @@ services:
       - be-seed
     build:
       context: backend
-      dockerfile: dockerfiles/postgres_seed.Dockerfile
+      dockerfile: database/seed/seed.Dockerfile
+    command: ["./dist/main", "postgres"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -116,7 +117,8 @@ services:
       - be-seed
     build:
       context: backend
-      dockerfile: dockerfiles/mongo_seed.Dockerfile
+      dockerfile: database/seed/seed.Dockerfile
+    command: ["./dist/main", "mongo"]
     depends_on:
       mongo:
         condition: service_healthy

@@ -1,4 +1,4 @@
-package main
+package seeders
 
 import (
 	"os"
@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func main() {
+func SeedMongo() {
 	logger := logger.NewServerLog(os.Stdout)
 	c, err := client.GetMongoClient()
 	if err != nil {
