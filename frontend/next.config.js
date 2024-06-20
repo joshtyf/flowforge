@@ -8,6 +8,11 @@ const nextConfig = {
         destination: "/service-catalog",
         permanent: true,
       },
+      {
+        source: "/settings",
+        destination: "/settings/organization",
+        permanent: true,
+      },
     ]
   },
 }
