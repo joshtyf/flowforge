@@ -17,6 +17,11 @@ func SeedMongo() {
 	if err != nil {
 		panic(err)
 	}
+	users, _, err := getUsersFromCsv()
+	if err != nil {
+		panic(err)
+	}
+	seeded_user := users[0]
 
 	// pipeline 1
 	pipelineIdInHex := "8A7F3EBCD951246A5F0E9B87"
@@ -26,7 +31,7 @@ func SeedMongo() {
 		panic(err)
 	}
 	pipeline1 := models.PipelineModel{
-		UserId:         "auth0|66010ad5095367b237799680", // zheng.zhiqiang49@gmail.com
+		UserId:         seeded_user.UserId,
 		OrganizationId: 1,
 		PipelineName:   pipelineName,
 		Id:             pipelineId,
@@ -90,7 +95,7 @@ func SeedMongo() {
 		panic(err)
 	}
 	pipeline2 := models.PipelineModel{
-		UserId:         "auth0|66010ad5095367b237799680", // zheng.zhiqiang49@gmail.com
+		UserId:         seeded_user.UserId,
 		OrganizationId: 1,
 		PipelineName:   pipelineName,
 		Id:             pipelineId,
@@ -166,7 +171,7 @@ func SeedMongo() {
 		panic(err)
 	}
 	pipeline3 := models.PipelineModel{
-		UserId:         "auth0|65e9dabff2dab546ed0c231e", // josh's user ID
+		UserId:         seeded_user.UserId,
 		OrganizationId: 2,
 		PipelineName:   pipelineName,
 		Id:             pipelineId,
@@ -239,7 +244,7 @@ func SeedMongo() {
 		panic(err)
 	}
 	pipeline4 := models.PipelineModel{
-		UserId:         "auth0|6640b87db9de48e5a6243618", // test1@example.com
+		UserId:         seeded_user.UserId,
 		OrganizationId: 3,
 		PipelineName:   pipelineName,
 		Id:             pipelineId,
@@ -314,7 +319,7 @@ func SeedMongo() {
 	}
 	serviceRequest1 := models.ServiceRequestModel{
 		Id:              serviceReqId,
-		UserId:          "auth0|65e9dabff2dab546ed0c231e", // josh's user ID
+		UserId:          seeded_user.UserId,
 		PipelineId:      pipeline1.Id.Hex(),
 		PipelineName:    pipeline1.PipelineName,
 		PipelineVersion: 1,
@@ -337,7 +342,7 @@ func SeedMongo() {
 	}
 	serviceRequest2 := models.ServiceRequestModel{
 		Id:              serviceReqId,
-		UserId:          "auth0|65e9dabff2dab546ed0c231e", // josh's user ID
+		UserId:          seeded_user.UserId,
 		PipelineId:      pipeline1.Id.Hex(),
 		PipelineName:    pipeline1.PipelineName,
 		PipelineVersion: 1,
@@ -360,7 +365,7 @@ func SeedMongo() {
 	}
 	serviceRequest3 := models.ServiceRequestModel{
 		Id:              serviceReqId,
-		UserId:          "auth0|65e9dabff2dab546ed0c231e", // josh's user ID
+		UserId:          seeded_user.UserId,
 		PipelineId:      pipeline2.Id.Hex(),
 		PipelineName:    pipeline2.PipelineName,
 		PipelineVersion: 1,
@@ -383,7 +388,7 @@ func SeedMongo() {
 	}
 	serviceRequest4 := models.ServiceRequestModel{
 		Id:              serviceReqId,
-		UserId:          "auth0|65e9dabff2dab546ed0c231e", // josh's user ID
+		UserId:          seeded_user.UserId,
 		PipelineId:      pipeline2.Id.Hex(),
 		PipelineName:    pipeline2.PipelineName,
 		PipelineVersion: 1,
@@ -406,7 +411,7 @@ func SeedMongo() {
 	}
 	serviceRequest5 := models.ServiceRequestModel{
 		Id:              serviceReqId,
-		UserId:          "auth0|65e9dabff2dab546ed0c231e", // josh's user ID
+		UserId:          seeded_user.UserId,
 		PipelineId:      pipeline1.Id.Hex(),
 		PipelineName:    pipeline1.PipelineName,
 		PipelineVersion: 1,
@@ -429,7 +434,7 @@ func SeedMongo() {
 	}
 	serviceRequest6 := models.ServiceRequestModel{
 		Id:              serviceReqId,
-		UserId:          "auth0|65e9dabff2dab546ed0c231e", // josh's user ID
+		UserId:          seeded_user.UserId,
 		PipelineId:      pipeline2.Id.Hex(),
 		PipelineName:    pipeline2.PipelineName,
 		PipelineVersion: 1,
@@ -452,7 +457,7 @@ func SeedMongo() {
 	}
 	serviceRequest7 := models.ServiceRequestModel{
 		Id:              serviceReqId,
-		UserId:          "auth0|65ffab5c004e8d1620d06a64", // zqzheng.2019@smu.edu.sg
+		UserId:          seeded_user.UserId,
 		PipelineId:      pipeline1.Id.Hex(),
 		PipelineName:    pipeline1.PipelineName,
 		PipelineVersion: 1,
@@ -475,7 +480,7 @@ func SeedMongo() {
 	}
 	serviceRequest8 := models.ServiceRequestModel{
 		Id:              serviceReqId,
-		UserId:          "auth0|65ffab5c004e8d1620d06a64", // zqzheng.2019@smu.edu.sg
+		UserId:          seeded_user.UserId,
 		PipelineId:      pipeline2.Id.Hex(),
 		PipelineName:    pipeline2.PipelineName,
 		PipelineVersion: 1,
@@ -498,7 +503,7 @@ func SeedMongo() {
 	}
 	serviceRequest9 := models.ServiceRequestModel{
 		Id:              serviceReqId,
-		UserId:          "auth0|66010ad5095367b237799680", // zheng.zhiqiang49@gmail.com
+		UserId:          seeded_user.UserId,
 		PipelineId:      pipeline2.Id.Hex(),
 		PipelineName:    pipeline2.PipelineName,
 		PipelineVersion: 1,
@@ -521,7 +526,7 @@ func SeedMongo() {
 	}
 	serviceRequest10 := models.ServiceRequestModel{
 		Id:              serviceReqId,
-		UserId:          "auth0|66010ad5095367b237799680", // zheng.zhiqiang49@gmail.com
+		UserId:          seeded_user.UserId,
 		PipelineId:      pipeline2.Id.Hex(),
 		PipelineName:    pipeline2.PipelineName,
 		PipelineVersion: 1,
@@ -544,7 +549,7 @@ func SeedMongo() {
 	}
 	serviceRequest11 := models.ServiceRequestModel{
 		Id:              serviceReqId,
-		UserId:          "auth0|66010ad5095367b237799680", // zheng.zhiqiang49@gmail.com
+		UserId:          seeded_user.UserId,
 		PipelineId:      pipeline1.Id.Hex(),
 		PipelineName:    pipeline1.PipelineName,
 		PipelineVersion: 1,
@@ -567,12 +572,12 @@ func SeedMongo() {
 	}
 	serviceRequest12 := models.ServiceRequestModel{
 		Id:              serviceReqId,
-		UserId:          "auth0|6640b87e9acbec524a253e74", // test2@example.com
+		UserId:          seeded_user.UserId,
 		PipelineId:      pipeline4.Id.Hex(),
 		PipelineName:    pipeline4.PipelineName,
 		PipelineVersion: 1,
 		Status:          models.NOT_STARTED,
-		OrganizationId:  3,
+		OrganizationId:  1,
 		Remarks:         "This is a test service request.",
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
@@ -590,12 +595,12 @@ func SeedMongo() {
 	}
 	serviceRequest13 := models.ServiceRequestModel{
 		Id:              serviceReqId,
-		UserId:          "auth0|6640b87db9de48e5a6243618", // test1@example.com
+		UserId:          seeded_user.UserId,
 		PipelineId:      pipeline3.Id.Hex(),
 		PipelineName:    pipeline3.PipelineName,
 		PipelineVersion: 1,
 		Status:          models.NOT_STARTED,
-		OrganizationId:  2,
+		OrganizationId:  1,
 		Remarks:         "This is a test service request.",
 		CreatedOn:       time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),
 		LastUpdated:     time.Date(2024, time.January, 1, 1, 0, 0, 0, time.UTC),

@@ -127,6 +127,7 @@ services:
 
     environment:
       - MONGO_URI=${MONGO_URI}
+      - USER_SEED_FILENAME=${users:-user.csv}
 
 volumes:
   flowforge_executor_logs:
