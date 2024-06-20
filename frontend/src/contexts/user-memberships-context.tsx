@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react"
 
 interface MembershipContextValue {
   isAdmin?: boolean
+  isOwner?: boolean
 }
 
 const MembershipContext = createContext<MembershipContextValue | null>(null)
@@ -33,10 +34,18 @@ export function UserMembershipsProvider({
     )
   }, [userMemberships, organizationId])
 
+  const isOwnerOfCurrentOrg = useMemo(() => {
+    return userMemberships?.memberships.some(
+      (membership) =>
+        membership.org_id === organizationId && membership.role === Role.Owner
+    )
+  }, [userMemberships, organizationId])
+
   return (
     <MembershipContext.Provider
       value={{
         isAdmin: isAdminOfCurrentOrg,
+        isOwner: isOwnerOfCurrentOrg,
       }}
     >
       {children}
