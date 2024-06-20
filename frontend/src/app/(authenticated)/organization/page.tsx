@@ -1,27 +1,28 @@
 "use client"
 
 import { Skeleton } from "@/components/ui/skeleton"
-import { getAllOrgsForUser } from "@/lib/service"
-import { Organization } from "@/types/organization"
 import { setCookie } from "cookies-next"
+import { PlusSquare } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import useOrganizations from "./_hooks/use-organizations"
+import CreateOrgFormDialog from "./_components/create-org-form-dialog"
+import { Toaster } from "@/components/ui/toaster"
+import useCreateOrganizationForm from "./_hooks/use-create-organization-form"
 
 export default function OrganizationsPage() {
-  const [organizations, setOrganizations] = useState<Organization[]>([])
-  const [loading, setLoading] = useState(true)
-  useEffect(() => {
-    getAllOrgsForUser().then((orgs) => {
-      setOrganizations(orgs)
-      setLoading(false)
-    })
-  }, [])
-
+  const { organizations, orgsLoading, refetchOrgs } = useOrganizations()
+  const {
+    form,
+    openFormDialog,
+    setOpenFormDialog,
+    createOrgLoading,
+    handleCreateOrg,
+  } = useCreateOrganizationForm({ refetchOrgs })
   const router = useRouter()
   return (
     <div className="mt-20 flex flex-col justify-center items-center">
       <p className="mb-8 text-2xl">Your Organizations</p>
-      {loading ? (
+      {orgsLoading ? (
         <div className="space-y-4 w-2/5">
           <Skeleton className={"h-12 rounded-md"} />
           <Skeleton className={"h-12 rounded-md"} />
@@ -42,9 +43,24 @@ export default function OrganizationsPage() {
                 {org.name}
               </li>
             ))}
+            <li
+              className="w-full px-8 py-4 space-x-3 cursor-pointer text-xl text-gray-400 hover:text-blue-500 flex justify-center items-center"
+              onClick={() => setOpenFormDialog(true)}
+            >
+              <PlusSquare />
+              <p>Create new Organization</p>
+            </li>
           </ul>
+          <CreateOrgFormDialog
+            form={form}
+            openFormDialog={openFormDialog}
+            setOpenFormDialog={setOpenFormDialog}
+            createOrgLoading={createOrgLoading}
+            handleCreateOrg={handleCreateOrg}
+          />
         </div>
       )}
+      <Toaster />
     </div>
   )
 }
