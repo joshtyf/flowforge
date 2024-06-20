@@ -1,0 +1,17 @@
+meta {
+  name: create user
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{HOST}}/user
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Test User"
+  }
+}
