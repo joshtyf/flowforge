@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -34,30 +35,15 @@ type Auth0UserDetails struct {
 	Identities []Auth0Identity `json:"identities"`
 }
 
-func CreateUsersInAuth0(users []models.UserModel, passwords []string) ([]models.UserModel, error) {
+func CreateUsersInAuth0(users []*models.UserModel, passwords []string) ([]*models.UserModel, error) {
 	token, err := getManagementApiToken()
 	if err != nil {
 		return nil, err
 	}
 
 	for i := 0; i < len(users); i++ {
-		err = createUserInAuth0(&users[i], passwords[i], token)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return users, nil
-}
-
-func GetUserIdForUsers(users []models.UserModel) ([]models.UserModel, error) {
-	token, err := getManagementApiToken()
-	if err != nil {
-		return nil, err
-	}
-
-	for i := 0; i < len(users); i++ {
-		err = getAuth0UserIdByEmail(&users[i], token)
+		log.Printf("Creating user %s", users[i].Name)
+		err = createUserInAuth0(users[i], passwords[i], token)
 		if err != nil {
 			return nil, err
 		}
@@ -110,51 +96,6 @@ func GetAuth0UserDetailsForUser(user *models.UserModel) error {
 	return nil
 }
 
-func getAuth0UserIdByEmail(user *models.UserModel, token *ManagementApiToken) error {
-	url, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/api/v2/users-by-email")
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return err
-	}
-
-	q := req.URL.Query()
-	q.Add("email", user.Email)
-	q.Add("fields", "user_id")
-	req.URL.RawQuery = q.Encode()
-	req.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		defer resp.Body.Close()
-		bytes, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-		return fmt.Errorf("response code %d encountered while retrieving user id: %s", resp.StatusCode, string(bytes))
-	}
-
-	var userId []*Auth0UserId
-	err = json.NewDecoder(resp.Body).Decode(&userId)
-	if err != nil {
-		return err
-	}
-	if len(userId) <= 0 {
-		return fmt.Errorf("user with %s has not been created", user.Email)
-	}
-
-	user.UserId = userId[0].UserId
-	return nil
-}
-
 func createUserInAuth0(user *models.UserModel, password string, token *ManagementApiToken) error {
 	url, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/api/v2/users")
 	if err != nil {
@@ -162,12 +103,13 @@ func createUserInAuth0(user *models.UserModel, password string, token *Managemen
 	}
 
 	str := `{
+		"user_id": "%s",
 		"email": "%s",
 		"name": "%s",
 		"connection": "Username-Password-Authentication",
 		"password": "%s"
 	}`
-	jsonStr := []byte(fmt.Sprintf(str, user.Email, user.Name, password))
+	jsonStr := []byte(fmt.Sprintf(str, user.UserId, user.Email, user.Name, password))
 	req, err := http.NewRequest("POST", url.String(), bytes.NewBuffer(jsonStr))
 	if err != nil {
 		return err
@@ -181,13 +123,10 @@ func createUserInAuth0(user *models.UserModel, password string, token *Managemen
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	log.Println(string(body))
 
-	var userId *Auth0UserId
-	err = json.NewDecoder(resp.Body).Decode(&userId)
-	if err != nil {
-		return err
-	}
-	user.UserId = userId.UserId
 	return nil
 }
 
