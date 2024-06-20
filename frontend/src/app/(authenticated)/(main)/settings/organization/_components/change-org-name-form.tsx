@@ -50,7 +50,7 @@ export default function ChangeOrgNameForm({
         />
         <ButtonWithSpinner
           isLoading={updateOrgNameLoading}
-          disabled={updateOrgNameLoading}
+          disabled={updateOrgNameLoading || !isOwner}
         >
           Change
         </ButtonWithSpinner>
