@@ -20,23 +20,27 @@ type LinkType = {
     | null
     | undefined
   isAdminFeature?: boolean
+  key: string
 }
 
 const links: LinkType[] = [
   {
     title: "Service Catalog",
+    key: "service-catalog",
     icon: LibraryBig,
     href: "/service-catalog",
     variant: "ghost",
   },
   {
     title: "Your Service Requests Dashboard",
+    key: "your-service-request-dashboard",
     icon: Workflow,
     href: "/your-service-request-dashboard",
     variant: "ghost",
   },
   {
     title: "Admin Service Request Dashboard",
+    key: "admin-service-request-dashboard",
     icon: LockKeyhole,
     href: "/admin-service-requests-dashboard",
     variant: "ghost",
@@ -67,12 +71,12 @@ export default function Sidebar({ className }: SidebarProps) {
             </span>
           </Link>
         </div>
-        {links.map((link, index) =>
+        {links.map((link) =>
           link.isAdminFeature && !isAdmin ? (
             <></>
           ) : (
             <Link
-              key={index}
+              key={link.key}
               href={link.href}
               className={cn(
                 buttonVariants({ variant: link.variant, size: "sm" }),
