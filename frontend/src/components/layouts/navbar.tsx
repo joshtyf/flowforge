@@ -14,7 +14,6 @@ import { deleteCookie } from "cookies-next"
 import { ChevronDown, LucideUser, Menu } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 
 interface UserActionsDropdownProps {
   username: string

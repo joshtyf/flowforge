@@ -2,8 +2,6 @@
 
 import MainNavigationLayout from "@/components/layouts/main-navigation-layout"
 import SettingsSidebar from "./_components/settings-sidebar"
-import Navbar from "@/components/layouts/navbar"
-import { useCurrentUserInfo } from "@/contexts/current-user-info-context"
 
 export default function SettingsLayout({
   children,

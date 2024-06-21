@@ -3,10 +3,7 @@
 import Navbar from "@/components/layouts/navbar"
 import Sidebar from "@/components/layouts/sidebar"
 import { useCurrentUserInfo } from "@/contexts/current-user-info-context"
-import { getUserProfile } from "@/lib/auth0"
-import { Auth0UserProfile } from "@/types/user-profile"
-import { getCookie } from "cookies-next"
-import { ReactNode, useEffect, useState } from "react"
+import { ReactNode, useState } from "react"
 
 interface MainNavigationLayoutProps {
   children: ReactNode
