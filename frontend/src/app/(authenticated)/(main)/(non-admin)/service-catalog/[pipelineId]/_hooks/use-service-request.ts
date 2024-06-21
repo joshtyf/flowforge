@@ -4,7 +4,6 @@ import usePipeline from "@/hooks/use-pipeline"
 import { createServiceRequest } from "@/lib/service"
 import { generateUiSchema } from "@/lib/rjsf-utils"
 import { convertServiceRequestFormToRJSFSchema } from "@/lib/rjsf-utils"
-import { FormFieldType, JsonFormComponents } from "@/types/json-form-components"
 import { IChangeEvent } from "@rjsf/core"
 import { RJSFSchema } from "@rjsf/utils"
 import { useMemo, useState } from "react"
@@ -35,17 +34,16 @@ const useServiceRequestForm = ({
       return
     }
     createServiceRequest(organizationId, pipelineId, formData, service?.version)
-      .then((data) => {
+      .then(() => {
         toast({
           title: "Request Submission Successful",
           description:
             "Please check the dashboard for the status of the request.",
           variant: "success",
         })
-        console.log("Response: ", data)
       })
       .catch((err) => {
-        console.log(err)
+        console.error(err)
         toast({
           title: "Request Submission Error",
           description: "Failed to submit the service request.",

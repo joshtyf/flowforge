@@ -53,7 +53,7 @@ const useServiceRequestForm = ({
         router.push("/your-service-request-dashboard")
       })
       .catch((err) => {
-        console.log(err)
+        console.error(err)
         toast({
           title: "Request Submission Error",
           description: "Failed to submit the service request.",

@@ -10,14 +10,18 @@ interface MembershipSectionProps {
 export default function MembershipSection({
   organizationId,
 }: MembershipSectionProps) {
-  const { members } = useMemberships({ orgId: organizationId })
+  const { members, setFilter } = useMemberships({ orgId: organizationId })
   return (
     <div className="space-y-5">
       <div>
         <h1 className="text-xl">Members</h1>
       </div>
       <div className="flex items-center">
-        <Input placeholder="Search for member" className="max-w-xs" />
+        <Input
+          placeholder="Search for member"
+          className="max-w-xs"
+          onChange={(e) => setFilter(e.target.value)}
+        />
         <Button variant={"outline"} className="ml-auto">
           Add Member
         </Button>
