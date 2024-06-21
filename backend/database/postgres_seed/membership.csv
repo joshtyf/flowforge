@@ -1,0 +1,10 @@
+user,org,role
+zheng.zhiqiang49@gmail.com,Test Org 1,Admin
+tan.yin.feng@hotmail.com,Test Org 1,Member
+tan.yin.feng@hotmail.com,Test Org 2,Admin
+test1@example.com,Test Org 1,Member
+test2@example.com,Test Org 1,Member
+test3@example.com,Test Org 3,Member
+test1@example.com,Test Org 2,Member
+test1@example.com,Test Org 3,Admin
+test2@example.com,Test Org 3,Member

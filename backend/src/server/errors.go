@@ -30,11 +30,12 @@ var (
 	ErrOrganizationDeleteFail = errors.New("failed to delete organization")
 	ErrInvalidOrganizationId  = errors.New("invalid organization id")
 
-	ErrMembershipCreateFail = errors.New("failed to create membership")
-	ErrMembershipUpdateFail = errors.New("failed to update membership")
-	ErrMembershipDeleteFail = errors.New("failed to delete membership")
-	ErrMembershipInvalid    = errors.New("invalid membership")
-	ErrMembershipRetrieve   = errors.New("failed to retrieve memberships")
+	ErrMembershipCreateFail  = errors.New("failed to create membership")
+	ErrMembershipUpdateFail  = errors.New("failed to update membership")
+	ErrMembershipDeleteFail  = errors.New("failed to delete membership")
+	ErrMembershipInvalid     = errors.New("invalid membership")
+	ErrMembershipRetrieve    = errors.New("failed to retrieve memberships")
+	ErrInvalidMembershipRole = errors.New("invalid membership role")
 
 	ErrInvalidOffset = errors.New("invalid offset")
 )

@@ -297,6 +297,12 @@ func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger 
 			return
 		}
 
+		if mm.Role != models.Owner && mm.Role != models.Admin && mm.Role != models.Member {
+			logger.Error("unable to add/update membership as role is invalid")
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidMembershipRole, http.StatusBadRequest))
+			return
+		}
+
 		if mm.Role == models.Owner && membership.Role == models.Admin {
 			logger.Error("user not authorized to grant/delete ownership")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
