@@ -23,6 +23,7 @@ export default function SettingsSidebar({ className }: SettingsSidebarProps) {
       <nav>
         {links.map((link) => (
           <Link
+            key={link.name}
             href={link.href}
             className={cn(
               `${linkBaseStyle}, ${pathname === link.href ? linkActiveStyle : linkInactiveStyle}`
