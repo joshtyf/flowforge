@@ -12,6 +12,7 @@ type UserInfo = {
   created_on: Date
   deleted: boolean
   email: string
+  role?: string
 }
 
 export type { Auth0UserProfile, UserInfo }

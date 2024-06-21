@@ -195,3 +195,7 @@ export async function login(): Promise<UserInfo> {
 export async function createUser(name: string): Promise<UserInfo> {
   return apiClient.post("/user", { name }).then((res) => res.data)
 }
+
+export async function getMembersForOrg(orgId: number) {
+  return apiClient.get(`/organization/${orgId}/members`).then((res) => res.data)
+}

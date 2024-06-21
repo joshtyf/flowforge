@@ -3,6 +3,7 @@
 import { Separator } from "@/components/ui/separator"
 import ChangeOrgNameForm from "./_components/change-org-name-form"
 import useOrganization from "@/hooks/use-organization"
+import MembershipSection from "./_components/membership-section"
 
 export default function OrganizationSettingsPage() {
   const { organizationId, organizationName, updateOrgNameInCookie } =
@@ -22,6 +23,8 @@ export default function OrganizationSettingsPage() {
             />
           </div>
           <Separator className="w-full my-4" />
+          <MembershipSection organizationId={organizationId} />
+          <Separator className="w-full my-2" />
         </>
       ) : (
         <div>
