@@ -2,6 +2,8 @@ import { PlusSquare } from "lucide-react"
 import useMemberships from "../_hooks/use-memberships"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useState } from "react"
+import useDebounce from "@/hooks/use-debounce"
 
 interface MembershipSectionProps {
   organizationId: number
@@ -10,7 +12,14 @@ interface MembershipSectionProps {
 export default function MembershipSection({
   organizationId,
 }: MembershipSectionProps) {
-  const { members, setFilter } = useMemberships({ orgId: organizationId })
+  const [searchFilter, setSearchFilter] = useState("")
+
+  // Delay filter execution by 0.5s at each filter change
+  const { debouncedValue: debouncedFilter } = useDebounce(searchFilter, 500)
+  const { members } = useMemberships({
+    orgId: organizationId,
+    filter: debouncedFilter,
+  })
   return (
     <div className="space-y-5">
       <div>
@@ -20,7 +29,7 @@ export default function MembershipSection({
         <Input
           placeholder="Search for member"
           className="max-w-xs"
-          onChange={(e) => setFilter(e.target.value)}
+          onChange={(e) => setSearchFilter(e.target.value)}
         />
         <Button variant={"outline"} className="ml-auto">
           Add Member

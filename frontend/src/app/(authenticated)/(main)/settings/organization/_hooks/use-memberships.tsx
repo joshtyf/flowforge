@@ -2,11 +2,17 @@ import { getMembersForOrg } from "@/lib/service"
 import { UserInfo } from "@/types/user-profile"
 import { useEffect, useMemo, useState } from "react"
 
-export default function useMemberships({ orgId }: { orgId: number }) {
+interface UseMembershipOptions {
+  orgId: number
+  filter: string
+}
+
+export default function useMemberships({
+  orgId,
+  filter,
+}: UseMembershipOptions) {
   const [members, setMembers] = useState<UserInfo[]>([])
   const [isLoadingMembers, setIsLoadingMembers] = useState(false)
-
-  const [filter, setFilter] = useState("")
 
   const filteredMembers = useMemo(() => {
     return members.filter((member) => member.name.includes(filter))
@@ -20,5 +26,5 @@ export default function useMemberships({ orgId }: { orgId: number }) {
       .finally(() => setIsLoadingMembers(false))
   }, [orgId])
 
-  return { members: filteredMembers, isLoadingMembers, setFilter }
+  return { members: filteredMembers, isLoadingMembers }
 }
