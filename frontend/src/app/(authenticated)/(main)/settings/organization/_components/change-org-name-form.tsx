@@ -32,12 +32,12 @@ export default function ChangeOrgNameForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-5">
+        <h1 className="text-xl">Change Organization Name</h1>
         <FormField
           control={form.control}
           name="orgName"
           render={({ field }) => (
             <FormItem className="space-y-2">
-              <h2 className="text-lg">Change Organization Name</h2>
               <FormDescription>
                 Only the owner of the organization can change the name.
               </FormDescription>
