@@ -290,10 +290,22 @@ func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger 
 			return
 		}
 
+		if membership.Role == models.Member {
+			logger.Error("user not authorized to grant/delete membership")
+			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			return
+		}
+
 		mm, err := decode[models.MembershipModel](r)
 		if err != nil {
 			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+
+		if mm.UserId == membership.UserId {
+			logger.Error("user not authorized to change own membership")
+			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}
 
@@ -303,7 +315,7 @@ func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger 
 			return
 		}
 
-		if mm.Role == models.Owner && membership.Role == models.Admin {
+		if mm.Role == models.Owner && membership.Role != models.Owner {
 			logger.Error("user not authorized to grant/delete ownership")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
@@ -316,7 +328,7 @@ func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger 
 			return
 		}
 
-		if subjectMembership != nil && subjectMembership.Role == models.Owner && membership.Role == models.Admin {
+		if subjectMembership != nil && subjectMembership.Role == models.Owner && membership.Role != models.Owner {
 			logger.Error("user not authorized to alter/delete ownership")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
