@@ -1,0 +1,11 @@
+meta {
+  name: organization members
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{HOST}}/organization/{{org_id}}/members
+  body: none
+  auth: inherit
+}

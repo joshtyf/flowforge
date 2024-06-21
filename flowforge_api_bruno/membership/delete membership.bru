@@ -1,0 +1,18 @@
+meta {
+  name: delete membership
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{HOST}}/membership
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "user_id": "auth0|234567",
+    "org_id": 4
+  }
+}
