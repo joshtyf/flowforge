@@ -62,6 +62,11 @@ var (
 	CreateMembershipStatement = `INSERT INTO public."membership" (user_id, org_id, role) 
 								  VALUES ($1, $2, $3) RETURNING joined_on`
 
+	RenewMembershipStatement = `UPDATE public."membership" 
+								SET role=$3, joined_on=NOW(), deleted=false
+								WHERE user_id=$1 AND org_id=$2
+								RETURNING joined_on`
+
 	GetUserMembershipsStatement = `SELECT * FROM public."membership"
 									WHERE user_id = $1
 									AND deleted = false`

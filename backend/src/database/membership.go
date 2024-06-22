@@ -16,9 +16,18 @@ func NewMembership(c *sql.DB) *Membership {
 }
 
 func (m *Membership) Create(membership *models.MembershipModel) (*models.MembershipModel, error) {
-	if err := m.c.QueryRow(CreateMembershipStatement, membership.UserId, membership.OrgId, membership.Role).Scan(&membership.JoinedOn); err != nil {
+	row := m.c.QueryRow(CheckMembershipRecordExistsStatement, membership.UserId, membership.OrgId)
+	sqlStatementToExecute := CreateMembershipStatement
+
+	// If membership record previously existed, renew membership
+	if err := row.Scan(); err != sql.ErrNoRows {
+		sqlStatementToExecute = RenewMembershipStatement
+	}
+
+	if err := m.c.QueryRow(sqlStatementToExecute, membership.UserId, membership.OrgId, membership.Role).Scan(&membership.JoinedOn); err != nil {
 		return nil, err
 	}
+
 	return membership, nil
 }
 
