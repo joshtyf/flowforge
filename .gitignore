@@ -132,7 +132,7 @@ dist
 
 # backend
 /backend/dist
-/backend/database/postgres_seed/*.csv
+/backend/database/seed/data/*.csv
 
 # Custom
 .DS_Store
