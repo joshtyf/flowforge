@@ -7,6 +7,8 @@ import AddMemberDialog from "./add-member-dialog"
 import { useCurrentUserInfo } from "@/contexts/current-user-info-context"
 import { MoreHorizontal, User } from "lucide-react"
 import MemberActions from "./member-actions"
+import { useUserMemberships } from "@/contexts/user-memberships-context"
+import { Role } from "@/types/membership"
 
 interface MembershipSectionProps {
   organizationId: number
@@ -25,6 +27,7 @@ export default function MembershipSection({
   })
 
   const userInfo = useCurrentUserInfo()
+  const { isOwner } = useUserMemberships()
 
   return (
     <div className="space-y-5">
@@ -61,8 +64,16 @@ export default function MembershipSection({
 
                 <p className="text-sm text-muted-foreground">{member.role}</p>
               </div>
-              <MemberActions>
-                <Button variant="ghost" className="h-8 w-8 p-0 ml-auto">
+              <MemberActions member={member} isOwner={isOwner}>
+                <Button
+                  variant="ghost"
+                  className="h-8 w-8 p-0 ml-auto"
+                  disabled={
+                    // Disable action button if the target member is current user or the owner
+                    member.user_id === userInfo?.user_id ||
+                    member.role === Role.Owner
+                  }
+                >
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </MemberActions>
