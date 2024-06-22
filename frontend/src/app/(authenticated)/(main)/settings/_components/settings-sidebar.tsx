@@ -10,7 +10,7 @@ interface SettingsSidebarProps {
 
 const linkBaseStyle = "transition-colors w-full flex pl-2 py-1"
 const linkInactiveStyle = `${linkBaseStyle} hover:rounded-md hover:bg-muted hover:text-muted-foreground`
-const linkActiveStyle = `${linkInactiveStyle} font-bold`
+const linkActiveStyle = `${linkInactiveStyle} rounded-md bg-gray-50`
 
 const links = [{ name: "Organization", href: "/settings/organization" }]
 
