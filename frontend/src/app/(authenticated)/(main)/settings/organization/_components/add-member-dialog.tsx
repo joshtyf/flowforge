@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+import { Button, ButtonWithSpinner } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -40,13 +40,18 @@ export default function AddMemberDialog({
   const [searchFilter, setSearchFilter] = useState("")
   // Delay filter execution by 0.5s at each filter change
   const { debouncedValue: debouncedFilter } = useDebounce(searchFilter, 500)
-  const { allUsers, selectedMember, setSelectedMember, handleAddMember } =
-    useAddMembers({
-      existingMembers,
-      filter: debouncedFilter,
-      organizationId,
-      refetchMembers,
-    })
+  const {
+    allUsers,
+    selectedMember,
+    setSelectedMember,
+    handleAddMember,
+    isAddingMember,
+  } = useAddMembers({
+    existingMembers,
+    filter: debouncedFilter,
+    organizationId,
+    refetchMembers,
+  })
 
   return (
     <Dialog>
@@ -119,16 +124,17 @@ export default function AddMemberDialog({
           </>
         )}
         <DialogFooter>
-          <Button
+          <ButtonWithSpinner
             type="submit"
             className="w-full"
-            disabled={!selectedMember}
+            disabled={!selectedMember || isAddingMember}
             onClick={() => handleAddMember()}
+            isLoading={isAddingMember}
           >
             {!selectedMember
               ? "Select a user"
               : `Add ${selectedMember.name} to organization`}
-          </Button>
+          </ButtonWithSpinner>
         </DialogFooter>
       </DialogContent>
     </Dialog>

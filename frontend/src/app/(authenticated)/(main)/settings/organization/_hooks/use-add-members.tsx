@@ -21,6 +21,8 @@ export default function useAddMembers({
 
   const [selectedMember, setSelectedMember] = useState<UserInfo>()
 
+  const [isAddingMember, setIsAddingMember] = useState(false)
+
   useEffect(() => {
     getAllUsers()
       .then((users) => setAllUsers(users))
@@ -40,6 +42,7 @@ export default function useAddMembers({
     if (!selectedMember || !selectedMember.role) {
       return
     }
+    setIsAddingMember(true)
     createMembershipForOrg(
       selectedMember.user_id,
       organizationId,
@@ -62,6 +65,7 @@ export default function useAddMembers({
         })
         console.error(err)
       })
+      .finally(() => setIsAddingMember(false))
   }
 
   return {
@@ -69,5 +73,6 @@ export default function useAddMembers({
     selectedMember,
     setSelectedMember,
     handleAddMember,
+    isAddingMember,
   }
 }
