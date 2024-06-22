@@ -23,7 +23,8 @@ var (
 										INNER JOIN public."membership" m
 										ON u.user_id = m.user_id
 										WHERE m.org_id = $1
-										AND u.deleted = false`
+										AND u.deleted = false
+										AND m.deleted = false`
 
 	CheckUserExistsStatement = `SELECT * 
 								FROM public."user" 
