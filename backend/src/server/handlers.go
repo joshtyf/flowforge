@@ -81,6 +81,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/organization", isAuthenticated(getOrgIdFromRequestBody(isOrgOwner(s.psqlClient, handleUpdateOrganization(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
 	r.Handle("/api/organization", isAuthenticated(getOrgIdFromRequestBody(isOrgOwner(s.psqlClient, handleDeleteOrganization(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("DELETE").Headers("Content-Type", "application/json")
 	r.Handle("/api/organization/{orgId}/members", isAuthenticated(handleGetOrganizationMembers(s.logger, s.psqlClient), s.logger)).Methods("GET")
+	r.Handle("/api/organization/membership", isAuthenticated(handleLeaveOrganization(s.logger, s.psqlClient), s.logger)).Methods("DELETE").Headers("Content-Type", "application/json")
 
 	// Membership
 	r.Handle("/api/membership", isAuthenticated(handleGetMembershipsForUser(s.logger, s.psqlClient), s.logger)).Methods("GET")
@@ -927,6 +928,24 @@ func handleUpdateMembership(logger logger.ServerLogger, client *sql.DB) http.Han
 }
 
 func handleDeleteMembership(logger logger.ServerLogger, client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mm, err := decode[models.MembershipModel](r)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to parse json request body: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+		_, err = database.NewMembership(client).DeleteUserMembership(&mm)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to delete membership: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipDeleteFail, http.StatusInternalServerError))
+			return
+		}
+		encode[any](w, r, http.StatusOK, nil)
+	})
+}
+
+func handleLeaveOrganization(logger logger.ServerLogger, client *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mm, err := decode[models.MembershipModel](r)
 		if err != nil {
