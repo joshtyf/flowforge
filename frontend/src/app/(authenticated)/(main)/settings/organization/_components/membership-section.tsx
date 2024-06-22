@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import useDebounce from "@/hooks/use-debounce"
+import AddMemberDialog from "./add-member-dialog"
 
 interface MembershipSectionProps {
   organizationId: number
@@ -31,9 +32,11 @@ export default function MembershipSection({
           className="max-w-xs"
           onChange={(e) => setSearchFilter(e.target.value)}
         />
-        <Button variant={"outline"} className="ml-auto">
-          Add Member
-        </Button>
+        <AddMemberDialog>
+          <Button variant={"outline"} className="ml-auto">
+            Add Member
+          </Button>
+        </AddMemberDialog>
       </div>
       <div className="border rounded-md">
         <ul className="divide-y divide-slate-200">
