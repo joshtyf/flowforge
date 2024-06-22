@@ -35,3 +35,12 @@ func GetRoleFromString(roleStr string) (Role, error) {
 
 	return role, nil
 }
+
+func ValidateRole(role Role) error {
+	switch role {
+	case Member, Admin, Owner:
+		return nil
+	default:
+		return errors.New("invalid membership role")
+	}
+}

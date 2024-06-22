@@ -309,7 +309,7 @@ func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger 
 			return
 		}
 
-		err = validateRole(&targetMembership)
+		err = models.ValidateRole(targetMembership.Role)
 		if err != nil {
 			logger.Error("unable to add/update membership as role is invalid")
 			encode(w, r, http.StatusBadRequest, newHandlerError(err, http.StatusBadRequest))
@@ -347,15 +347,6 @@ func getMembership(org_id int, postgresClient *sql.DB, r *http.Request) (*models
 	}
 
 	return mm, nil
-}
-
-func validateRole(mm *models.MembershipModel) error {
-	switch mm.Role {
-	case models.Member, models.Admin, models.Owner:
-		return nil
-	default:
-		return ErrInvalidMembershipRole
-	}
 }
 
 func validateOwnershipTransfer(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
