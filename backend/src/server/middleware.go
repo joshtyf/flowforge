@@ -378,7 +378,7 @@ func validateOwnershipTransfer(postgresClient *sql.DB, next http.Handler, logger
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrNotOrgMember, http.StatusBadRequest))
 			return
 		} else if err != nil {
-			logger.Error(fmt.Sprintf("unable to verify subject role: %s", err))
+			logger.Error(fmt.Sprintf("unable to verify target role: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}

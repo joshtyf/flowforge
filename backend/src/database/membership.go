@@ -106,7 +106,7 @@ func (m *Membership) TransferOwnership(owner *models.MembershipModel, newOwner *
 		return err
 	}
 
-	if _, err := tx.Exec(UpdateMembershipStatement, models.Owner, newOwner.OrgId, newOwner.OrgId); err != nil {
+	if _, err := tx.Exec(UpdateMembershipStatement, models.Owner, newOwner.UserId, newOwner.OrgId); err != nil {
 		return err
 	}
 
