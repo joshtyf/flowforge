@@ -994,7 +994,7 @@ func handleGetOrganizationMembers(logger logger.ServerLogger, client *sql.DB) ht
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganizationId, http.StatusBadRequest))
 			return
 		}
-		users, err := database.NewUser(client).GetAllUsersByOrgId(orgId)
+		users, err := database.NewOrganization(client).GetAllUsersByOrgId(orgId)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserRetrieve, http.StatusInternalServerError))
