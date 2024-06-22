@@ -1,0 +1,19 @@
+meta {
+  name: update membership
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{HOST}}/membership
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "user_id": "auth0|345678",
+    "org_id": 4,
+    "role": "Owner"
+  }
+}

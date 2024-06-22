@@ -23,7 +23,8 @@ var (
 										INNER JOIN public."membership" m
 										ON u.user_id = m.user_id
 										WHERE m.org_id = $1
-										AND u.deleted = false`
+										AND u.deleted = false
+										AND m.deleted = false`
 
 	CheckUserExistsStatement = `SELECT * 
 								FROM public."user" 
@@ -61,9 +62,16 @@ var (
 	CreateMembershipStatement = `INSERT INTO public."membership" (user_id, org_id, role) 
 								  VALUES ($1, $2, $3) RETURNING joined_on`
 
+	RenewMembershipStatement = `UPDATE public."membership" 
+								SET role = $3, joined_on = NOW(), deleted = false
+								WHERE user_id = $1 AND org_id = $2
+								RETURNING joined_on`
+
 	GetUserMembershipsStatement = `SELECT * FROM public."membership"
 									WHERE user_id = $1
 									AND deleted = false`
+
+	CheckMembershipRecordExistsStatement = `SELECT * FROM public."membership" WHERE user_id = $1 AND org_id = $2`
 
 	SelectMembershipByUserAndOrgIdStatement = `SELECT * FROM public."membership"
 												WHERE org_id = $1

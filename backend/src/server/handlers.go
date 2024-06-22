@@ -1011,7 +1011,7 @@ func handleGetStepExecutionLogs(l logger.ServerLogger, psqlClient *sql.DB) http.
 func handleGetOrganizationMembers(logger logger.ServerLogger, client *sql.DB) http.Handler {
 	type ResponseBody struct { // Response body when org_id is provided
 		OrgId   int                                    `json:"org_id"`
-		Members []*database.GetAllUsersByOrdIdResponse `json:"members"`
+		Members []*database.GetAllUsersByOrgIdResponse `json:"members"`
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -1021,7 +1021,7 @@ func handleGetOrganizationMembers(logger logger.ServerLogger, client *sql.DB) ht
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrInvalidOrganizationId, http.StatusBadRequest))
 			return
 		}
-		users, err := database.NewUser(client).GetAllUsersByOrgId(orgId)
+		users, err := database.NewOrganization(client).GetAllUsersByOrgId(orgId)
 		if err != nil {
 			logger.Error(fmt.Sprintf("error encountered while handling API request: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUserRetrieve, http.StatusInternalServerError))
