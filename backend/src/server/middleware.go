@@ -290,12 +290,6 @@ func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger 
 			return
 		}
 
-		if requestorMembership.Role == models.Member {
-			logger.Error("user not authorized to grant/delete membership")
-			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
-			return
-		}
-
 		targetMembership, err := decode[models.MembershipModel](r)
 		if err != nil {
 			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
@@ -347,42 +341,4 @@ func getMembership(org_id int, postgresClient *sql.DB, r *http.Request) (*models
 	}
 
 	return mm, nil
-}
-
-func validateOwnershipTransfer(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		org_id := r.Context().Value(util.OrgContextKey{}).(int)
-		requestorMembership, err := getMembership(org_id, postgresClient, r)
-		if err != nil {
-			logger.Error(fmt.Sprintf("unable to get requestor membership: %s", err))
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
-			return
-		}
-
-		if requestorMembership.Role != models.Owner {
-			logger.Error("user not authorized to transfer ownership")
-			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
-			return
-		}
-
-		targetMembership, err := decode[models.MembershipModel](r)
-		if err != nil {
-			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
-			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
-			return
-		}
-
-		_, err = database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(targetMembership.UserId, targetMembership.OrgId)
-		if errors.Is(err, sql.ErrNoRows) {
-			logger.Error("target user for transfer is not part of organisation")
-			encode(w, r, http.StatusBadRequest, newHandlerError(ErrNotOrgMember, http.StatusBadRequest))
-			return
-		} else if err != nil {
-			logger.Error(fmt.Sprintf("unable to verify target role: %s", err))
-			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
 }
