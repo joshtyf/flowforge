@@ -66,6 +66,8 @@ var (
 									WHERE user_id = $1
 									AND deleted = false`
 
+	CheckMembershipRecordExistsStatement = `SELECT * FROM public."membership" WHERE user_id = $1 AND org_id = $2`
+
 	SelectMembershipByUserAndOrgIdStatement = `SELECT * FROM public."membership"
 												WHERE org_id = $1
 												AND user_id = $2
