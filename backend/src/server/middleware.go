@@ -283,53 +283,53 @@ func getOrgIdUsingSrId(mongoClient *mongo.Client, next http.Handler, logger logg
 func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		org_id := r.Context().Value(util.OrgContextKey{}).(int)
-		membership, err := getMembership(org_id, postgresClient, r)
+		requestorMembership, err := getMembership(org_id, postgresClient, r)
 		if err != nil {
 			logger.Error(fmt.Sprintf("unable to get requestor membership: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
 			return
 		}
 
-		if membership.Role == models.Member {
+		if requestorMembership.Role == models.Member {
 			logger.Error("user not authorized to grant/delete membership")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}
 
-		mm, err := decode[models.MembershipModel](r)
+		targetMembership, err := decode[models.MembershipModel](r)
 		if err != nil {
 			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
 
-		if mm.UserId == membership.UserId {
+		if targetMembership.UserId == requestorMembership.UserId {
 			logger.Error("user not authorized to change own membership")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}
 
-		err = validateRole(&mm)
+		err = validateRole(&targetMembership)
 		if err != nil {
 			logger.Error("unable to add/update membership as role is invalid")
 			encode(w, r, http.StatusBadRequest, newHandlerError(err, http.StatusBadRequest))
 			return
 		}
 
-		if mm.Role == models.Owner {
+		if targetMembership.Role == models.Owner {
 			logger.Error("unable to grant/delete ownership")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnableModifyOwnership, http.StatusForbidden))
 			return
 		}
 
-		subjectMembership, err := database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(mm.UserId, mm.OrgId)
+		targetExistingMembership, err := database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(targetMembership.UserId, targetMembership.OrgId)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			logger.Error(fmt.Sprintf("unable to verify subject role: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
 			return
 		}
 
-		if subjectMembership != nil && subjectMembership.Role == models.Owner {
+		if targetExistingMembership != nil && targetExistingMembership.Role == models.Owner {
 			logger.Error("user not authorized to alter/delete ownership")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
@@ -361,27 +361,27 @@ func validateRole(mm *models.MembershipModel) error {
 func validateOwnershipTransfer(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		org_id := r.Context().Value(util.OrgContextKey{}).(int)
-		membership, err := getMembership(org_id, postgresClient, r)
+		requestorMembership, err := getMembership(org_id, postgresClient, r)
 		if err != nil {
 			logger.Error(fmt.Sprintf("unable to get requestor membership: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
 			return
 		}
 
-		if membership.Role != models.Owner {
+		if requestorMembership.Role != models.Owner {
 			logger.Error("user not authorized to transfer ownership")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}
 
-		mm, err := decode[models.MembershipModel](r)
+		targetMembership, err := decode[models.MembershipModel](r)
 		if err != nil {
 			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
 			return
 		}
 
-		_, err = database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(mm.UserId, mm.OrgId)
+		_, err = database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(targetMembership.UserId, targetMembership.OrgId)
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error("target user for transfer is not part of organisation")
 			encode(w, r, http.StatusBadRequest, newHandlerError(ErrNotOrgMember, http.StatusBadRequest))
