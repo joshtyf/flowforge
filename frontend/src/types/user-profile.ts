@@ -1,3 +1,5 @@
+import { Role } from "./membership"
+
 type Auth0UserProfile = {
   email?: string
   name?: string
@@ -12,7 +14,7 @@ type UserInfo = {
   created_on: Date
   deleted: boolean
   email: string
-  role?: string
+  role?: Role
 }
 
 export type { Auth0UserProfile, UserInfo }

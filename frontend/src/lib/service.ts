@@ -7,7 +7,7 @@ import {
 } from "@/types/service-request"
 import { UserInfo } from "@/types/user-profile"
 import apiClient from "./apiClient"
-import { UserMemberships } from "@/types/membership"
+import { Role, UserMemberships } from "@/types/membership"
 
 /* Pipeline */
 
@@ -202,4 +202,14 @@ export async function getMembersForOrg(orgId: number) {
 
 export async function getAllUsers() {
   return apiClient.get("/user").then((res) => res.data)
+}
+
+export async function createMembershipForOrg(
+  userId: string,
+  orgId: number,
+  role: Role
+) {
+  return apiClient
+    .post(`/membership`, { user_id: userId, org_id: orgId, role })
+    .then((res) => res.data)
 }

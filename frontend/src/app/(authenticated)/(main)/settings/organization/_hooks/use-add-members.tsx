@@ -1,15 +1,19 @@
-import { getAllUsers } from "@/lib/service"
+import { Skeleton } from "@/components/ui/skeleton"
+import { toast } from "@/components/ui/use-toast"
+import { createMembershipForOrg, getAllUsers } from "@/lib/service"
 import { UserInfo } from "@/types/user-profile"
 import { useEffect, useMemo, useState } from "react"
 
 interface UseAddMembersOptions {
   existingMembers: UserInfo[]
   filter: string
+  organizationId: number
 }
 
 export default function useAddMembers({
   existingMembers,
   filter,
+  organizationId,
 }: UseAddMembersOptions) {
   const [allUsers, setAllUsers] = useState<UserInfo[]>()
 
@@ -30,5 +34,37 @@ export default function useAddMembers({
     return allUsersOutsideOrg?.filter((member) => member.name.includes(filter))
   }, [allUsersOutsideOrg, filter])
 
-  return { allUsers: filteredMembers, selectedMember, setSelectedMember }
+  const handleAddMember = () => {
+    if (!selectedMember || !selectedMember.role) {
+      return
+    }
+    createMembershipForOrg(
+      selectedMember.user_id,
+      organizationId,
+      selectedMember.role
+    )
+      .then(() => {
+        toast({
+          title: "Add Member Successful",
+          description: `${selectedMember.name} has been added to the organization.`,
+          variant: "success",
+        })
+        setSelectedMember(undefined)
+      })
+      .catch((err) => {
+        toast({
+          title: "Add Member Failure",
+          description: `Error adding ${selectedMember.name} to the organization.`,
+          variant: "destructive",
+        })
+        console.error(err)
+      })
+  }
+
+  return {
+    allUsers: filteredMembers,
+    selectedMember,
+    setSelectedMember,
+    handleAddMember,
+  }
 }

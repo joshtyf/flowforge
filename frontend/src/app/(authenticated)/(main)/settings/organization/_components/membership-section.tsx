@@ -32,7 +32,10 @@ export default function MembershipSection({
           className="max-w-xs"
           onChange={(e) => setSearchFilter(e.target.value)}
         />
-        <AddMemberDialog existingMembers={members}>
+        <AddMemberDialog
+          existingMembers={members}
+          organizationId={organizationId}
+        >
           <Button variant={"outline"} className="ml-auto">
             Add Member
           </Button>
