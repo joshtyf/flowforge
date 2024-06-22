@@ -8,12 +8,14 @@ interface UseAddMembersOptions {
   existingMembers: UserInfo[]
   filter: string
   organizationId: number
+  refetchMembers: () => void
 }
 
 export default function useAddMembers({
   existingMembers,
   filter,
   organizationId,
+  refetchMembers,
 }: UseAddMembersOptions) {
   const [allUsers, setAllUsers] = useState<UserInfo[]>()
 
@@ -49,6 +51,7 @@ export default function useAddMembers({
           description: `${selectedMember.name} has been added to the organization.`,
           variant: "success",
         })
+        refetchMembers()
         setSelectedMember(undefined)
       })
       .catch((err) => {

@@ -28,12 +28,14 @@ interface AddMemberDialogProps {
   children: React.ReactNode
   existingMembers: UserInfo[]
   organizationId: number
+  refetchMembers: () => void
 }
 
 export default function AddMemberDialog({
   children,
   existingMembers,
   organizationId,
+  refetchMembers,
 }: AddMemberDialogProps) {
   const [searchFilter, setSearchFilter] = useState("")
   // Delay filter execution by 0.5s at each filter change
@@ -43,6 +45,7 @@ export default function AddMemberDialog({
       existingMembers,
       filter: debouncedFilter,
       organizationId,
+      refetchMembers,
     })
 
   return (

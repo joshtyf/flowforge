@@ -17,7 +17,7 @@ export default function MembershipSection({
 
   // Delay filter execution by 0.5s at each filter change
   const { debouncedValue: debouncedFilter } = useDebounce(searchFilter, 500)
-  const { members } = useMemberships({
+  const { members, refetchMembers } = useMemberships({
     orgId: organizationId,
     filter: debouncedFilter,
   })
@@ -35,6 +35,7 @@ export default function MembershipSection({
         <AddMemberDialog
           existingMembers={members}
           organizationId={organizationId}
+          refetchMembers={refetchMembers}
         >
           <Button variant={"outline"} className="ml-auto">
             Add Member

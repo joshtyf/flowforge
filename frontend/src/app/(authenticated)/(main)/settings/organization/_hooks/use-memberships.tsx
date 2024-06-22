@@ -26,5 +26,11 @@ export default function useMemberships({
       .finally(() => setIsLoadingMembers(false))
   }, [orgId])
 
-  return { members: filteredMembers, isLoadingMembers }
+  const refetchMembers = () => {
+    getMembersForOrg(orgId)
+      .then((res) => setMembers(res.members))
+      .catch((err) => console.error(err))
+  }
+
+  return { members: filteredMembers, isLoadingMembers, refetchMembers }
 }
