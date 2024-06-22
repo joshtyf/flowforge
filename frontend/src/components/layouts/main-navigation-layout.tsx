@@ -29,13 +29,13 @@ export default function MainNavigationLayout({
       <Sidebar
         className={` ${isSidebarOpen ? "min-w-[300px] w-[300px]" : "min-w-0 w-0"} overflow-x-hidden transition-width duration-300 ease-in-out`}
       />
-      <div className="w-full">
+      <div className="w-full h-full">
         <Navbar
           toggleSidebar={toggleSidebar}
           username={userInfo?.name ?? ""}
           enableOrgName={enableOrgName}
         />
-        <div className="w-full h-full max-h-[90vh] flex justify-center items-center flex-col relative">
+        <div className="w-full h-full flex justify-center items-center flex-col relative">
           <div className="w-5/6 h-full relative">{children}</div>
         </div>
       </div>
