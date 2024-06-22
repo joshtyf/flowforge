@@ -199,3 +199,7 @@ export async function createUser(name: string): Promise<UserInfo> {
 export async function getMembersForOrg(orgId: number) {
   return apiClient.get(`/organization/${orgId}/members`).then((res) => res.data)
 }
+
+export async function getAllUsers() {
+  return apiClient.get("/user").then((res) => res.data)
+}
