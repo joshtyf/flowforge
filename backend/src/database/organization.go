@@ -62,7 +62,7 @@ func (o *Organization) GetAllOrgsByUserId(user_id string) ([]*models.Organizatio
 	return oms, nil
 }
 
-type GetAllUsersByOrdIdResponse struct {
+type GetAllUsersByOrgIdResponse struct {
 	UserId           string    `json:"user_id"`
 	Name             string    `json:"name"`
 	IdentityProvider string    `json:"identity_provider"`
@@ -72,16 +72,16 @@ type GetAllUsersByOrdIdResponse struct {
 	JoinedOn         time.Time `json:"joined_on"`
 }
 
-func (o *Organization) GetAllUsersByOrgId(orgId int) ([]*GetAllUsersByOrdIdResponse, error) {
+func (o *Organization) GetAllUsersByOrgId(orgId int) ([]*GetAllUsersByOrgIdResponse, error) {
 	rows, err := o.c.Query(SelectAllUsersByOrgIdStatement, orgId)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	users := make([]*GetAllUsersByOrdIdResponse, 0)
+	users := make([]*GetAllUsersByOrgIdResponse, 0)
 	for rows.Next() {
-		um := &GetAllUsersByOrdIdResponse{}
+		um := &GetAllUsersByOrgIdResponse{}
 		if err := rows.Scan(&um.UserId, &um.Name, &um.IdentityProvider, &um.CreatedOn, &um.Deleted, &um.Role, &um.JoinedOn); err != nil {
 			return nil, err
 		}

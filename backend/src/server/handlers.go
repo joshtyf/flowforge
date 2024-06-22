@@ -984,7 +984,7 @@ func handleGetStepExecutionLogs(l logger.ServerLogger, psqlClient *sql.DB) http.
 func handleGetOrganizationMembers(logger logger.ServerLogger, client *sql.DB) http.Handler {
 	type ResponseBody struct { // Response body when org_id is provided
 		OrgId   int                                    `json:"org_id"`
-		Members []*database.GetAllUsersByOrdIdResponse `json:"members"`
+		Members []*database.GetAllUsersByOrgIdResponse `json:"members"`
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
