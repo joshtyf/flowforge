@@ -6,6 +6,14 @@ meta {
 
 post {
   url: {{HOST}}/membership
-  body: none
+  body: json
   auth: none
+}
+
+body:json {
+  {
+    "user_id": "auth0|456789",
+    "org_id": 1,
+    "role": "Member"
+  }
 }
