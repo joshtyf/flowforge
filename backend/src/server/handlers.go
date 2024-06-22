@@ -87,6 +87,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgAdmin(s.psqlClient, handleCreateMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgAdmin(s.psqlClient, handleUpdateMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
 	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgOwner(s.psqlClient, handleDeleteMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger)).Methods("DELETE").Headers("Content-Type", "application/json")
+	r.Handle("/api/membership/ownership_transfer", isAuthenticated(getOrgIdFromRequestBody(validateOwnershipTransfer(s.psqlClient, isOrgAdmin(s.psqlClient, handleOwnershipTransfer(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 }
 
 func handleHealthCheck(l logger.ServerLogger) http.Handler {
@@ -877,6 +878,32 @@ func handleGetAllUsers(logger logger.ServerLogger, client *sql.DB) http.Handler 
 			return
 		}
 		encode(w, r, http.StatusOK, users)
+	})
+}
+
+func handleOwnershipTransfer(logger logger.ServerLogger, client *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ownerId := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims).RegisteredClaims.Subject
+		mm, err := decode[models.MembershipModel](r)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to parse json request body: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+
+		owner := models.MembershipModel{
+			UserId: ownerId,
+			OrgId:  mm.OrgId,
+		}
+
+		err = database.NewMembership(client).TransferOwnership(&owner, &mm)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to update membership: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipUpdateFail, http.StatusInternalServerError))
+			return
+		}
+
+		encode[any](w, r, http.StatusOK, nil)
 	})
 }
 

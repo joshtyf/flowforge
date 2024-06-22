@@ -36,6 +36,8 @@ var (
 	ErrMembershipInvalid     = errors.New("invalid membership")
 	ErrMembershipRetrieve    = errors.New("failed to retrieve memberships")
 	ErrInvalidMembershipRole = errors.New("invalid membership role")
+	ErrUnableModifyOwnership = errors.New("unable to modify ownership")
+	ErrNotOrgMember          = errors.New("user not part of organization")
 
 	ErrInvalidOffset = errors.New("invalid offset")
 )

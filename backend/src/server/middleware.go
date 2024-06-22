@@ -316,9 +316,9 @@ func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger 
 			return
 		}
 
-		if mm.Role == models.Owner && membership.Role != models.Owner {
-			logger.Error("user not authorized to grant/delete ownership")
-			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+		if mm.Role == models.Owner {
+			logger.Error("unable to grant/delete ownership")
+			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnableModifyOwnership, http.StatusForbidden))
 			return
 		}
 
@@ -329,7 +329,7 @@ func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger 
 			return
 		}
 
-		if subjectMembership != nil && subjectMembership.Role == models.Owner && membership.Role != models.Owner {
+		if subjectMembership != nil && subjectMembership.Role == models.Owner {
 			logger.Error("user not authorized to alter/delete ownership")
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
@@ -356,4 +356,42 @@ func validateRole(mm *models.MembershipModel) error {
 	default:
 		return ErrInvalidMembershipRole
 	}
+}
+
+func validateOwnershipTransfer(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		org_id := r.Context().Value(util.OrgContextKey{}).(int)
+		membership, err := getMembership(org_id, postgresClient, r)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to get requestor membership: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrUnauthorised, http.StatusInternalServerError))
+			return
+		}
+
+		if membership.Role != models.Owner {
+			logger.Error("user not authorized to transfer ownership")
+			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
+			return
+		}
+
+		mm, err := decode[models.MembershipModel](r)
+		if err != nil {
+			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+
+		_, err = database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(mm.UserId, mm.OrgId)
+		if errors.Is(err, sql.ErrNoRows) {
+			logger.Error("target user for transfer is not part of organisation")
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrNotOrgMember, http.StatusBadRequest))
+			return
+		} else if err != nil {
+			logger.Error(fmt.Sprintf("unable to verify subject role: %s", err))
+			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrInternalServerError, http.StatusInternalServerError))
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
