@@ -1,10 +1,11 @@
-import { PlusSquare } from "lucide-react"
 import useMemberships from "../_hooks/use-memberships"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import useDebounce from "@/hooks/use-debounce"
 import AddMemberDialog from "./add-member-dialog"
+import { useCurrentUserInfo } from "@/contexts/current-user-info-context"
+import { User } from "lucide-react"
 
 interface MembershipSectionProps {
   organizationId: number
@@ -21,6 +22,9 @@ export default function MembershipSection({
     orgId: organizationId,
     filter: debouncedFilter,
   })
+
+  const userInfo = useCurrentUserInfo()
+
   return (
     <div className="space-y-5">
       <div>
@@ -45,12 +49,14 @@ export default function MembershipSection({
       <div className="border rounded-md">
         <ul className="divide-y divide-slate-200">
           {members.map((member) => (
-            <li
-              key={member.user_id}
-              className="px-4 py-4 flex place-content-between"
-            >
+            <li key={member.user_id} className="px-4 py-4 flex items-center">
               <p>{member.name}</p>
-              <p className="text-sm text-muted-foreground">{member.role}</p>
+              {member.user_id === userInfo?.user_id && (
+                <User size="16" className="ml-2 text-blue-500" />
+              )}
+              <p className="text-sm text-muted-foreground ml-auto">
+                {member.role}
+              </p>
             </li>
           ))}
         </ul>
