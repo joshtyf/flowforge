@@ -9,6 +9,8 @@ import { MoreHorizontal, User } from "lucide-react"
 import MemberActions from "./member-actions"
 import { useUserMemberships } from "@/contexts/user-memberships-context"
 import { Role } from "@/types/membership"
+import { cn } from "@/lib/utils"
+import LeaveOrganizationDialog from "./leave-organization-dialog"
 
 interface MembershipSectionProps {
   organizationId: number
@@ -27,7 +29,7 @@ export default function MembershipSection({
   })
 
   const userInfo = useCurrentUserInfo()
-  const { isOwner } = useUserMemberships()
+  const { isOwner, isAdmin } = useUserMemberships()
 
   return (
     <div className="space-y-5">
@@ -40,15 +42,27 @@ export default function MembershipSection({
           className="max-w-xs"
           onChange={(e) => setSearchFilter(e.target.value)}
         />
+
         <AddMemberDialog
           existingMembers={members}
           organizationId={organizationId}
           refetchMembers={refetchMembers}
         >
-          <Button variant={"outline"} className="ml-auto">
+          <Button
+            variant={"outline"}
+            className={cn("ml-auto", !isAdmin && "hidden")}
+          >
             Add Member
           </Button>
         </AddMemberDialog>
+        <LeaveOrganizationDialog onConfirm={() => {}} isOwner={isOwner}>
+          <Button
+            className={!isAdmin ? "ml-auto" : "ml-3"}
+            variant={"destructive"}
+          >
+            Leave Organization
+          </Button>
+        </LeaveOrganizationDialog>
       </div>
       <div className="border rounded-md">
         <ul className="divide-y divide-slate-200">
