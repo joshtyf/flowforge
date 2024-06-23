@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 
@@ -91,4 +92,27 @@ func (m *Membership) DeleteUserMembership(membership *models.MembershipModel) (s
 		return nil, errors.New("membership does not exist")
 	}
 	return result, nil
+}
+
+func (m *Membership) TransferOwnership(ownerId string, newOwnerId string, orgId int) error {
+	tx, err := m.c.BeginTx(context.Background(), nil)
+	if err != nil {
+		return err
+	}
+
+	defer txnRollback(tx)
+
+	if _, err := tx.Exec(UpdateMembershipStatement, models.Admin, ownerId, orgId); err != nil {
+		return err
+	}
+
+	if _, err := tx.Exec(UpdateMembershipStatement, models.Owner, newOwnerId, orgId); err != nil {
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }
