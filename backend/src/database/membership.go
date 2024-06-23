@@ -94,7 +94,7 @@ func (m *Membership) DeleteUserMembership(membership *models.MembershipModel) (s
 	return result, nil
 }
 
-func (m *Membership) TransferOwnership(owner *models.MembershipModel, newOwner *models.MembershipModel) error {
+func (m *Membership) TransferOwnership(ownerId string, newOwnerId string, orgId int) error {
 	tx, err := m.c.BeginTx(context.Background(), nil)
 	if err != nil {
 		return err
@@ -102,11 +102,11 @@ func (m *Membership) TransferOwnership(owner *models.MembershipModel, newOwner *
 
 	defer txnRollback(tx)
 
-	if _, err := tx.Exec(UpdateMembershipStatement, models.Admin, owner.UserId, owner.OrgId); err != nil {
+	if _, err := tx.Exec(UpdateMembershipStatement, models.Admin, ownerId, orgId); err != nil {
 		return err
 	}
 
-	if _, err := tx.Exec(UpdateMembershipStatement, models.Owner, newOwner.UserId, newOwner.OrgId); err != nil {
+	if _, err := tx.Exec(UpdateMembershipStatement, models.Owner, newOwnerId, orgId); err != nil {
 		return err
 	}
 

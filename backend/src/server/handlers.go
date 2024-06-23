@@ -903,12 +903,7 @@ func handleOwnershipTransfer(logger logger.ServerLogger, client *sql.DB) http.Ha
 			return
 		}
 
-		owner := models.MembershipModel{
-			UserId: ownerId,
-			OrgId:  targetOwner.OrgId,
-		}
-
-		err = database.NewMembership(client).TransferOwnership(&owner, &targetOwner)
+		err = database.NewMembership(client).TransferOwnership(ownerId, targetOwner.UserId, targetOwner.OrgId)
 		if err != nil {
 			logger.Error(fmt.Sprintf("unable to update membership: %s", err))
 			encode(w, r, http.StatusInternalServerError, newHandlerError(ErrMembershipUpdateFail, http.StatusInternalServerError))
