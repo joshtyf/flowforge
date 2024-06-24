@@ -11,6 +11,9 @@ import { useUserMemberships } from "@/contexts/user-memberships-context"
 import { Role } from "@/types/membership"
 import { cn } from "@/lib/utils"
 import LeaveOrganizationDialog from "./leave-organization-dialog"
+import { leaveOrganization } from "@/lib/service"
+import { toast } from "@/components/ui/use-toast"
+import { useRouter } from "next/navigation"
 
 interface MembershipSectionProps {
   organizationId: number
@@ -29,7 +32,9 @@ export default function MembershipSection({
   })
 
   const userInfo = useCurrentUserInfo()
-  const { isOwner, isAdmin } = useUserMemberships()
+  const { isOwner, isAdmin, refetchMemberships } = useUserMemberships()
+
+  const router = useRouter()
 
   return (
     <div className="space-y-5">
@@ -55,7 +60,25 @@ export default function MembershipSection({
             Add Member
           </Button>
         </AddMemberDialog>
-        <LeaveOrganizationDialog onConfirm={async () => {}} isOwner={isOwner}>
+        <LeaveOrganizationDialog
+          onConfirm={async () => {
+            await leaveOrganization(organizationId)
+              .then(() => {
+                router.push("/organization")
+              })
+              .catch((e) => {
+                toast({
+                  title: "Leave Organization Error",
+                  description:
+                    "Unable to leave the organization. Please try again later.",
+                  variant: "destructive",
+                })
+                console.error(e)
+              })
+            return
+          }}
+          isOwner={isOwner}
+        >
           <Button
             className={!isAdmin ? "ml-auto" : "ml-3"}
             variant={"destructive"}
@@ -78,7 +101,13 @@ export default function MembershipSection({
 
                 <p className="text-sm text-muted-foreground">{member.role}</p>
               </div>
-              <MemberActions member={member} isOwner={isOwner}>
+              <MemberActions
+                member={member}
+                isOwner={isOwner}
+                organizationId={organizationId}
+                refetchMembers={refetchMembers}
+                refetchMemberships={refetchMemberships}
+              >
                 <Button
                   variant="ghost"
                   className="h-8 w-8 p-0 ml-auto"

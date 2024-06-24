@@ -27,7 +27,7 @@ export default function useAddMembers({
     getAllUsers()
       .then((users) => setAllUsers(users))
       .catch((err) => console.error(err))
-  })
+  }, [])
 
   const allUsersOutsideOrg = useMemo(() => {
     const existingMemberIdSet = new Set(existingMembers.map((u) => u.user_id))

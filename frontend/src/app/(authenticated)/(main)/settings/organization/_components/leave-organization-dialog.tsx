@@ -35,11 +35,8 @@ export default function LeaveOrganizationDialog({
           </AlertDialogTitle>
           <AlertDialogDescription>
             Once you leave, you will lose access to all features available
-            within the organization. If you are the{" "}
-            <strong>
-              <i>Owner</i>
-            </strong>
-            , ensure that you have transferred your ownership to another user
+            within the organization. If you are the <strong>Owner</strong>,
+            ensure that you have transferred your ownership to another user
             before you can leave the organization.
           </AlertDialogDescription>
         </AlertDialogHeader>

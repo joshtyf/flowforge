@@ -48,7 +48,7 @@ export default function MemberActionAlertDialog({
           >
             {" "}
             {isLoading && <Loader2 className={"animate-spin mr-2"} />}
-            LeaveConfirm
+            Confirm
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

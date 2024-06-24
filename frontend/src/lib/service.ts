@@ -180,28 +180,20 @@ export async function updateOrgName(orgId: number, orgName: string) {
     .then((res) => res.data)
 }
 
-export async function getUserById(userId: string): Promise<UserInfo> {
-  return apiClient.get(`/user/${userId}`).then((res) => res.data)
-}
-
-export async function getUserMemberships(): Promise<UserMemberships> {
-  return apiClient.get(`/membership`).then((res) => res.data)
-}
-
-export async function login(): Promise<UserInfo> {
-  return apiClient.get("login").then((res) => res.data)
-}
-
-export async function createUser(name: string): Promise<UserInfo> {
-  return apiClient.post("/user", { name }).then((res) => res.data)
-}
-
 export async function getMembersForOrg(orgId: number) {
   return apiClient.get(`/organization/${orgId}/members`).then((res) => res.data)
 }
 
-export async function getAllUsers() {
-  return apiClient.get("/user").then((res) => res.data)
+export async function leaveOrganization(orgId: number) {
+  return apiClient
+    .delete(`/organization/${orgId}/membership`)
+    .then((res) => res.data)
+}
+
+/* Membership */
+
+export async function getUserMemberships(): Promise<UserMemberships> {
+  return apiClient.get(`/membership`).then((res) => res.data)
 }
 
 export async function createMembershipForOrg(
@@ -212,4 +204,53 @@ export async function createMembershipForOrg(
   return apiClient
     .post(`/membership`, { user_id: userId, org_id: orgId, role })
     .then((res) => res.data)
+}
+
+export async function promotetoAdmin(userId: string, orgId: number) {
+  return apiClient.patch(`/membership`, {
+    user_id: userId,
+    org_id: orgId,
+    role: Role.Admin,
+  })
+}
+
+export async function demotetoMember(userId: string, orgId: number) {
+  return apiClient.patch(`/membership`, {
+    user_id: userId,
+    org_id: orgId,
+    role: Role.Member,
+  })
+}
+
+export async function removeMembership(userId: string, orgId: number) {
+  return apiClient.delete(`/membership`, {
+    data: {
+      user_id: userId,
+      org_id: orgId,
+    },
+  })
+}
+
+export async function transferOwnership(userId: string, orgId: number) {
+  return apiClient
+    .post(`/membership/ownership_transfer`, { user_id: userId, org_id: orgId })
+    .then((res) => res.data)
+}
+
+/* User */
+
+export async function getUserById(userId: string): Promise<UserInfo> {
+  return apiClient.get(`/user/${userId}`).then((res) => res.data)
+}
+
+export async function login(): Promise<UserInfo> {
+  return apiClient.get("login").then((res) => res.data)
+}
+
+export async function createUser(name: string): Promise<UserInfo> {
+  return apiClient.post("/user", { name }).then((res) => res.data)
+}
+
+export async function getAllUsers() {
+  return apiClient.get("/user").then((res) => res.data)
 }

@@ -9,17 +9,25 @@ import MemberActionAlertDialog from "./member-action-alert-dialog"
 import { UserInfo } from "@/types/user-profile"
 import { useState } from "react"
 import { Role } from "@/types/membership"
+import { transferOwnership } from "@/lib/service"
+import { toast } from "@/components/ui/use-toast"
 
 interface MemberActionsProps {
   children: React.ReactNode
   member: UserInfo
   isOwner?: boolean
+  organizationId: number
+  refetchMembers: () => void
+  refetchMemberships: () => void
 }
 
 export default function MemberActions({
   children,
   member,
   isOwner = false,
+  organizationId,
+  refetchMembers,
+  refetchMemberships,
 }: MemberActionsProps) {
   const [openPromoteToAdminDialog, setOpenPromoteToAdminDialog] =
     useState(false)
@@ -100,7 +108,27 @@ export default function MemberActions({
       <MemberActionAlertDialog
         open={openTransferOwnershipDialog}
         setOpen={setOpenTransferOwnershipDialog}
-        onConfirm={async () => {}}
+        onConfirm={async () => {
+          await transferOwnership(member.user_id, organizationId)
+            .then(() => {
+              toast({
+                title: "Transfer Ownership Successful",
+                description: `${member.name} has been promoted to Owner and you have been demoted to Admin.`,
+                variant: "success",
+              })
+              refetchMembers()
+              refetchMemberships()
+            })
+            .catch((err) => {
+              toast({
+                title: "Transfer Ownership Failure",
+                description: `Error transferring ownership. Please try again later.`,
+                variant: "destructive",
+              })
+              console.error(err)
+            })
+          return
+        }}
         title={`Transfer ownership of organization to ${member.name}?`}
       />
     </DropdownMenu>

@@ -6,6 +6,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react"
 interface MembershipContextValue {
   isAdmin?: boolean
   isOwner?: boolean
+  refetchMemberships: () => void
 }
 
 const MembershipContext = createContext<MembershipContextValue | null>(null)
@@ -17,13 +18,17 @@ export function UserMembershipsProvider({
 }) {
   const [userMemberships, setUserMemberships] = useState<UserMemberships>()
 
-  useEffect(() => {
+  const fetchMemberships = () => {
     getUserMemberships()
       .then(setUserMemberships)
       .catch((err) => {
         console.error(err)
       })
+  }
+  useEffect(() => {
+    fetchMemberships()
   }, [])
+
   const { organizationId } = useOrganization()
 
   const isAdminOfCurrentOrg = useMemo(() => {
@@ -46,6 +51,7 @@ export function UserMembershipsProvider({
       value={{
         isAdmin: isAdminOfCurrentOrg,
         isOwner: isOwnerOfCurrentOrg,
+        refetchMemberships: fetchMemberships,
       }}
     >
       {children}
