@@ -47,45 +47,38 @@ export default function MembershipSection({
           className="max-w-xs"
           onChange={(e) => setSearchFilter(e.target.value)}
         />
-
-        <AddMemberDialog
-          existingMembers={members}
-          organizationId={organizationId}
-          refetchMembers={refetchMembers}
-        >
-          <Button
-            variant={"outline"}
-            className={cn("ml-auto", !isAdmin && "hidden")}
+        <div className="flex space-x-2 ml-auto pl-2">
+          <AddMemberDialog
+            existingMembers={members}
+            organizationId={organizationId}
+            refetchMembers={refetchMembers}
           >
-            Add Member
-          </Button>
-        </AddMemberDialog>
-        <LeaveOrganizationDialog
-          onConfirm={async () => {
-            await leaveOrganization(organizationId)
-              .then(() => {
-                router.push("/organization")
-              })
-              .catch((e) => {
-                toast({
-                  title: "Leave Organization Error",
-                  description:
-                    "Unable to leave the organization. Please try again later.",
-                  variant: "destructive",
+            <Button variant={"outline"} className={`${!isAdmin && "hidden"}`}>
+              Add Member
+            </Button>
+          </AddMemberDialog>
+          <LeaveOrganizationDialog
+            onConfirm={async () => {
+              await leaveOrganization(organizationId)
+                .then(() => {
+                  router.push("/organization")
                 })
-                console.error(e)
-              })
-            return
-          }}
-          isOwner={isOwner}
-        >
-          <Button
-            className={!isAdmin ? "ml-auto" : "ml-3"}
-            variant={"destructive"}
+                .catch((e) => {
+                  toast({
+                    title: "Leave Organization Error",
+                    description:
+                      "Unable to leave the organization. Please try again later.",
+                    variant: "destructive",
+                  })
+                  console.error(e)
+                })
+              return
+            }}
+            isOwner={isOwner}
           >
-            Leave Organization
-          </Button>
-        </LeaveOrganizationDialog>
+            <Button variant={"destructive"}>Leave Organization</Button>
+          </LeaveOrganizationDialog>
+        </div>
       </div>
       <div className="border rounded-md">
         <ul className="divide-y divide-slate-200">
