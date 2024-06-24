@@ -81,7 +81,7 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 	r.Handle("/api/organization", isAuthenticated(getOrgIdFromRequestBody(isOrgOwner(s.psqlClient, handleUpdateOrganization(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
 	r.Handle("/api/organization", isAuthenticated(getOrgIdFromRequestBody(isOrgOwner(s.psqlClient, handleDeleteOrganization(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("DELETE").Headers("Content-Type", "application/json")
 	r.Handle("/api/organization/{orgId}/members", isAuthenticated(handleGetOrganizationMembers(s.logger, s.psqlClient), s.logger)).Methods("GET")
-	r.Handle("/api/organization/{orgId}/membership", isAuthenticated(handleLeaveOrganization(s.logger, s.psqlClient), s.logger)).Methods("DELETE").Headers("Content-Type", "application/json")
+	r.Handle("/api/organization/{orgId}/membership", isAuthenticated(handleLeaveOrganization(s.logger, s.psqlClient), s.logger)).Methods("DELETE")
 
 	// Membership
 	r.Handle("/api/membership", isAuthenticated(handleGetMembershipsForUser(s.logger, s.psqlClient), s.logger)).Methods("GET")
