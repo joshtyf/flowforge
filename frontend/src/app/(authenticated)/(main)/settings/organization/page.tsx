@@ -24,7 +24,6 @@ export default function OrganizationSettingsPage() {
           </div>
           <Separator className="w-full my-4" />
           <MembershipSection organizationId={organizationId} />
-          <Separator className="w-full my-2" />
         </>
       ) : (
         <div>
