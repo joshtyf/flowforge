@@ -9,7 +9,7 @@ import MemberActionAlertDialog from "./member-action-alert-dialog"
 import { UserInfo } from "@/types/user-profile"
 import { useState } from "react"
 import { Role } from "@/types/membership"
-import { transferOwnership } from "@/lib/service"
+import { removeMember, transferOwnership } from "@/lib/service"
 import { toast } from "@/components/ui/use-toast"
 
 interface MemberActionsProps {
@@ -102,7 +102,26 @@ export default function MemberActions({
       <MemberActionAlertDialog
         open={openRemoveFromOrgDialog}
         setOpen={setOpenRemoveFromOrgDialog}
-        onConfirm={async () => {}}
+        onConfirm={async () => {
+          await removeMember(member.user_id, organizationId, member.role!)
+            .then(() => {
+              toast({
+                title: "Remove Member Successful",
+                description: `${member.name} has been removed from the organization.`,
+                variant: "success",
+              })
+              refetchMembers()
+            })
+            .catch((err) => {
+              toast({
+                title: "Remove Member Failure",
+                description: `Error removing ${member.name} from the organization. Please try again later.`,
+                variant: "destructive",
+              })
+              console.error(err)
+            })
+          return
+        }}
         title={`Remove ${member.name} from organization?`}
       />
       <MemberActionAlertDialog

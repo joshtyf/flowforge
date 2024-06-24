@@ -222,11 +222,12 @@ export async function demotetoMember(userId: string, orgId: number) {
   })
 }
 
-export async function removeMembership(userId: string, orgId: number) {
+export async function removeMember(userId: string, orgId: number, role: Role) {
   return apiClient.delete(`/membership`, {
     data: {
       user_id: userId,
       org_id: orgId,
+      role: role,
     },
   })
 }
