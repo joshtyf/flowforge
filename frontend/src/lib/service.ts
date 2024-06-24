@@ -206,7 +206,7 @@ export async function createMembershipForOrg(
     .then((res) => res.data)
 }
 
-export async function promotetoAdmin(userId: string, orgId: number) {
+export async function promoteToAdmin(userId: string, orgId: number) {
   return apiClient.patch(`/membership`, {
     user_id: userId,
     org_id: orgId,
@@ -214,7 +214,7 @@ export async function promotetoAdmin(userId: string, orgId: number) {
   })
 }
 
-export async function demotetoMember(userId: string, orgId: number) {
+export async function demoteToMember(userId: string, orgId: number) {
   return apiClient.patch(`/membership`, {
     user_id: userId,
     org_id: orgId,

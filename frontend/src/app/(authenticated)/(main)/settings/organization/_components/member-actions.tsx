@@ -9,7 +9,12 @@ import MemberActionAlertDialog from "./member-action-alert-dialog"
 import { UserInfo } from "@/types/user-profile"
 import { useState } from "react"
 import { Role } from "@/types/membership"
-import { removeMember, transferOwnership } from "@/lib/service"
+import {
+  demoteToMember,
+  promoteToAdmin,
+  removeMember,
+  transferOwnership,
+} from "@/lib/service"
 import { toast } from "@/components/ui/use-toast"
 
 interface MemberActionsProps {
@@ -90,13 +95,51 @@ export default function MemberActions({
       <MemberActionAlertDialog
         open={openPromoteToAdminDialog}
         setOpen={setOpenPromoteToAdminDialog}
-        onConfirm={async () => {}}
+        onConfirm={async () => {
+          await promoteToAdmin(member.user_id, organizationId)
+            .then(() => {
+              toast({
+                title: "Promote Successful",
+                description: `${member.name} has been promoted to Admin.`,
+                variant: "success",
+              })
+              refetchMembers()
+            })
+            .catch((err) => {
+              toast({
+                title: "Promote Failure",
+                description: `Error promoting ${member.name} to Admin. Please try again later.`,
+                variant: "destructive",
+              })
+              console.error(err)
+            })
+          return
+        }}
         title={`Promote ${member.name} to Admin?`}
       />
       <MemberActionAlertDialog
         open={openDemoteToMemberDialog}
         setOpen={setOpenDemoteToMemberDialog}
-        onConfirm={async () => {}}
+        onConfirm={async () => {
+          await demoteToMember(member.user_id, organizationId)
+            .then(() => {
+              toast({
+                title: "Demote Successful",
+                description: `${member.name} has been demoted to Member.`,
+                variant: "success",
+              })
+              refetchMembers()
+            })
+            .catch((err) => {
+              toast({
+                title: "Demote Failure",
+                description: `Error demoting ${member.name} to Member. Please try again later.`,
+                variant: "destructive",
+              })
+              console.error(err)
+            })
+          return
+        }}
         title={`Demote ${member.name} to Member?`}
       />
       <MemberActionAlertDialog
