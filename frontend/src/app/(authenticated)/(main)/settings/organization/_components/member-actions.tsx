@@ -82,25 +82,25 @@ export default function MemberActions({
       <MemberActionAlertDialog
         open={openPromoteToAdminDialog}
         setOpen={setOpenPromoteToAdminDialog}
-        onConfirm={() => {}}
+        onConfirm={async () => {}}
         title={`Promote ${member.name} to Admin?`}
       />
       <MemberActionAlertDialog
         open={openDemoteToMemberDialog}
         setOpen={setOpenDemoteToMemberDialog}
-        onConfirm={() => {}}
+        onConfirm={async () => {}}
         title={`Demote ${member.name} to Member?`}
       />
       <MemberActionAlertDialog
         open={openRemoveFromOrgDialog}
         setOpen={setOpenRemoveFromOrgDialog}
-        onConfirm={() => {}}
+        onConfirm={async () => {}}
         title={`Remove ${member.name} from organization?`}
       />
       <MemberActionAlertDialog
         open={openTransferOwnershipDialog}
         setOpen={setOpenTransferOwnershipDialog}
-        onConfirm={() => {}}
+        onConfirm={async () => {}}
         title={`Transfer ownership of organization to ${member.name}?`}
       />
     </DropdownMenu>

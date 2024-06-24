@@ -55,7 +55,7 @@ export default function MembershipSection({
             Add Member
           </Button>
         </AddMemberDialog>
-        <LeaveOrganizationDialog onConfirm={() => {}} isOwner={isOwner}>
+        <LeaveOrganizationDialog onConfirm={async () => {}} isOwner={isOwner}>
           <Button
             className={!isAdmin ? "ml-auto" : "ml-3"}
             variant={"destructive"}

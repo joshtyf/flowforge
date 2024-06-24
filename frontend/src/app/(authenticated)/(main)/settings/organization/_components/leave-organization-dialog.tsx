@@ -10,10 +10,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { buttonVariants } from "@/components/ui/button"
+import { Loader2 } from "lucide-react"
+import { useState } from "react"
 
 interface LeaveOrganizationDialogProps {
   children: React.ReactNode
-  onConfirm: () => void
+  onConfirm: () => Promise<void>
   isOwner?: boolean
 }
 
@@ -22,6 +24,7 @@ export default function LeaveOrganizationDialog({
   onConfirm,
   isOwner,
 }: LeaveOrganizationDialogProps) {
+  const [isLoading, setIsLoading] = useState(false)
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
@@ -43,10 +46,14 @@ export default function LeaveOrganizationDialog({
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            onClick={onConfirm}
+            onClick={() => {
+              setIsLoading(true)
+              onConfirm().finally(() => setIsLoading(false))
+            }}
             className={buttonVariants({ variant: "destructive" })}
-            disabled={isOwner}
+            disabled={isOwner || isLoading}
           >
+            {isLoading && <Loader2 className={"animate-spin mr-2"} />}
             Leave
           </AlertDialogAction>
         </AlertDialogFooter>

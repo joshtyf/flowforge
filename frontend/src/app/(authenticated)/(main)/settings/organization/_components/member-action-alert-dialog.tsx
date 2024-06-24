@@ -10,11 +10,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { Loader2 } from "lucide-react"
+import { useState } from "react"
 
 interface MemberActionAlertDialogProps {
   open: boolean
   setOpen: React.Dispatch<React.SetStateAction<boolean>>
-  onConfirm: () => void
+  onConfirm: () => Promise<void>
   title: string
 }
 
@@ -24,6 +26,8 @@ export default function MemberActionAlertDialog({
   onConfirm,
   title,
 }: MemberActionAlertDialogProps) {
+  const [isLoading, setIsLoading] = useState(false)
+
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogContent>
@@ -35,7 +39,17 @@ export default function MemberActionAlertDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>Confirm</AlertDialogAction>
+          <AlertDialogAction
+            onClick={() => {
+              setIsLoading(true)
+              onConfirm().finally(() => setIsLoading(false))
+            }}
+            disabled={isLoading}
+          >
+            {" "}
+            {isLoading && <Loader2 className={"animate-spin mr-2"} />}
+            LeaveConfirm
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
