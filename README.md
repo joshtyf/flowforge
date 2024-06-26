@@ -108,6 +108,35 @@ https://github.com/joshtyf/flowforge/assets/51166055/45fd31b9-76b2-4fa3-a97f-b5f
 - **Detailed Logging**: View detailed logs of each step in the service request
 - **Organisation based access control**: Grant access to service requests based on the user's organisation membership
 
+## Organization and Membership
+
+As mentioned under Features, Flowforge provides organizational based access control for pipelines and service requests. As such, users will need to be in an organization to access respective features in Flowforge. Users can either create an organization in `/organization` page, or be added into an existing organization.
+
+Memberships in the organization comes with these 3 roles in descending order of authority: **Owner**, **Admin** and **Member**. Each role comes with access to the following features:
+
+### Owner
+
+- Change organization name
+- Transfer ownership of organization
+
+### Admin
+
+- Add member to organization as `Member` or `Admin`
+- Remove member from organization
+- Promote member from `Member` to `Admin`
+- Demote member from `Admin` to `Member`
+- Access to _Create Service_ feature
+- Access to _Admin Service Request Dashboard_ page
+
+### Member
+
+- View members in organization and their respective roles
+- Leave organization
+- Access to _Service Catalog_ page
+- Access to _Your Service Request Dashboard_ page
+
+> Do note that roles with higher authority levels will also have access to those at lower levels.
+
 ## Development
 
 For the development guide, please refer to the respective frontend and backend development guides in [docs/](./docs/).
