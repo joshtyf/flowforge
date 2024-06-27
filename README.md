@@ -126,32 +126,7 @@ https://github.com/joshtyf/flowforge/assets/51166055/1489e83f-5832-4593-b09f-2b9
 
 ## Organization and Membership
 
-As mentioned under Features, Flowforge provides organizational based access control for pipelines and service requests. As such, users will need to be in an organization to access respective features in Flowforge. Users can either create an organization in `/organization` page, or be added into an existing organization.
-
-Memberships in the organization comes with these 3 roles in descending order of authority: **Owner**, **Admin** and **Member**. Each role comes with access to the following features:
-
-### Owner
-
-- Change organization name
-- Transfer ownership of organization
-
-### Admin
-
-- Add member to organization as `Member` or `Admin`
-- Remove member from organization
-- Promote member from `Member` to `Admin`
-- Demote member from `Admin` to `Member`
-- Access to _Create Service_ feature
-- Access to _Admin Service Request Dashboard_ page
-
-### Member
-
-- View members in organization and their respective roles
-- Leave organization
-- Access to _Service Catalog_ page
-- Access to _Your Service Request Dashboard_ page
-
-> Do note that roles with higher authority levels will also have access to those at lower levels.
+Flowforge provides organizational based access control for pipelines and service requests. Users can create or join organizations to access features. There are three roles: Owner, Admin, and Member. Each role has different levels of authority and access to features. Members can access the service catalog and request for services. Admins can additionally manage members, create services, and access the admin dashboard to approve or reject requests. Owners have full control over the organization and can manage admins and members.
 
 ## Development
 
