@@ -90,13 +90,17 @@ This is the form schema:
 
 **Video Demos**
 
-[`./docs/assets/Login to Create Service to Create SR to Approve SR.mp4`](./docs/assets/Login%20to%20Create%20Service%20to%20Create%20SR%20to%20Approve%20SR.mp4)
+[`docs/assets/1. Login, New User, New Org.mp4`](./docs/assets/1.%20Login,%20New%20User,%20New%20Org.mp4)
 
-https://github.com/joshtyf/flowforge/assets/51166055/832586d3-c148-438c-8a09-d2b3318290e3
+[`/docs/assets/2. Create Service, Create Request, View Service Request Info.mp4`](./docs/assets/2.%20Create%20Service,%20Create%20Request,%20View%20Service%20Request%20Info.mp4)
 
-[`./docs/assets/Reject SR.mp4`](./docs/assets/Reject%20SR.mp4)
+[`docs/assets/3. Start Service Request, View Logs.mp4`](./docs/assets/3.%20Start%20Service%20Request,%20View%20Logs.mp4)
 
-https://github.com/joshtyf/flowforge/assets/51166055/45fd31b9-76b2-4fa3-a97f-b5fcabb08156
+[`docs/assets/4. Approve Service Request.mp4`](./docs/assets/4.%20Approve%20Service%20Request.mp4)
+
+[`docs/assets/5. Reject Service Request.mp4`](./docs/assets/5.%20Reject%20Service%20Request.mp4)
+
+[`docs/assets/6. Cancel Service Request.mp4`](./docs/assets/6.%20Cancel%20Service%20Request.mp4)
 
 ## Features
 
