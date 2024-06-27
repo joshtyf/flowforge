@@ -73,7 +73,7 @@ export function CurrentUserInfoContextProvider({
           description: (
             <p>
               You are able to access Flowforge features now. Welcome{" "}
-              <strong>name</strong>!
+              <strong>{username}</strong>!
             </p>
           ),
         })
