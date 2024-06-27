@@ -39,7 +39,8 @@ var (
 									INNER JOIN public."membership" m
 									ON o.org_id = m.org_id
 									WHERE user_id = $1
-									AND o.deleted = false`
+									AND o.deleted = false
+									AND m.deleted = false`
 
 	SelectOrganizationByOrgIdAndOwnerStatement = `SELECT * FROM public."organization"
 													WHERE org_id = $1

@@ -91,6 +91,7 @@ export const orgServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
                   title: "Approve Service Request Successful",
                   description:
                     "Please check the dashboard for the updated status of the Service Request.",
+                  variant: "success",
                 })
               })
               .catch((error) => {
@@ -110,6 +111,7 @@ export const orgServiceRequestColumns: ColumnDef<ServiceRequest>[] = [
                   title: "Reject Service Request Successful",
                   description:
                     "Please check the dashboard for the updated status of the Service Request.",
+                  variant: "success",
                 })
               })
               .catch((error) => {

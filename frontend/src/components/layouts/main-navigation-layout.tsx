@@ -2,33 +2,25 @@
 
 import Navbar from "@/components/layouts/navbar"
 import Sidebar from "@/components/layouts/sidebar"
-import { getUserProfile } from "@/lib/auth0"
-import { Auth0UserProfile } from "@/types/user-profile"
-import { getCookie } from "cookies-next"
-import { ReactNode, useEffect, useState } from "react"
+import { useCurrentUserInfo } from "@/contexts/current-user-info-context"
+import { ReactNode, useState } from "react"
 
 interface MainNavigationLayoutProps {
   children: ReactNode
-  name?: string
+  enableOrgName?: boolean
 }
 
 export default function MainNavigationLayout({
   children,
-  name,
+  enableOrgName = true,
 }: MainNavigationLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const toggleSidebar = () => {
     setIsSidebarOpen((isSidebarOpen) => !isSidebarOpen)
   }
 
-  const [userProfile, setUserProfile] = useState<Auth0UserProfile>()
-  useEffect(() => {
-    getUserProfile(getCookie("access_token") as string)
-      .then((userProfile) => setUserProfile(userProfile))
-      .catch((error) => {
-        console.log(error)
-      })
-  }, [])
+  const userInfo = useCurrentUserInfo()
+
   return (
     <div
       className="flex flex-row w-full min-h-[100vh]"
@@ -37,12 +29,13 @@ export default function MainNavigationLayout({
       <Sidebar
         className={` ${isSidebarOpen ? "min-w-[300px] w-[300px]" : "min-w-0 w-0"} overflow-x-hidden transition-width duration-300 ease-in-out`}
       />
-      <div className="w-full">
+      <div className="w-full h-full">
         <Navbar
           toggleSidebar={toggleSidebar}
-          username={userProfile?.nickname ?? ""}
+          username={userInfo?.name ?? ""}
+          enableOrgName={enableOrgName}
         />
-        <div className="w-full h-full max-h-[90vh] flex justify-center items-center flex-col relative">
+        <div className="w-full h-full flex justify-center items-center flex-col relative">
           <div className="w-5/6 h-full relative">{children}</div>
         </div>
       </div>

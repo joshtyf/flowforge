@@ -21,7 +21,10 @@ export default function OrganizationsPage() {
   const router = useRouter()
   return (
     <div className="mt-20 flex flex-col justify-center items-center">
-      <p className="mb-8 text-2xl">Your Organizations</p>
+      <p className="mb-4 text-2xl">Your Organizations</p>
+      <p className="mb-4 text-gray-400">
+        Please select an organization to access Flowforge features.
+      </p>
       {orgsLoading ? (
         <div className="space-y-4 w-2/5">
           <Skeleton className={"h-12 rounded-md"} />

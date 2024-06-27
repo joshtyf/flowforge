@@ -46,6 +46,19 @@ const UserActionsDropdown = ({ username }: UserActionsDropdownProps) => {
       <DropdownMenuContent>
         <DropdownMenuGroup>
           <DropdownMenuItem className={"cursor-pointer hover:bg-muted"}>
+            <Link href="/settings">
+              <Button
+                variant="ghost"
+                className="hover:text-primary hover:bg-transparent"
+              >
+                Settings
+              </Button>
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem className={"cursor-pointer hover:bg-muted"}>
             <Link href="/organization">
               <Button
                 variant="ghost"

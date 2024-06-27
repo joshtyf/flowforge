@@ -14,7 +14,7 @@ const useServiceRequestSteps = ({
     queryKey: ["pipelines"],
     queryFn: () =>
       getServiceRequestSteps(serviceRequestId).catch((err) => {
-        console.log(err)
+        console.error(err)
         toast({
           title: "Fetching Services Error",
           description: "Failed to fetch the services. Please try again later.",

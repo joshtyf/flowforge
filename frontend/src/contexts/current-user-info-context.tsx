@@ -41,7 +41,7 @@ export function CurrentUserInfoContextProvider({
   const [userInfo, setUserInfo] = useState<UserInfo>()
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [loadingCreateUser, setLoadingCreateUser] = useState(false)
-  console.log(userInfo)
+
   useEffect(() => {
     login()
       .then((res) => setUserInfo(res))
@@ -73,7 +73,7 @@ export function CurrentUserInfoContextProvider({
           description: (
             <p>
               You are able to access Flowforge features now. Welcome{" "}
-              <strong>name</strong>!
+              <strong>{username}</strong>!
             </p>
           ),
         })

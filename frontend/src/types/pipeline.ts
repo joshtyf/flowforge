@@ -31,7 +31,7 @@ enum StepStatus {
   STEP_NOT_STARTED = "Not Started",
   STEP_RUNNING = "Running",
   STEP_FAILED = "Failed",
-  STEP_CANCELLED = "Canceled",
+  STEP_CANCELLED = "Cancelled",
   STEP_COMPLETED = "Completed",
 }
 

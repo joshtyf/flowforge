@@ -18,7 +18,7 @@ const useServiceRequestDTO = ({
     getServiceRequestDTO(serviceRequestId)
       .then(setServiceRequest)
       .catch((err) => {
-        console.log(err)
+        console.error(err)
         toast({
           title: "Fetching Service Request Error",
           description: `Failed to fetch Service Request Info. Please try again later.`,

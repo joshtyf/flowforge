@@ -8,7 +8,6 @@ export default function LoginPage() {
       <Link href={getAuth0AuthorizeLink()}>
         <Button>Login</Button>
       </Link>
-      <Button>Sign up</Button> {/* TODO: add sign up functionality */}
     </div>
   )
 }

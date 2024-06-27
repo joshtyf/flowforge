@@ -7,7 +7,7 @@ import {
 } from "@/types/service-request"
 import { UserInfo } from "@/types/user-profile"
 import apiClient from "./apiClient"
-import { UserMemberships } from "@/types/membership"
+import { Role, UserMemberships } from "@/types/membership"
 
 /* Pipeline */
 
@@ -174,12 +174,74 @@ export async function createOrg(orgName: string) {
     .then((res) => res.data)
 }
 
-export async function getUserById(userId: string): Promise<UserInfo> {
-  return apiClient.get(`/user/${userId}`).then((res) => res.data)
+export async function updateOrgName(orgId: number, orgName: string) {
+  return apiClient
+    .patch("/organization", { org_id: orgId, name: orgName })
+    .then((res) => res.data)
 }
+
+export async function getMembersForOrg(orgId: number) {
+  return apiClient.get(`/organization/${orgId}/members`).then((res) => res.data)
+}
+
+export async function leaveOrganization(orgId: number) {
+  return apiClient
+    .delete(`/organization/${orgId}/membership`)
+    .then((res) => res.data)
+}
+
+/* Membership */
 
 export async function getUserMemberships(): Promise<UserMemberships> {
   return apiClient.get(`/membership`).then((res) => res.data)
+}
+
+export async function createMembershipForOrg(
+  userId: string,
+  orgId: number,
+  role: Role
+) {
+  return apiClient
+    .post(`/membership`, { user_id: userId, org_id: orgId, role })
+    .then((res) => res.data)
+}
+
+export async function promoteToAdmin(userId: string, orgId: number) {
+  return apiClient.patch(`/membership`, {
+    user_id: userId,
+    org_id: orgId,
+    role: Role.Admin,
+  })
+}
+
+export async function demoteToMember(userId: string, orgId: number) {
+  return apiClient.patch(`/membership`, {
+    user_id: userId,
+    org_id: orgId,
+    role: Role.Member,
+  })
+}
+
+export async function removeMember(userId: string, orgId: number, role: Role) {
+  return apiClient.delete(`/membership`, {
+    data: {
+      user_id: userId,
+      org_id: orgId,
+      role: role,
+    },
+  })
+}
+
+export async function transferOwnership(userId: string, orgId: number) {
+  return apiClient
+    .post(`/membership/ownership_transfer`, { user_id: userId, org_id: orgId })
+    .then((res) => res.data)
+}
+
+/* User */
+
+export async function getUserById(userId: string): Promise<UserInfo> {
+  return apiClient.get(`/user/${userId}`).then((res) => res.data)
 }
 
 export async function login(): Promise<UserInfo> {
@@ -188,4 +250,8 @@ export async function login(): Promise<UserInfo> {
 
 export async function createUser(name: string): Promise<UserInfo> {
   return apiClient.post("/user", { name }).then((res) => res.data)
+}
+
+export async function getAllUsers() {
+  return apiClient.get("/user").then((res) => res.data)
 }

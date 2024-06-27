@@ -328,7 +328,7 @@ func handleCancelServiceRequest(logger logger.ServerLogger, client *mongo.Client
 			// Log step cancelled event
 			serviceRequestEvent := database.NewServiceRequestEvent(psqlClient)
 			err = serviceRequestEvent.Create(&models.ServiceRequestEventModel{
-				EventType:        models.STEP_COMPLETED,
+				EventType:        models.STEP_CANCELLED,
 				ServiceRequestId: sr.Id.Hex(),
 				StepName:         sre.StepName,
 				CreatedBy:        userId,
