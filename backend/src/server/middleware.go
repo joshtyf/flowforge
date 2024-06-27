@@ -303,17 +303,19 @@ func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger 
 			return
 		}
 
-		err = models.ValidateRole(targetMembership.Role)
-		if err != nil {
-			logger.Error("unable to add/update membership as role is invalid")
-			encode(w, r, http.StatusBadRequest, newHandlerError(err, http.StatusBadRequest))
-			return
-		}
+		if r.Method != http.MethodDelete {
+			err = models.ValidateRole(targetMembership.Role)
+			if err != nil {
+				logger.Error("unable to add/update membership as role is invalid")
+				encode(w, r, http.StatusBadRequest, newHandlerError(err, http.StatusBadRequest))
+				return
+			}
 
-		if targetMembership.Role == models.Owner {
-			logger.Error("unable to grant/delete ownership")
-			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnableModifyOwnership, http.StatusForbidden))
-			return
+			if targetMembership.Role == models.Owner {
+				logger.Error("unable to grant/delete ownership")
+				encode(w, r, http.StatusForbidden, newHandlerError(ErrUnableModifyOwnership, http.StatusForbidden))
+				return
+			}
 		}
 
 		targetExistingMembership, err := database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(targetMembership.UserId, targetMembership.OrgId)
