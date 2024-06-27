@@ -92,15 +92,27 @@ This is the form schema:
 
 [`docs/assets/1. Login, New User, New Org.mp4`](./docs/assets/1.%20Login,%20New%20User,%20New%20Org.mp4)
 
+https://github.com/joshtyf/flowforge/assets/51166055/1f964ee7-98b3-4614-9277-3c17e56d6f6b
+
 [`/docs/assets/2. Create Service, Create Request, View Service Request Info.mp4`](./docs/assets/2.%20Create%20Service,%20Create%20Request,%20View%20Service%20Request%20Info.mp4)
+
+https://github.com/joshtyf/flowforge/assets/51166055/2f8b2827-d7c9-418b-bc36-b31f5505ce85
 
 [`docs/assets/3. Start Service Request, View Logs.mp4`](./docs/assets/3.%20Start%20Service%20Request,%20View%20Logs.mp4)
 
+https://github.com/joshtyf/flowforge/assets/51166055/7d5fcef6-f635-4d2c-ab0e-9091c9f269d2
+
 [`docs/assets/4. Approve Service Request.mp4`](./docs/assets/4.%20Approve%20Service%20Request.mp4)
+
+https://github.com/joshtyf/flowforge/assets/51166055/368e4d1e-ddeb-4749-847d-ac4b1de01951
 
 [`docs/assets/5. Reject Service Request.mp4`](./docs/assets/5.%20Reject%20Service%20Request.mp4)
 
+https://github.com/joshtyf/flowforge/assets/51166055/82dcb17e-726b-4161-bc69-e70e3da37c12
+
 [`docs/assets/6. Cancel Service Request.mp4`](./docs/assets/6.%20Cancel%20Service%20Request.mp4)
+
+https://github.com/joshtyf/flowforge/assets/51166055/1489e83f-5832-4593-b09f-2b981eab38a6
 
 ## Features
 
