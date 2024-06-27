@@ -280,7 +280,7 @@ func getOrgIdUsingSrId(mongoClient *mongo.Client, next http.Handler, logger logg
 	})
 }
 
-func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
+func validateMembershipChangeRequest(postgresClient *sql.DB, next http.Handler, logger logger.ServerLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		org_id := r.Context().Value(util.OrgContextKey{}).(int)
 		requestorMembership, err := getMembership(org_id, postgresClient, r)
@@ -303,21 +303,6 @@ func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger 
 			return
 		}
 
-		if r.Method != http.MethodDelete {
-			err = models.ValidateRole(targetMembership.Role)
-			if err != nil {
-				logger.Error("unable to add/update membership as role is invalid")
-				encode(w, r, http.StatusBadRequest, newHandlerError(err, http.StatusBadRequest))
-				return
-			}
-
-			if targetMembership.Role == models.Owner {
-				logger.Error("unable to grant/delete ownership")
-				encode(w, r, http.StatusForbidden, newHandlerError(ErrUnableModifyOwnership, http.StatusForbidden))
-				return
-			}
-		}
-
 		targetExistingMembership, err := database.NewMembership(postgresClient).GetMembershipByUserAndOrgId(targetMembership.UserId, targetMembership.OrgId)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			logger.Error(fmt.Sprintf("unable to verify subject role: %s", err))
@@ -330,6 +315,33 @@ func validateMembershipChange(postgresClient *sql.DB, next http.Handler, logger 
 			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnauthorised, http.StatusForbidden))
 			return
 		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func validateTargetMembershipRoleGranted(next http.Handler, logger logger.ServerLogger) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		targetMembership, err := decode[models.MembershipModel](r)
+		if err != nil {
+			logger.Error(fmt.Sprintf("failed to parse json request body: %s", err))
+			encode(w, r, http.StatusBadRequest, newHandlerError(ErrJsonParseError, http.StatusBadRequest))
+			return
+		}
+
+		err = models.ValidateRole(targetMembership.Role)
+		if err != nil {
+			logger.Error("unable to add/update membership as role is invalid")
+			encode(w, r, http.StatusBadRequest, newHandlerError(err, http.StatusBadRequest))
+			return
+		}
+
+		if targetMembership.Role == models.Owner {
+			logger.Error("unable to grant ownership")
+			encode(w, r, http.StatusForbidden, newHandlerError(ErrUnableModifyOwnership, http.StatusForbidden))
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }

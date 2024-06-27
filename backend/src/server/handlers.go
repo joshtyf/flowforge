@@ -85,9 +85,9 @@ func (s *ServerHandler) registerRoutes(r *mux.Router) {
 
 	// Membership
 	r.Handle("/api/membership", isAuthenticated(handleGetMembershipsForUser(s.logger, s.psqlClient), s.logger)).Methods("GET")
-	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgAdmin(s.psqlClient, handleCreateMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
-	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgAdmin(s.psqlClient, handleUpdateMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
-	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChange(s.psqlClient, isOrgAdmin(s.psqlClient, handleDeleteMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger)).Methods("DELETE").Headers("Content-Type", "application/json")
+	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChangeRequest(s.psqlClient, isOrgAdmin(s.psqlClient, validateTargetMembershipRoleGranted(handleCreateMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
+	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChangeRequest(s.psqlClient, isOrgAdmin(s.psqlClient, validateTargetMembershipRoleGranted(handleUpdateMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger), s.logger)).Methods("PATCH").Headers("Content-Type", "application/json")
+	r.Handle("/api/membership", isAuthenticated(getOrgIdFromRequestBody(validateMembershipChangeRequest(s.psqlClient, isOrgAdmin(s.psqlClient, handleDeleteMembership(s.logger, s.psqlClient), s.logger), s.logger), s.logger), s.logger)).Methods("DELETE").Headers("Content-Type", "application/json")
 	r.Handle("/api/membership/ownership_transfer", isAuthenticated(getOrgIdFromRequestBody(isOrgOwner(s.psqlClient, handleOwnershipTransfer(s.logger, s.psqlClient), s.logger), s.logger), s.logger)).Methods("POST").Headers("Content-Type", "application/json")
 }
 
