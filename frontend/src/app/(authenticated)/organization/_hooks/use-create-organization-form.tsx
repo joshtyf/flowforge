@@ -42,7 +42,7 @@ export default function useCreateOrganizationForm({
           title: "Organization Creation Successful",
           description: (
             <p>
-              Check the new organization <i>{name}</i> under{" "}
+              Check the new organization "<strong>{name}</strong>" under{" "}
               <strong>Your Organizations</strong>.
             </p>
           ),
