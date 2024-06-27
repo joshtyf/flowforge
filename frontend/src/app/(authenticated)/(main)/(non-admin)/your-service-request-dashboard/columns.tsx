@@ -77,9 +77,10 @@ export const columns: ColumnDef<ServiceRequest>[] = [
             cancelServiceRequest(serviceRequestId)
               .then(() => {
                 toast({
-                  title: "Service Request Cancel Successful",
+                  title: "Cancel Service Request Successful",
                   description:
                     "Please check the dashboard for the updated status of the Service Request.",
+                  variant: "success",
                 })
               })
               .catch((error) => {
