@@ -11,16 +11,18 @@ Using Docker:
 
 Define the following environment variables in a `.env` file in the root directory:
 
-- `POSTGRES_PASSWORD`: The password for the postgres user
-- `MONGO_ROOT_PASSWORD`: The password for the root user in the mongo database
-- `MONGO_URI`: The URI for the mongo database
-- `POSTGRES_URI`: The URI for the postgres database
-- `ENV`: The environment the application is running in. Set to `dev` for development
-- `AUTH0_DOMAIN`: The domain for the Auth0 application
-- `AUTH0_AUDIENCE`: The audience for the Auth0 application
-- `MANAGEMENT_API_SECRET`: The secret for the Auth0 management API
-- `MANAGEMENT_API_CLIENT`: The client id for the Auth0 management API
-- `MANAGEMENT_API_AUDIENCE`: The audience for the Auth0 management API
+- `POSTGRES_PASSWORD`: The password for the postgres user.
+- `MONGO_ROOT_PASSWORD`: The password for the root user in the mongo database.
+- `MONGO_URI`: The URI for the mongo database.
+- `POSTGRES_URI`: The URI for the postgres database.
+- `ENV`: The environment the application is running in. Set to `dev` for development.
+- `AUTH0_DOMAIN`: The domain for the Auth0 application.
+- `AUTH0_AUDIENCE`: The audience for the Auth0 application.
+- `MANAGEMENT_API_SECRET`: The secret for the Auth0 management API.
+- `MANAGEMENT_API_CLIENT`: The client id for the Auth0 management API.
+- `MANAGEMENT_API_AUDIENCE`: The audience for the Auth0 management API.
+
+Ensure that you have provided environment variables for the frontend application in a `.env.local` file in the frontend directory. Check [docs/FRONTEND_DEV_GUIDE.md](./docs/FRONTEND_DEV_GUIDE.md) for more info.
 
 Then run the following command to start both the frontend and backend:
 

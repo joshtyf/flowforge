@@ -86,7 +86,7 @@ NEXT_PUBLIC_AUTH0_AUDIENCE=https://flowforge.com
 
 ## Credits
 
-Here is the list of libraries that the app uses:
+Here are the libraries that the frontend uses:
 
 - [NextJS 14](https://nextjs.org/blog/next-14)
 - [Radix UI](https://www.radix-ui.com/)
