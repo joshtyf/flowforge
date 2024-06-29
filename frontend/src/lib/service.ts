@@ -227,7 +227,6 @@ export async function removeMember(userId: string, orgId: number, role: Role) {
     data: {
       user_id: userId,
       org_id: orgId,
-      role: role,
     },
   })
 }
